@@ -1,0 +1,725 @@
+{
+  "numTotalTestSuites": 4,
+  "numPassedTestSuites": 4,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 52,
+  "numPassedTests": 52,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1792168782298,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 允许安全、已授权、同代际且未过期的合成帧",
+          "status": "passed",
+          "title": "允许安全、已授权、同代际且未过期的合成帧",
+          "duration": 2.911200000000008,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 缺少 system 门控时拒绝外发",
+          "status": "passed",
+          "title": "缺少 system 门控时拒绝外发",
+          "duration": 0.28470000000001505,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 缺少 purpose 门控时拒绝外发",
+          "status": "passed",
+          "title": "缺少 purpose 门控时拒绝外发",
+          "duration": 0.1869000000000085,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 缺少 session 门控时拒绝外发",
+          "status": "passed",
+          "title": "缺少 session 门控时拒绝外发",
+          "duration": 0.18819999999999482,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 缺少 destination 门控时拒绝外发",
+          "status": "passed",
+          "title": "缺少 destination 门控时拒绝外发",
+          "duration": 0.16550000000000864,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 缺少 generation 门控时拒绝外发",
+          "status": "passed",
+          "title": "缺少 generation 门控时拒绝外发",
+          "duration": 0.14470000000000027,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 帧时间边界 1501 产生 frame_expired",
+          "status": "passed",
+          "title": "帧时间边界 1501 产生 frame_expired",
+          "duration": 0.20189999999999486,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 帧时间边界 999 产生 future_frame",
+          "status": "passed",
+          "title": "帧时间边界 999 产生 future_frame",
+          "duration": 0.15039999999999054,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 检测器 failed 时保守暂停且标为未知",
+          "status": "passed",
+          "title": "检测器 failed 时保守暂停且标为未知",
+          "duration": 0.2038000000000011,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 检测器 timeout 时保守暂停且标为未知",
+          "status": "passed",
+          "title": "检测器 timeout 时保守暂停且标为未知",
+          "duration": 0.1891999999999996,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 检测器 unavailable 时保守暂停且标为未知",
+          "status": "passed",
+          "title": "检测器 unavailable 时保守暂停且标为未知",
+          "duration": 0.113900000000001,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 unknown page 不得凭猜测发送",
+          "status": "passed",
+          "title": "unknown page 不得凭猜测发送",
+          "duration": 0.13280000000000314,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 OCR failure 不得凭猜测发送",
+          "status": "passed",
+          "title": "OCR failure 不得凭猜测发送",
+          "duration": 0.09130000000001814,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 OCR timeout 不得凭猜测发送",
+          "status": "passed",
+          "title": "OCR timeout 不得凭猜测发送",
+          "duration": 0.07669999999998822,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 OCR unavailable 不得凭猜测发送",
+          "status": "passed",
+          "title": "OCR unavailable 不得凭猜测发送",
+          "duration": 0.07500000000001705,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 low confidence 不得凭猜测发送",
+          "status": "passed",
+          "title": "low confidence 不得凭猜测发送",
+          "duration": 0.07310000000001082,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 第三方人脸已可靠脱敏才允许继续走安全文字样例",
+          "status": "passed",
+          "title": "第三方人脸已可靠脱敏才允许继续走安全文字样例",
+          "duration": 0.1518000000000086,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 第三方人脸脱敏状态 not_required 时暂停",
+          "status": "passed",
+          "title": "第三方人脸脱敏状态 not_required 时暂停",
+          "duration": 0.12360000000001037,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 第三方人脸脱敏状态 failed 时暂停",
+          "status": "passed",
+          "title": "第三方人脸脱敏状态 failed 时暂停",
+          "duration": 0.0771000000000015,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 文本风险：支付和私人聊天同时出现 按保守优先级暂停",
+          "status": "passed",
+          "title": "文本风险：支付和私人聊天同时出现 按保守优先级暂停",
+          "duration": 0.16089999999999804,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 文本风险：私人内容 按保守优先级暂停",
+          "status": "passed",
+          "title": "文本风险：私人内容 按保守优先级暂停",
+          "duration": 0.194500000000005,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 文本风险：医疗决策 按保守优先级暂停",
+          "status": "passed",
+          "title": "文本风险：医疗决策 按保守优先级暂停",
+          "duration": 0.16259999999999764,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 文本风险：投资决策 按保守优先级暂停",
+          "status": "passed",
+          "title": "文本风险：投资决策 按保守优先级暂停",
+          "duration": 0.11659999999997694,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 空文本不能把 OCR 缺失伪装成安全",
+          "status": "passed",
+          "title": "空文本不能把 OCR 缺失伪装成安全",
+          "duration": 0.26730000000000587,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 本地逐帧风险门控"
+          ],
+          "fullName": "C03 本地逐帧风险门控 明确的固定 canary 文字可判为安全，但结果不带原文",
+          "status": "passed",
+          "title": "明确的固定 canary 文字可判为安全，但结果不带原文",
+          "duration": 0.25149999999999295,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 短时安全票据与停止竞态"
+          ],
+          "fullName": "C03 短时安全票据与停止竞态 安全结果才能签发绑定 frame hash、代际和策略版本的票据",
+          "status": "passed",
+          "title": "安全结果才能签发绑定 frame hash、代际和策略版本的票据",
+          "duration": 0.38990000000001146,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 短时安全票据与停止竞态"
+          ],
+          "fullName": "C03 短时安全票据与停止竞态 不安全条件 paused result 不签发票据",
+          "status": "passed",
+          "title": "不安全条件 paused result 不签发票据",
+          "duration": 0.07849999999999113,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 短时安全票据与停止竞态"
+          ],
+          "fullName": "C03 短时安全票据与停止竞态 不安全条件 empty id 不签发票据",
+          "status": "passed",
+          "title": "不安全条件 empty id 不签发票据",
+          "duration": 0.07050000000000978,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 短时安全票据与停止竞态"
+          ],
+          "fullName": "C03 短时安全票据与停止竞态 不安全条件 long ttl 不签发票据",
+          "status": "passed",
+          "title": "不安全条件 long ttl 不签发票据",
+          "duration": 0.037900000000007594,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 短时安全票据与停止竞态"
+          ],
+          "fullName": "C03 短时安全票据与停止竞态 篡改 frame、hash、策略、代际、目的地或票据时间都拒绝",
+          "status": "passed",
+          "title": "篡改 frame、hash、策略、代际、目的地或票据时间都拒绝",
+          "duration": 0.2365000000000066,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 短时安全票据与停止竞态"
+          ],
+          "fullName": "C03 短时安全票据与停止竞态 输入帧变化后旧票据不能用于新内容",
+          "status": "passed",
+          "title": "输入帧变化后旧票据不能用于新内容",
+          "duration": 0.16220000000001278,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 短时安全票据与停止竞态"
+          ],
+          "fullName": "C03 短时安全票据与停止竞态 停止时关闭门控并递增代际，所有旧票据失效",
+          "status": "passed",
+          "title": "停止时关闭门控并递增代际，所有旧票据失效",
+          "duration": 0.2650999999999897,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 短时安全票据与停止竞态"
+          ],
+          "fullName": "C03 短时安全票据与停止竞态 重新授权需要明确的同代际上下文，不能自动恢复",
+          "status": "passed",
+          "title": "重新授权需要明确的同代际上下文，不能自动恢复",
+          "duration": 0.12450000000001182,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形帧只得到 deny，不抛出或放宽",
+          "status": "passed",
+          "title": "畸形帧只得到 deny，不抛出或放宽",
+          "duration": 0.091700000000003,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形帧只得到 deny，不抛出或放宽",
+          "status": "passed",
+          "title": "畸形帧只得到 deny，不抛出或放宽",
+          "duration": 0.050399999999996226,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形帧只得到 deny，不抛出或放宽",
+          "status": "passed",
+          "title": "畸形帧只得到 deny，不抛出或放宽",
+          "duration": 0.060000000000002274,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形帧只得到 deny，不抛出或放宽",
+          "status": "passed",
+          "title": "畸形帧只得到 deny，不抛出或放宽",
+          "duration": 0.04680000000001883,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形帧只得到 deny，不抛出或放宽",
+          "status": "passed",
+          "title": "畸形帧只得到 deny，不抛出或放宽",
+          "duration": 0.052199999999999136,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形帧只得到 deny，不抛出或放宽",
+          "status": "passed",
+          "title": "畸形帧只得到 deny，不抛出或放宽",
+          "duration": 0.05379999999999541,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形帧只得到 deny，不抛出或放宽",
+          "status": "passed",
+          "title": "畸形帧只得到 deny，不抛出或放宽",
+          "duration": 0.048900000000003274,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形帧只得到 deny，不抛出或放宽",
+          "status": "passed",
+          "title": "畸形帧只得到 deny，不抛出或放宽",
+          "duration": 0.04240000000001487,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形帧只得到 deny，不抛出或放宽",
+          "status": "passed",
+          "title": "畸形帧只得到 deny，不抛出或放宽",
+          "duration": 0.06120000000001369,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形上下文只得到 deny",
+          "status": "passed",
+          "title": "畸形上下文只得到 deny",
+          "duration": 0.073599999999999,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形上下文只得到 deny",
+          "status": "passed",
+          "title": "畸形上下文只得到 deny",
+          "duration": 0.04349999999999454,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形上下文只得到 deny",
+          "status": "passed",
+          "title": "畸形上下文只得到 deny",
+          "duration": 0.041299999999978354,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形上下文只得到 deny",
+          "status": "passed",
+          "title": "畸形上下文只得到 deny",
+          "duration": 0.0408999999999935,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形上下文只得到 deny",
+          "status": "passed",
+          "title": "畸形上下文只得到 deny",
+          "duration": 0.043299999999987904,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形上下文只得到 deny",
+          "status": "passed",
+          "title": "畸形上下文只得到 deny",
+          "duration": 0.050499999999999545,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形上下文只得到 deny",
+          "status": "passed",
+          "title": "畸形上下文只得到 deny",
+          "duration": 0.09789999999998145,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 畸形上下文只得到 deny",
+          "status": "passed",
+          "title": "畸形上下文只得到 deny",
+          "duration": 0.048299999999983356,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 无论安全结果如何，票据和决策都不包含原始 OCR 文本",
+          "status": "passed",
+          "title": "无论安全结果如何，票据和决策都不包含原始 OCR 文本",
+          "duration": 0.13479999999998427,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C03 严格输入与最小外发证明"
+          ],
+          "fullName": "C03 严格输入与最小外发证明 策略版本、目标授权和系统授权全部进入票据复核",
+          "status": "passed",
+          "title": "策略版本、目标授权和系统授权全部进入票据复核",
+          "duration": 0.11949999999998795,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        }
+      ],
+      "startTime": 1792168782796,
+      "endTime": 1792168782806.1348,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/33864/Desktop/nuanban/tests/privacy/c03-gate.test.ts"
+    }
+  ],
+  "generatedAt": "2026-10-16T16:39:43.019Z",
+  "generatedDate": "2026-10-17",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "C03 local frame privacy gate synthetic test report",
+  "testReport": "privacy-c03-results.json",
+  "limitations": [
+    "仅覆盖本地合成输入、授权/代际/时效门控和失败回退规则。",
+    "没有真实 OCR、人脸模型、设备帧、编码器、网络发送或独立隐私复核记录。"
+  ]
+}

@@ -1,0 +1,15 @@
+日期：2026-10-16（Asia/Shanghai）
+命令：pnpm build；pnpm desktop:package
+结果：Windows x64 Electron 开发目录包生成成功。
+
+ASAR 内容检查命令：
+pnpm exec asar list apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar
+
+已确认的主进程文件：
+- main.cjs
+- preload.cjs
+- reminder-store.cjs
+- notification-adapter.cjs
+- reminder-notification-bridge.cjs
+
+限制：这是未签名开发包内容检查；不证明 Windows Toast、系统权限、后台调度、退出/睡眠/重启投递或设备验收。

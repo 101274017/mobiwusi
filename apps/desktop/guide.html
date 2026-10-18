@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>暖伴外部软件指引</title>
+  <link rel="stylesheet" href="./guide.css">
+  <script defer src="./guide.js"></script>
+</head>
+<body>
+  <main id="guide-root" class="guide-root" aria-label="暖伴只读指引" hidden>
+    <div id="guide-target" class="guide-target" aria-hidden="true"></div>
+    <div id="guide-arrow" class="guide-arrow" aria-hidden="true"></div>
+    <section id="guide-callout" class="guide-callout" role="status" aria-live="polite">
+      <span id="guide-certainty" class="guide-certainty"></span>
+      <h1 id="guide-label"></h1>
+      <p id="guide-instruction"></p>
+      <p class="guide-reminder">请你亲手操作 · 暖暖不会替你点击</p>
+    </section>
+  </main>
+</body>
+</html>

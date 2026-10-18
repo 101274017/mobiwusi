@@ -1,0 +1,678 @@
+{
+  "generatedAt": "2026-10-17T15:40:08.969Z",
+  "scope": "F01-F24 development-only task matrix preflight",
+  "mode": "development_only",
+  "status": "development_ready",
+  "acceptance": "development_verified_formal_pending",
+  "success": true,
+  "fStarted": false,
+  "formalStatus": "blocked",
+  "developmentStatus": "verified",
+  "releaseStatus": "external_pending",
+  "development": {
+    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "eligible": true,
+    "gateEligible": true
+  },
+  "release": {
+    "verdict": "EXTERNAL_PENDING",
+    "ready": false,
+    "formalD07Go": false
+  },
+  "realNetworkEnabled": false,
+  "productionDataEnabled": false,
+  "dGate": {
+    "status": "blocked",
+    "acceptance": "preparatory_not_accepted",
+    "goNoGoEligible": false,
+    "eStarted": false,
+    "fStarted": false,
+    "developmentVerdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "releaseVerdict": "EXTERNAL_PENDING",
+    "preserved": true
+  },
+  "d07": {
+    "decisionPresent": true,
+    "decision": "go",
+    "formalGo": false,
+    "goGuardPassed": true
+  },
+  "matrix": {
+    "total": 24,
+    "early": 12,
+    "delivery": 12,
+    "complete": true
+  },
+  "tasks": [
+    {
+      "id": "F01",
+      "title": "共享前端真实双端联调",
+      "dependency": "AT-01～24/三场景；前置 E16/E22/E25：FS",
+      "owner": "F",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F01.md",
+        "docs/execution/checks/F01-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F02",
+      "title": "Android真实双端联调",
+      "dependency": "AT-01～24/三场景；前置 E16/E22/E25：FS",
+      "owner": "A",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F02.md",
+        "docs/execution/checks/F02-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F03",
+      "title": "Windows/图形真实双端联调",
+      "dependency": "AT-01～24/三场景；前置 E16/E22/E25：FS",
+      "owner": "W",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F03.md",
+        "docs/execution/checks/F03-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F04",
+      "title": "后端/运维真实双端联调",
+      "dependency": "AT-01～24/三场景；前置 E16/E22/E25：FS",
+      "owner": "B",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F04.md",
+        "docs/execution/checks/F04-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F05",
+      "title": "AI/媒体真实双端联调",
+      "dependency": "AT-01～24/三场景；前置 E16/E22/E25：FS",
+      "owner": "I",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F05.md",
+        "docs/execution/checks/F05-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F06",
+      "title": "测试/安全复核真实双端联调",
+      "dependency": "AT-01～24/三场景；前置 E16/E22/E25：FS",
+      "owner": "Q",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F06.md",
+        "docs/execution/checks/F06-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F07",
+      "title": "隐私/性能/长时/恢复测试",
+      "dependency": "AT-07/10～12/17/21～23；前置 F06：SS，F01～F05：SS",
+      "owner": "Q",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F07.md",
+        "docs/execution/checks/F07-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F08",
+      "title": "自动回归与工程候选验收",
+      "dependency": "AT-01～24；前置 F07：SS",
+      "owner": "Q",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F08.md",
+        "docs/execution/checks/F08-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F09",
+      "title": "试点工作流自动验证与真实观察状态",
+      "dependency": "AT-24/无障碍；前置 F08：SS/FF",
+      "owner": "Q",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F09.md",
+        "docs/execution/checks/F09-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F10",
+      "title": "培训/反馈流程与材料自动交付",
+      "dependency": "公益/亲情/培训；前置 E24：FS，F08：SS",
+      "owner": "P",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F10.md",
+        "docs/execution/checks/F10-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F11",
+      "title": "自动工程验收与交付",
+      "dependency": "全基线工程交付；前置 F08/F09/F24的development结果：FS或FF",
+      "owner": "P",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F11.md",
+        "docs/execution/checks/F11-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F12",
+      "title": "培训材料与试点体验修订",
+      "dependency": "无障碍/交付；前置 E21：FS，F10：SS",
+      "owner": "D",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F12.md",
+        "docs/execution/checks/F12-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-early.test.ts"
+      ],
+      "stage": "early",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F13",
+      "title": "答辩素材与演示包整理",
+      "dependency": "答辩；前置 F12：FS",
+      "owner": "D",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F13.md",
+        "docs/execution/checks/F13-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F14",
+      "title": "共享前端联调/试点缺陷修复",
+      "dependency": "F01～F09问题单；前置 F01～F06：SS",
+      "owner": "F",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F14.md",
+        "docs/execution/checks/F14-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F15",
+      "title": "Android联调/试点缺陷修复",
+      "dependency": "F01～F09问题单；前置 F01～F06：SS",
+      "owner": "A",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F15.md",
+        "docs/execution/checks/F15-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F16",
+      "title": "Windows/图形联调/试点缺陷修复",
+      "dependency": "F01～F09问题单；前置 F01～F06：SS",
+      "owner": "W",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F16.md",
+        "docs/execution/checks/F16-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F17",
+      "title": "后端/运维联调/试点缺陷修复",
+      "dependency": "F01～F09问题单；前置 F01～F06：SS",
+      "owner": "B",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F17.md",
+        "docs/execution/checks/F17-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F18",
+      "title": "AI/媒体联调/试点缺陷修复",
+      "dependency": "F01～F09问题单；前置 F01～F06：SS",
+      "owner": "I",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F18.md",
+        "docs/execution/checks/F18-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F19",
+      "title": "部署、备份恢复与发布演练",
+      "dependency": "运维/交付；前置 F07：FS，F17：FS",
+      "owner": "B",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F19.md",
+        "docs/execution/checks/F19-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F20",
+      "title": "Android签名/安装/升级交付",
+      "dependency": "SYS/交付；前置 F15：FS",
+      "owner": "A",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F20.md",
+        "docs/execution/checks/F20-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F21",
+      "title": "Windows签名/安装/升级交付",
+      "dependency": "SYS/交付；前置 F16：FS",
+      "owner": "W",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F21.md",
+        "docs/execution/checks/F21-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F22",
+      "title": "代码/契约/客户端交接",
+      "dependency": "全客户端；前置 F14：FS",
+      "owner": "F",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F22.md",
+        "docs/execution/checks/F22-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F23",
+      "title": "供应/模型/媒体运维交接",
+      "dependency": "AI/HELP/SAFE；前置 F18：FS",
+      "owner": "I",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F23.md",
+        "docs/execution/checks/F23-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    },
+    {
+      "id": "F24",
+      "title": "最终自动回归与工程证据审查",
+      "dependency": "AT-01～24/NV双状态；前置 F09开发结果：FS，F19～F23开发结果：SS/FF",
+      "owner": "Q",
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "execution_started": false,
+      "fStarted": false,
+      "realNetworkEnabled": false,
+      "productionDataEnabled": false,
+      "localEvidence": [
+        "docs/execution/tasks/F24.md",
+        "docs/execution/checks/F24-prep.md"
+      ],
+      "localTests": [
+        "tests/acceptance/f-development-delivery.test.ts"
+      ],
+      "stage": "delivery",
+      "taskCardPresent": true,
+      "prepCheckPresent": true,
+      "localEvidencePresent": true,
+      "localTestsPresent": true,
+      "statePreserved": true,
+      "safetyFlagsClosed": true
+    }
+  ],
+  "limitations": [
+    "只验证任务卡、前置检查、开发级测试入口和门禁状态，不启动 F 业务实现。",
+    "不连接真实生产网络、真实账号、儿童/家庭数据、供应商、凭证或设备。",
+    "本机静态、合成、Mock、JVM、打包或测试证据不能升级为真实联调、试点、发布或正式验收。",
+    "D07 正式 Go/No-Go 仍由正式决策记录和授权流程决定；本报告不替代该决策。"
+  ]
+}

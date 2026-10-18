@@ -1,0 +1,8 @@
+{
+  "version": "1.0.0",
+  "mode": "elder",
+  "fontSize": 20,
+  "captionSize": 32,
+  "speechRate": 0.75,
+  "automaticClick": false
+}

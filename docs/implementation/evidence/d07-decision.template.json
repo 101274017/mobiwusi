@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "d07-decision/v1",
+  "decisionId": null,
+  "decision": "no_go",
+  "scope": [
+    "E-after-D07 approval only; F remains separately gated"
+  ],
+  "signedAt": null,
+  "signoffs": {
+    "dOwner": {
+      "name": null,
+      "decision": null,
+      "signedAt": null,
+      "evidenceRefs": []
+    },
+    "independentReviewer": {
+      "name": null,
+      "decision": null,
+      "signedAt": null,
+      "evidenceRefs": []
+    },
+    "productBusinessOwner": {
+      "name": null,
+      "decision": null,
+      "signedAt": null,
+      "evidenceRefs": []
+    },
+    "securityPrivacyReviewer": {
+      "name": null,
+      "decision": null,
+      "signedAt": null,
+      "evidenceRefs": []
+    }
+  },
+  "evidenceRefs": [],
+  "evidenceHashes": {},
+  "limitations": [
+    "填写真实设备、供应、人工签收和独立复核限制；不得使用模板或合成结果冒充正式验收。"
+  ]
+}

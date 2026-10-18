@@ -1,0 +1,608 @@
+{
+  "reportSchemaVersion": "d07-decision-check/v2",
+  "generatedBy": "nuanban/scripts/check-d07-decision.mjs",
+  "generatedAt": "2026-10-17T15:58:47.725Z",
+  "generatedTimeZone": "Asia/Shanghai",
+  "mode": "development",
+  "scope": "D07 automated development gate and release readiness validation",
+  "status": "development_ready",
+  "eligible": true,
+  "development": {
+    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "eligible": true,
+    "failedChecks": [],
+    "failed_checks": [],
+    "externalPending": [
+      {
+        "id": "C15_EXTERNAL_EVIDENCE",
+        "capability": "device_supplier_verification",
+        "reason": "C15 真实设备、供应凭证和独立复核仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "C16_EXTERNAL_AUTHORIZATION",
+        "capability": "field_trial_authorization",
+        "reason": "C16 真实授权、试点和参与者输入仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_EXTERNAL_RUNTIME",
+        "capability": "native_platform_verification",
+        "reason": "C17 WebView、桌面运行时、系统权限和独立发布复核仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "C14_EXTERNAL_REVIEW",
+        "capability": "contract_independent_review",
+        "reason": "C14 自动技术冻结已完成，但 A02 独立评审仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "D07_FORMAL_RELEASE_GATE",
+        "capability": "formal_release_authorization",
+        "reason": "正式发布门禁仍有待项；不影响开发门禁继续。",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/acceptance-bundle-results.json",
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "docs/implementation/evidence/c16-decision-readiness-results.json",
+          "docs/implementation/evidence/c17-assembly-results.json",
+          "docs/implementation/evidence/c14-handoff-results.json"
+        ]
+      }
+    ],
+    "external_pending": [
+      {
+        "id": "C15_EXTERNAL_EVIDENCE",
+        "capability": "device_supplier_verification",
+        "reason": "C15 真实设备、供应凭证和独立复核仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "C16_EXTERNAL_AUTHORIZATION",
+        "capability": "field_trial_authorization",
+        "reason": "C16 真实授权、试点和参与者输入仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_EXTERNAL_RUNTIME",
+        "capability": "native_platform_verification",
+        "reason": "C17 WebView、桌面运行时、系统权限和独立发布复核仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "C14_EXTERNAL_REVIEW",
+        "capability": "contract_independent_review",
+        "reason": "C14 自动技术冻结已完成，但 A02 独立评审仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "D07_FORMAL_RELEASE_GATE",
+        "capability": "formal_release_authorization",
+        "reason": "正式发布门禁仍有待项；不影响开发门禁继续。",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/acceptance-bundle-results.json",
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "docs/implementation/evidence/c16-decision-readiness-results.json",
+          "docs/implementation/evidence/c17-assembly-results.json",
+          "docs/implementation/evidence/c14-handoff-results.json"
+        ]
+      }
+    ]
+  },
+  "release": {
+    "verdict": "EXTERNAL_PENDING",
+    "ready": false,
+    "blockers": [
+      {
+        "id": "release-1",
+        "reason": "D07 formal decision record is missing",
+        "kind": "release"
+      },
+      {
+        "id": "release-2",
+        "reason": "C15 is not ready_for_independent_review with all NV checks ready",
+        "kind": "release"
+      },
+      {
+        "id": "release-3",
+        "reason": "C16 decision input, Top20 approval, or pilot eligibility is not ready",
+        "kind": "release"
+      },
+      {
+        "id": "release-4",
+        "reason": "C17 release evidence is not ready for independent review",
+        "kind": "release"
+      },
+      {
+        "id": "release-5",
+        "reason": "C14 release review or backend handoff is not ready",
+        "kind": "release"
+      }
+    ],
+    "reasonRefs": [
+      "C15_EXTERNAL_EVIDENCE",
+      "C16_EXTERNAL_AUTHORIZATION",
+      "C17_EXTERNAL_RUNTIME",
+      "C14_EXTERNAL_REVIEW",
+      "D07_FORMAL_RELEASE_GATE"
+    ],
+    "reason_refs": [
+      "C15_EXTERNAL_EVIDENCE",
+      "C16_EXTERNAL_AUTHORIZATION",
+      "C17_EXTERNAL_RUNTIME",
+      "C14_EXTERNAL_REVIEW",
+      "D07_FORMAL_RELEASE_GATE"
+    ]
+  },
+  "developmentBlockers": [],
+  "releaseBlockers": [
+    "D07 formal decision record is missing",
+    "C15 is not ready_for_independent_review with all NV checks ready",
+    "C16 decision input, Top20 approval, or pilot eligibility is not ready",
+    "C17 release evidence is not ready for independent review",
+    "C14 release review or backend handoff is not ready"
+  ],
+  "inputFingerprint": "cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
+  "idempotencyKey": "development:cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
+  "decisionPath": "docs/implementation/evidence/d07-decision.json",
+  "decisionPresent": true,
+  "formalDecisionPresent": false,
+  "formalDecisionSha256": null,
+  "decision": "go",
+  "inputInventory": [
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/android-lab.json",
+      "sha256": "88c0ca81485aa213a79f63dc070dfd5e271bfd1b5e99f90730288ee5a65ac373"
+    },
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/reminder-c07-c08-scope.json",
+      "sha256": "e7c6bda2b3df415578e541038e15917e142c2d80f909d2f4d411d8656c22422b"
+    },
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/desktop-lab-smoke.json",
+      "sha256": "bbc388e8626a948d005058aa89d5ebdbc20b51e098e5f9bed94c486274cba73b"
+    },
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/desktop-lab-package.json",
+      "sha256": "a69c4e0dd6819ce6b3762ed24c862470fe4cc3db4627c157f3281ee2a94f45e3"
+    },
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/lifecycle-c09-c10-scope.json",
+      "sha256": "7e1e2cc23652697d5b8639592d3d9cf46cafd647dd72c66946539c161fd4daf4"
+    },
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/privacy-c03-results.json",
+      "sha256": "a2005f6ef1ab498677446476d9685ac6b30188fb0960d30d2ee66c85e666a69d"
+    },
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/media-c04-results.json",
+      "sha256": "950879db6eda2575bdc54646c2f3e803e9574200698070830323cad3cb5585a4"
+    },
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/guidance-c05-c06-scope.json",
+      "sha256": "5fdb147781c4ec742f0162bea72f3b32da6d2799c3bba52e7b3cd127f3dd37de"
+    },
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/pet-c13-scope.json",
+      "sha256": "1af752a328e80e0734097cda346a25165b77dae03f3bcc964070c4f4b2a79dbf"
+    },
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/c11-3d-scope.json",
+      "sha256": "c65a5fed1720bb004f2de2cc25d6f1b17cb6dd29f1bd3036e00d93d0bfc441a9"
+    },
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/c12-sandbox-scope.json",
+      "sha256": "e328fb05951d3a311fd91283ddbb3f311355de1fd64bfbd6c7924040b7bfba47"
+    },
+    {
+      "report": "c15",
+      "path": "docs/implementation/evidence/c14-handoff-results.json",
+      "sha256": "75be0c961ee520621e5b07570d7d2096c0b2ecdb93658e1d36a98d3356c32fee"
+    },
+    {
+      "report": "c16",
+      "path": "docs/implementation/baseline.md",
+      "sha256": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32"
+    },
+    {
+      "report": "c16",
+      "path": "docs/implementation/evidence/c16-decision-input.json",
+      "sha256": null
+    },
+    {
+      "report": "c16",
+      "path": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
+      "sha256": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
+    },
+    {
+      "report": "c17",
+      "path": "scripts/check-c17-assembly.mjs",
+      "sha256": "90ac33a29fe3641f90b8eea1315e8f0458aa626ba763c3848598be87b0c8bec3"
+    },
+    {
+      "report": "c17",
+      "path": "vitest.config.ts",
+      "sha256": "89d8070c219134e32755073124b91c2875afcad830a30d3b2e32fe3dbd5ec0c4"
+    },
+    {
+      "report": "c17",
+      "path": "tests/setup.ts",
+      "sha256": "b49fd5d5843c0fc5362222331c9848c9bc0f56fbe08dccadc27b9c227b9875d9"
+    },
+    {
+      "report": "c17",
+      "path": "packages/privacy/src/index.ts",
+      "sha256": "a4184e26ed1d54fcb3affc42260f114d56edf5bcb424e325fe0afb3a8b8ef7df"
+    },
+    {
+      "report": "c17",
+      "path": "packages/media-relay/src/index.ts",
+      "sha256": "23f69db8176c6fd59d670c70cabc4c3fb468798d0516d11f551f29757941b52c"
+    },
+    {
+      "report": "c17",
+      "path": "packages/guidance-engine/src/index.ts",
+      "sha256": "592d8c762dba8a3a43e7ec82192d0baf76366b034afe350c2809c05cf3fd1119"
+    },
+    {
+      "report": "c17",
+      "path": "packages/provider-sandbox/src/index.ts",
+      "sha256": "abf698957a1ad4396efef4d778e9ca42d91723adb3988649b4ef77d4020472b6"
+    },
+    {
+      "report": "c17",
+      "path": "packages/config/src/index.ts",
+      "sha256": "3219ab186389562352a9b3d687536d87a834a64fe3fbf9cc3fea8bd9f6bfcec4"
+    },
+    {
+      "report": "c17",
+      "path": "packages/config/src/scenarios.ts",
+      "sha256": "8186404c755f8ce32e146d03554f29a7534527648e83cfc2e737b3c083bb2cb0"
+    },
+    {
+      "report": "c17",
+      "path": "tests/privacy/c03-gate.test.ts",
+      "sha256": "ccb2789350964ebe3fef6460aed1f1352c4c53910f90e4133ba981c96468913c"
+    },
+    {
+      "report": "c17",
+      "path": "tests/privacy/c04-media-relay.test.ts",
+      "sha256": "21fc43478dab1d49304be4daa235a8e40ae7dc848113703b36d99e45b4ad8531"
+    },
+    {
+      "report": "c17",
+      "path": "tests/domain/guidance-platform.test.ts",
+      "sha256": "ea06e60f07dd2798250a92f6c63a1ee2aa318acae1a0bc216997041125dfad97"
+    },
+    {
+      "report": "c17",
+      "path": "tests/provider/provider-sandbox.test.ts",
+      "sha256": "60deb8b5921746486db8ace6b310c820e452f3e2845db4a9e880f018fef6c6c8"
+    },
+    {
+      "report": "c17",
+      "path": "apps/web/src/composition.ts",
+      "sha256": "c868fd05bd1e1c8a99fce287707395fef872b59df8cc2b55d2a31b01c42c08eb"
+    },
+    {
+      "report": "c17",
+      "path": "apps/web/src/bootstrap.tsx",
+      "sha256": "c660abad05ecbc6cc0189d2a0e1c0fa74d2f225ede422f9a610461d6b1094dd9"
+    },
+    {
+      "report": "c17",
+      "path": "packages/local-data/src/index.ts",
+      "sha256": "1f490b5f90b6266b18d552995fb062945d373f8a17a2b208b8fa9c04e931f141"
+    },
+    {
+      "report": "c17",
+      "path": "packages/platform-ports/src/index.ts",
+      "sha256": "349cc844c8685308b7b166481e7eb77738e57305d0d645bb2d22ce2ea8f6bc91"
+    },
+    {
+      "report": "c17",
+      "path": "packages/platform-ports/src/android-message-host.ts",
+      "sha256": "75f3b58154ce0b5087adf3a8a67971cbbec06e5aefa7279bc2e63f52fa765c79"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/reminder-store.cjs",
+      "sha256": "954961f94b89e3942126e7ccb247790f8b1bea71313db640f3fd781bc70f1dbb"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/notification-adapter.cjs",
+      "sha256": "6df78cc82557e772a326e1cc6a720d4f29c86f0aed56aca81a7d3b3412875a4c"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/reminder-notification-bridge.cjs",
+      "sha256": "0a9445a09452d683617a3cd289ed8085dc1dd86555c97d958419dd8d95bbe4ce"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/main.cjs",
+      "sha256": "69816da0287322a492af0413df126508b03478ce83e509d7d41ee1ffba752983"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/preload.cjs",
+      "sha256": "21a2175fcddf98292f08c34cd86e031830b1041e6ed71cc0bed3112d9618b122"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/build.gradle.kts",
+      "sha256": "fd521e1d3035e52c0b86d984d6e249e2636c922718ddfec8b207fcf119f3b062"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/main/AndroidManifest.xml",
+      "sha256": "a8440ed3b5b76ab01f8340a2c27c22f972584bf55d22b20e01dcb311aa21e334"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderEntity.kt",
+      "sha256": "64706d16dc30abf1fde24852a8ffcd754132296e62eeead9002d59ff479e30bb"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDao.kt",
+      "sha256": "a7d29c3e82fea1735eaa805cef14ca8ac1bf27af262bb086d85e51fa4276d86c"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDatabase.kt",
+      "sha256": "a7cfb3182fdb4ac4751b1d597773ea8dbcc8f56a76aaf5cf021d3d54fb0a1b72"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderStore.kt",
+      "sha256": "9b0056ed71f62f660fff946ea4ac3674219b0dbe96768118a6a3da1dd99137c6"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/ReminderNotificationScheduler.kt",
+      "sha256": "b91a7d10b9c46db79ff7bbbf5c0588e77c4d04c4e771ce76e8a829ea77a5bca0"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/ReminderAlarmReceiver.kt",
+      "sha256": "b5c0be623f015d7a4198c07e4b3e80aa295fefca6cf85ca2df1ade84cdaefc96"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt",
+      "sha256": "009ad52bcc1f422787761b17a54a0a0a0cdab7a56d6f1e3916a3162bca151718"
+    },
+    {
+      "report": "c17",
+      "path": "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ActiveBridgeProtocol.kt",
+      "sha256": "2953e86f1664f68a45afbecaaf620362179e9f9ec900775779f6a964f52f29b0"
+    },
+    {
+      "report": "c17",
+      "path": "tests/integration/local-data.test.ts",
+      "sha256": "6784d7c6db0bb3c05a729345865d0c0d2a45d296acb458a74f32194452bc43b2"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/android-message-host.test.ts",
+      "sha256": "e5e931d2ec90b3e1f255c2732b53de6836e5b2b0886725fd012aaee61694d032"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/native-host.test.ts",
+      "sha256": "3943661bf6909b4d6d06872f6c74b532c510fe5923a2a5ffd8d0e7c9362bce53"
+    },
+    {
+      "report": "c17",
+      "path": "tests/contract/active-bridge.test.ts",
+      "sha256": "cffd58245b259c355f809afea58c2d58d725655c8edbdfa04087d2d85c7ffe84"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/desktop-notification-adapter.test.ts",
+      "sha256": "b5ea452cb957e9dda7bd4512f90d62aec779f5305b6b1eb4919750626df3d223"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/desktop-reminder-bridge.test.ts",
+      "sha256": "45810b509f9514882351c78cf747687338fa66e5c8b67f04784b3cf3aad6b385"
+    },
+    {
+      "report": "c14",
+      "path": "packages/contracts/openapi.json",
+      "sha256": "8054d8be16705bc6902e86494c53ca9bff2c3ade4903d698b4367a5957c92e41"
+    },
+    {
+      "report": "c14",
+      "path": "packages/contracts/src/spec/operations.ts",
+      "sha256": "95118a211b11dc9230a98e785ae678b1eca8779f6c08ee40956a8d643c3380ee"
+    },
+    {
+      "report": "c14",
+      "path": "packages/contracts/src/spec/events.ts",
+      "sha256": "2288c2440c03260de512d0a946d84e1f460113bb0a7a0320266f396f8ec3579b"
+    },
+    {
+      "report": "c14",
+      "path": "packages/contracts/src/spec/catalog.ts",
+      "sha256": "75d4df906ca406819dcd42febd07cc07f207a8a9c356006f8475af2280fe46db"
+    },
+    {
+      "report": "c14",
+      "path": "packages/contracts/src/spec/primitives.ts",
+      "sha256": "9cc4ae693033f19498b69cee74d1610d0e97dd10d525b09c28e8f5af67be77cb"
+    },
+    {
+      "report": "c14",
+      "path": "packages/contracts/src/spec/errors.ts",
+      "sha256": "27124d0ddb3bcffcd7f65177caedb00191dfa8f892d8f234dd73aecfe0f71b66"
+    },
+    {
+      "report": "gate",
+      "path": "scripts/project-gate.mjs",
+      "sha256": "900ad2a4c2d835166d57133113af820f2d2e84db6f65962f7d07867580c18053"
+    },
+    {
+      "report": "gate",
+      "path": "scripts/check-d07-decision.mjs",
+      "sha256": "6918d42ac706b626d71adbe558d9fde9df510cff17d90a5093e46a188735d8bc"
+    },
+    {
+      "report": "gate",
+      "path": "scripts/check-d-gate-readiness.mjs",
+      "sha256": "e40bc128bd119022956f61a77cb8d784f0ebb58feb7c11ee64d2bbf89b812f8a"
+    },
+    {
+      "report": "gate",
+      "path": "scripts/check-acceptance-bundle.mjs",
+      "sha256": "241447da15c3147c1594c7b44780f09feae7f7a35550ce014ce5dd1e3a53fe03"
+    },
+    {
+      "report": "gate",
+      "path": "scripts/implementation-plan.mjs",
+      "sha256": "47fb70dffc16ea655e0000b8b5266bee699633432711b87163377eb760de8019"
+    },
+    {
+      "report": "gate",
+      "path": "docs/execution/d07-development-decision.schema.json",
+      "sha256": "c113b6da0f4bad3384c3880c790a6c6d02d143eb95d3d226e24a05b600ed5cf0"
+    },
+    {
+      "report": "plan",
+      "path": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
+      "sha256": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
+    }
+  ],
+  "generatedDecision": {
+    "schemaVersion": "d07-decision/v2",
+    "generatedBy": "nuanban/scripts/check-d07-decision.mjs",
+    "generatedAt": "2026-10-17T15:58:47.722Z",
+    "decisionId": "d07-development-cd66cc5b64f74058",
+    "decision": "go",
+    "decisionMode": "development",
+    "reviewType": "automated",
+    "review_type": "automated",
+    "development": {
+      "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+      "eligible": true,
+      "evidenceRefs": [
+        "docs/implementation/evidence/acceptance-bundle-results.json",
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "docs/implementation/evidence/c16-decision-readiness-results.json",
+        "docs/implementation/evidence/c17-assembly-results.json",
+        "docs/implementation/evidence/c14-handoff-results.json"
+      ],
+      "externalPending": [
+        {
+          "id": "C15_EXTERNAL_EVIDENCE",
+          "capability": "device_supplier_verification",
+          "reason": "C15 真实设备、供应凭证和独立复核仍为 external_pending。",
+          "production_enabled": false
+        },
+        {
+          "id": "C16_EXTERNAL_AUTHORIZATION",
+          "capability": "field_trial_authorization",
+          "reason": "C16 真实授权、试点和参与者输入仍为 external_pending。",
+          "production_enabled": false
+        },
+        {
+          "id": "C17_EXTERNAL_RUNTIME",
+          "capability": "native_platform_verification",
+          "reason": "C17 WebView、桌面运行时、系统权限和独立发布复核仍为 external_pending。",
+          "production_enabled": false
+        },
+        {
+          "id": "C14_EXTERNAL_REVIEW",
+          "capability": "contract_independent_review",
+          "reason": "C14 自动技术冻结已完成，但 A02 独立评审仍为 external_pending。",
+          "production_enabled": false
+        },
+        {
+          "id": "D07_FORMAL_RELEASE_GATE",
+          "capability": "formal_release_authorization",
+          "reason": "正式发布门禁仍有待项；不影响开发门禁继续。",
+          "production_enabled": false,
+          "evidence_refs": [
+            "docs/implementation/evidence/acceptance-bundle-results.json",
+            "docs/implementation/evidence/c15-nv-readiness-results.json",
+            "docs/implementation/evidence/c16-decision-readiness-results.json",
+            "docs/implementation/evidence/c17-assembly-results.json",
+            "docs/implementation/evidence/c14-handoff-results.json"
+          ]
+        }
+      ]
+    },
+    "release": {
+      "verdict": "EXTERNAL_PENDING",
+      "ready": false,
+      "reasonRefs": [
+        "C15_EXTERNAL_EVIDENCE",
+        "C16_EXTERNAL_AUTHORIZATION",
+        "C17_EXTERNAL_RUNTIME",
+        "C14_EXTERNAL_REVIEW",
+        "D07_FORMAL_RELEASE_GATE"
+      ],
+      "formalDecision": null
+    },
+    "inputFingerprint": "cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
+    "idempotencyKey": "cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
+    "limitations": [
+      "该决定由本机自动检查生成，reviewType=automated，不冒充负责人、独立人员或真人试点签收。",
+      "development go 只允许继续代码、契约、夹具和本地验证；release.ready=false 时不得开放真实生产能力。",
+      "真实设备、供应凭证、用户同意、试点和正式发布仍由 release 门禁单独验证。"
+    ]
+  },
+  "reports": {
+    "acceptance": {
+      "path": "docs/implementation/evidence/acceptance-bundle-results.json",
+      "exists": true,
+      "sha256": "7f567a59781b510cf2906a0feee233139b5ceac1650e140bcf36c730073feca0",
+      "status": "preparatory_ready"
+    },
+    "c15": {
+      "path": "docs/implementation/evidence/c15-nv-readiness-results.json",
+      "exists": true,
+      "sha256": "285a5c57bc414802a00b385f8f80f8c8d664e6639ed78c38090167b297fdf980",
+      "status": "blocked"
+    },
+    "c16": {
+      "path": "docs/implementation/evidence/c16-decision-readiness-results.json",
+      "exists": true,
+      "sha256": "00c72b16d7f1817f84120ac6794076163de1728472cae5fe3dc96818668b124a",
+      "status": "blocked"
+    },
+    "c17": {
+      "path": "docs/implementation/evidence/c17-assembly-results.json",
+      "exists": true,
+      "sha256": "8fa311cbe3ea9b94748d99d35cd9e25dc4f8dbe82a1e3cefe5f70991d2c21fcc",
+      "status": "ready_for_development"
+    },
+    "c14": {
+      "path": "docs/implementation/evidence/c14-handoff-results.json",
+      "exists": true,
+      "sha256": "75be0c961ee520621e5b07570d7d2096c0b2ecdb93658e1d36a98d3356c32fee",
+      "status": "frozen"
+    }
+  },
+  "blockers": [],
+  "limitations": [
+    "开发门禁只验证真实源码、契约、自动证据和安全关闭路径，不代替人工、设备、供应、用户同意或正式发布授权。",
+    "release.ready 不会因 development.verdict 通过而自动变为 true；外部待项保持 external_pending。",
+    "本工具不连接真实设备、供应商、认证、媒体或生产后端。"
+  ]
+}

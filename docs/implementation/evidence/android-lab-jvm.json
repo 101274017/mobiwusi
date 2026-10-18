@@ -1,0 +1,22 @@
+{
+    "passed":  true,
+    "cases":  45,
+    "sessionCases":  35,
+    "reminderPolicyCases":  10,
+    "scope":  "kotlin-jvm-state-machine-and-android-reminder-policy-preflight",
+    "generatedTimeZone":  "Asia/Shanghai",
+    "deviceVerified":  false,
+    "captureVerified":  false,
+    "systemSchedulerVerified":  false,
+    "limitations":  [
+                        "Covers only Kotlin/JVM state transitions, reminder policy, and local compilation; no Android device is installed or started.",
+                        "Does not verify real system permissions, background delivery, lock screen, force-stop, restart, or user-visible receipts."
+                    ],
+    "generatedAt":  "2026-10-17T17:59:11.3744528+08:00",
+    "sourceSha256":  {
+                         "apps/android/native-lab/src/main/java/org/nuanban/nativelab/LabSession.kt":  "12b57ebe41ba228521366afe3ec606045b6afe437797280dd091c3ea1e77148d",
+                         "apps/android/native-lab/src/main/java/org/nuanban/nativelab/ReminderPolicy.kt":  "3c7e193556106d7bbb8f47f21be3f67ac8310105b186fdc52f36c2696cd864f3",
+                         "tests/native/LabSessionCheck.kt":  "e00f2c7e1affdf70705abfed57fb4fc4f50fffc2368b40146d143d8a9ed4b0b6",
+                         "tests/native/ReminderPolicyCheck.kt":  "0c23a39a86713302e38bfd0bd5c6826cb63c9eb3129db7b0778438a2dcadf87b"
+                     }
+}

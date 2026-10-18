@@ -1,0 +1,301 @@
+{
+  "generatedAt": "2026-10-17T15:58:47.186Z",
+  "scope": "FE-13 front-end acceptance bundle, D gate preflight, and C07/C08/C17 packaging preflight",
+  "success": true,
+  "mode": "development",
+  "development": {
+    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "eligible": true,
+    "failedChecks": [],
+    "failed_checks": [],
+    "externalPending": [
+      {
+        "id": "C17_WEBVIEW_DEVICE",
+        "capability": "real_webview_and_lifecycle",
+        "reason": "No real Android WebView or system lifecycle evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_DESKTOP_RUNTIME",
+        "capability": "desktop_install_upgrade_and_system_notification",
+        "reason": "No installed desktop runtime, system permission or Toast evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_INDEPENDENT_REVIEW",
+        "capability": "native_assembly_independent_review",
+        "reason": "C17 native assembly evidence has not received independent review.",
+        "production_enabled": false
+      },
+      {
+        "id": "ACCEPTANCE_EXTERNAL_VERIFICATION",
+        "capability": "formal_acceptance",
+        "reason": "前端验收包不代替对应设备、供应、用户授权与正式发布验证。",
+        "production_enabled": false
+      }
+    ],
+    "external_pending": [
+      {
+        "id": "C17_WEBVIEW_DEVICE",
+        "capability": "real_webview_and_lifecycle",
+        "reason": "No real Android WebView or system lifecycle evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_DESKTOP_RUNTIME",
+        "capability": "desktop_install_upgrade_and_system_notification",
+        "reason": "No installed desktop runtime, system permission or Toast evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_INDEPENDENT_REVIEW",
+        "capability": "native_assembly_independent_review",
+        "reason": "C17 native assembly evidence has not received independent review.",
+        "production_enabled": false
+      },
+      {
+        "id": "ACCEPTANCE_EXTERNAL_VERIFICATION",
+        "capability": "formal_acceptance",
+        "reason": "前端验收包不代替对应设备、供应、用户授权与正式发布验证。",
+        "production_enabled": false
+      }
+    ]
+  },
+  "release": {
+    "verdict": "EXTERNAL_PENDING",
+    "ready": false,
+    "blockers": [],
+    "reasonRefs": [
+      "C17_WEBVIEW_DEVICE",
+      "C17_DESKTOP_RUNTIME",
+      "C17_INDEPENDENT_REVIEW",
+      "ACCEPTANCE_EXTERNAL_VERIFICATION"
+    ],
+    "reason_refs": [
+      "C17_WEBVIEW_DEVICE",
+      "C17_DESKTOP_RUNTIME",
+      "C17_INDEPENDENT_REVIEW",
+      "ACCEPTANCE_EXTERNAL_VERIFICATION"
+    ]
+  },
+  "status": "preparatory_ready",
+  "acceptance": "preparatory_not_accepted",
+  "goNoGoEligible": false,
+  "checks": [
+    {
+      "id": "FE13-01",
+      "title": "实施文档与证据目录完整",
+      "status": "passed",
+      "details": {
+        "requiredFiles": [
+          "README.md",
+          "docs/implementation/status.md",
+          "docs/implementation/wbs.md",
+          "docs/implementation/acceptance.md",
+          "docs/implementation/verification.md",
+          "docs/implementation/demo-scenarios.md",
+          "docs/implementation/c17-assembly.md",
+          "docs/implementation/evidence/unit-results.json",
+          "docs/implementation/evidence/e2e-results.json",
+          "docs/implementation/evidence/android-room-results.json",
+          "docs/implementation/evidence/android-room-jvm-results.json",
+          "docs/implementation/evidence/desktop-notification-adapter-results.json",
+          "docs/implementation/evidence/c17-assembly-results.json",
+          "docs/implementation/evidence/d-gate-readiness-results.json",
+          "docs/implementation/evidence/desktop-package-contents.txt"
+        ]
+      },
+      "missing": []
+    },
+    {
+      "id": "FE13-02",
+      "title": "全量单元与边界验证证据有效",
+      "status": "passed",
+      "details": {
+        "testFiles": 73,
+        "passedTests": 880,
+        "failedTests": 0
+      },
+      "missing": []
+    },
+    {
+      "id": "FE13-03",
+      "title": "双视口 E2E 证据无失败或跳过",
+      "status": "passed",
+      "details": {
+        "expected": 96,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0
+      },
+      "missing": []
+    },
+    {
+      "id": "FE13-04",
+      "title": "Android Room 与桌面提醒预备证据保留真实限制",
+      "status": "passed",
+      "details": {
+        "roomCompileVerified": true,
+        "roomMigrationPreflightVerified": true,
+        "adbDeviceCount": 0,
+        "deviceVerified": false,
+        "systemSchedulerVerified": false,
+        "transitionJvmCases": 9,
+        "roomExecuted": false,
+        "notificationTests": 10
+      },
+      "missing": []
+    },
+    {
+      "id": "FE13-05",
+      "title": "C17 开发就绪与正式发布待项使用共享双状态判定",
+      "status": "passed",
+      "details": {
+        "auditPassed": true,
+        "status": "ready_for_development",
+        "acceptance": "preparatory_not_accepted",
+        "developmentVerdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+        "developmentEligible": true,
+        "releaseVerdict": "EXTERNAL_PENDING",
+        "releaseReady": false,
+        "goNoGoEligible": false,
+        "highRiskCapabilitiesEnabled": false
+      },
+      "missing": []
+    },
+    {
+      "id": "FE13-06",
+      "title": "桌面开发包包含受限提醒主进程文件",
+      "status": "passed",
+      "details": {
+        "asarPath": "apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar",
+        "packagedFiles": [
+          "/main.cjs",
+          "/notification-adapter.cjs",
+          "/preload.cjs",
+          "/reminder-notification-bridge.cjs",
+          "/reminder-store.cjs"
+        ]
+      },
+      "missing": []
+    },
+    {
+      "id": "FE13-07",
+      "title": "重现命令保留在工程脚本中",
+      "status": "passed",
+      "details": {
+        "scripts": {
+          "dev": "pnpm --filter @nuanban/web dev",
+          "server:dev": "pnpm --filter @nuanban/server start",
+          "build": "pnpm typecheck && pnpm --filter @nuanban/web build",
+          "typecheck": "tsc --noEmit",
+          "test": "vitest run",
+          "test:evidence": "node scripts/run-unit-evidence.mjs",
+          "test:watch": "vitest",
+          "test:e2e": "playwright test",
+          "check": "pnpm typecheck && pnpm test:evidence && pnpm check:boundaries",
+          "check:boundaries": "node scripts/check-boundaries.mjs",
+          "contracts:generate": "node scripts/generate-contracts.mjs",
+          "contracts:check": "node scripts/generate-contracts.mjs --check && node scripts/validate-contracts.mjs",
+          "contracts:kotlin:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-kotlin-contracts.ps1",
+          "desktop": "pnpm build && pnpm --filter @nuanban/desktop start",
+          "desktop:package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/desktop-package.ps1",
+          "desktop:lab": "node scripts/desktop-lab.mjs --open",
+          "desktop:lab:check": "node scripts/desktop-lab.mjs --self-test",
+          "desktop:lab:package": "node scripts/desktop-lab.mjs --package",
+          "privacy:c03:check": "vitest run tests/privacy/c03-gate.test.ts --reporter=json --outputFile=docs/implementation/evidence/privacy-c03-results.json && node scripts/annotate-vitest-evidence.mjs --file docs/implementation/evidence/privacy-c03-results.json",
+          "media:c04:check": "vitest run tests/privacy/c04-media-relay.test.ts --reporter=json --outputFile=docs/implementation/evidence/media-c04-results.json && node scripts/annotate-vitest-evidence.mjs --file docs/implementation/evidence/media-c04-results.json",
+          "guidance:c05:c06:check": "vitest run tests/domain/guidance-platform.test.ts --reporter=json --outputFile=docs/implementation/evidence/guidance-c05-c06-results.json",
+          "reminder:c07:c08:check": "vitest run tests/domain/reminder-engine.test.ts tests/domain/reminder-dispatch.test.ts tests/platform/native-host.test.ts --reporter=json --outputFile=docs/implementation/evidence/reminder-c07-c08-results.json",
+          "reminder:runtime:check": "vitest run tests/platform/reminder-runtime.test.ts --reporter=json --outputFile=docs/implementation/evidence/reminder-runtime-results.json",
+          "pet:c13:check": "vitest run tests/domain/pet-asset-quality.test.ts --reporter=json --outputFile=docs/implementation/evidence/pet-c13-results.json",
+          "c11:3d:check": "vitest run tests/domain/three-d-asset-preflight.test.ts --reporter=json --outputFile=docs/implementation/evidence/c11-3d-results.json",
+          "c12:sandbox:check": "vitest run tests/provider/provider-sandbox.test.ts --reporter=json --outputFile=docs/implementation/evidence/c12-sandbox-results.json",
+          "c15:nv:check": "node scripts/check-c15-nv-readiness.mjs --evidence docs/implementation/evidence/c15-nv-readiness-results.json",
+          "c16:decision:check": "node scripts/check-c16-decision-readiness.mjs --evidence docs/implementation/evidence/c16-decision-readiness-results.json",
+          "d07:decision:check": "node scripts/check-d07-decision.mjs --decision docs/implementation/evidence/d07-decision.json",
+          "d07:release:check": "node scripts/check-d07-decision.mjs --mode release --no-write",
+          "release:readiness:check": "node scripts/check-release-readiness.mjs",
+          "tasks:refresh": "node scripts/generate-ef-execution-cards.mjs --refresh",
+          "e:development:check": "node scripts/check-e-development.mjs",
+          "c17:assembly:check": "node scripts/check-c17-assembly.mjs --evidence docs/implementation/evidence/c17-assembly-results.json",
+          "d:gate:check": "node scripts/check-d-gate-readiness.mjs --evidence docs/implementation/evidence/d-gate-readiness-results.json",
+          "acceptance:check": "node scripts/check-acceptance-bundle.mjs --evidence docs/implementation/evidence/acceptance-bundle-results.json",
+          "f:development:check": "node scripts/check-f-development.mjs",
+          "f:development:matrix": "node scripts/f-development/dependency-matrix.mjs",
+          "f:development:run": "node scripts/run-f-development.mjs",
+          "f:development:execute": "node scripts/f-development/execute.mjs",
+          "localdata:c07:c08:check": "vitest run tests/integration/c07-c08-reminder-store.test.ts --reporter=json --outputFile=docs/implementation/evidence/localdata-c07-c08-results.json",
+          "sqlite:c07:c08:check": "node apps/desktop/native-lab/c07-c08-sqlite-preflight.mjs --evidence docs/implementation/evidence/sqlite-c07-c08-results.json",
+          "desktop:reminder-store:check": "vitest run tests/platform/desktop-reminder-store.test.ts --reporter=json --outputFile=docs/implementation/evidence/desktop-reminder-store-results.json",
+          "desktop:notification:check": "vitest run tests/platform/desktop-notification-adapter.test.ts tests/platform/desktop-reminder-bridge.test.ts --reporter=json --outputFile=docs/implementation/evidence/desktop-notification-adapter-results.json",
+          "lifecycle:c09:c10:check": "vitest run tests/platform/native-host.test.ts tests/platform/lifecycle-engine.test.ts tests/platform/desktop-lifecycle.test.ts --reporter=json --outputFile=docs/implementation/evidence/lifecycle-c09-c10-results.json",
+          "c14:handoff:check": "node scripts/check-c14-handoff.mjs --evidence docs/implementation/evidence/c14-handoff-results.json",
+          "android:sync": "pnpm build && node scripts/sync-android.mjs",
+          "android:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-build.ps1",
+          "android:room:check": "node scripts/check-android-room.mjs --evidence docs/implementation/evidence/android-room-results.json",
+          "android:room:jvm:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-reminder-transition-jvm.ps1 -EvidencePath docs/implementation/evidence/android-room-jvm-results.json",
+          "android:lab:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-build.ps1 -NativeLab",
+          "android:lab:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-android-lab.ps1",
+          "android:lab:evidence": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/record-android-lab-evidence.ps1"
+        }
+      },
+      "missing": []
+    },
+    {
+      "id": "FE13-08",
+      "title": "D 正式发布门禁保持待项且未启动 E/F 正式执行",
+      "status": "passed",
+      "details": {
+        "auditPassed": true,
+        "status": "blocked",
+        "acceptance": "preparatory_not_accepted",
+        "goNoGoEligible": false,
+        "eAfterDEligible": false,
+        "eStarted": false,
+        "fStarted": false,
+        "checks": [
+          {
+            "id": "D01",
+            "status": "blocked"
+          },
+          {
+            "id": "D02",
+            "status": "blocked"
+          },
+          {
+            "id": "D03",
+            "status": "blocked"
+          },
+          {
+            "id": "D04",
+            "status": "blocked"
+          },
+          {
+            "id": "D05",
+            "status": "blocked"
+          },
+          {
+            "id": "D06",
+            "status": "blocked"
+          },
+          {
+            "id": "D07",
+            "status": "blocked"
+          },
+          {
+            "id": "D08",
+            "status": "blocked"
+          }
+        ]
+      },
+      "missing": []
+    }
+  ],
+  "limitations": [
+    "验收包只确认本机文档、合成证据、构建产物和受限桥接文件可重现，不替代人工 B07/B11 演示签收。",
+    "没有 Android 设备、Windows Toast/系统权限、真实后台投递、真实 WebView 或独立复核时，C15/D 仍保持阻塞。",
+    "D01-D08 的正式结果仍保持未准入，且 eStarted/fStarted 必须为 false；该报告不构成正式发布批准。",
+    "该预检不连接真实账号、AI、供应商、远程媒体或生产后端。"
+  ]
+}

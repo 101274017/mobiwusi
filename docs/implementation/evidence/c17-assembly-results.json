@@ -1,0 +1,600 @@
+{
+  "reportSchemaVersion": "c17-assembly/v2",
+  "generatedBy": "nuanban/scripts/check-c17-assembly.mjs",
+  "generatedAt": "2026-10-17T15:53:08.148Z",
+  "generatedDate": "2026-10-17",
+  "generatedTimeZone": "Asia/Shanghai",
+  "mode": "development",
+  "scope": "C17 shared storage and bridge assembly preflight",
+  "sourceRevision": "c493a506079a9a3d914d793b214930ad52f58701602fbf45f6ebf2ad7b94b1e0",
+  "status": "ready_for_development",
+  "acceptance": "preparatory_not_accepted",
+  "auditPassed": true,
+  "browserStorageVerified": "synthetic_only",
+  "nativeBridgeVerified": "synthetic_only",
+  "androidRoomVerified": "compile_only",
+  "desktopStoreVerified": "static_only",
+  "desktopNotificationVerified": "synthetic_only",
+  "accountIsolationAudited": true,
+  "highRiskCapabilitiesEnabled": false,
+  "goNoGoEligible": false,
+  "checks": [
+    {
+      "id": "C17-01",
+      "title": "组合根同时装配本地仓储与平台端口",
+      "status": "passed",
+      "passed": true,
+      "kind": "code",
+      "files": [
+        "apps/web/src/composition.ts",
+        "apps/web/src/bootstrap.tsx"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-02",
+      "title": "本地仓储使用账号命名空间和事务冲突保护",
+      "status": "passed",
+      "passed": true,
+      "kind": "code",
+      "files": [
+        "packages/local-data/src/index.ts"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-03",
+      "title": "Android 本地桥接限制来源、主框架、代际和迟到响应",
+      "status": "passed",
+      "passed": true,
+      "kind": "code",
+      "files": [
+        "packages/platform-ports/src/android-message-host.ts"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-04",
+      "title": "未验证的高风险原生能力保持关闭",
+      "status": "passed",
+      "passed": true,
+      "kind": "code",
+      "files": [
+        "packages/platform-ports/src/index.ts"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-05",
+      "title": "C17 关键边界已有本机合成测试入口",
+      "status": "passed",
+      "passed": true,
+      "kind": "code",
+      "files": [
+        "tests/integration/local-data.test.ts",
+        "tests/platform/android-message-host.test.ts",
+        "tests/platform/native-host.test.ts",
+        "tests/contract/active-bridge.test.ts"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-06",
+      "title": "组合根不把真实服务或系统权限伪装成已接入",
+      "status": "passed",
+      "passed": true,
+      "kind": "code",
+      "files": [
+        "packages/config/src/index.ts",
+        "apps/web/src/composition.ts",
+        "packages/platform-ports/README.md",
+        "packages/contracts/README.md"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-07",
+      "title": "Electron 桌面本地提醒仓储通过受限主进程桥接",
+      "status": "passed",
+      "passed": true,
+      "kind": "code",
+      "files": [
+        "apps/desktop/reminder-store.cjs",
+        "apps/desktop/main.cjs",
+        "apps/desktop/preload.cjs"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-08",
+      "title": "Android Room 本地提醒预备层存在且保持系统能力保守回退",
+      "status": "passed",
+      "passed": true,
+      "kind": "code",
+      "files": [
+        "apps/android/app/build.gradle.kts",
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderEntity.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDatabase.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderStore.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/ReminderNotificationScheduler.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt",
+        "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ActiveBridgeProtocol.kt",
+        "scripts/check-android-room.mjs",
+        "scripts/check-reminder-transition-jvm.ps1",
+        "tests/native/ReminderTransitionCheck.kt"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-09",
+      "title": "Electron 桌面通知适配器仅在显式能力与权限通过后提交",
+      "status": "passed",
+      "passed": true,
+      "kind": "code",
+      "files": [
+        "apps/desktop/notification-adapter.cjs",
+        "tests/platform/desktop-notification-adapter.test.ts",
+        "apps/desktop/reminder-notification-bridge.cjs",
+        "apps/desktop/reminder-store.cjs",
+        "apps/desktop/native-lab/c07-c08-sqlite-preflight.mjs",
+        "apps/desktop/main.cjs",
+        "apps/desktop/preload.cjs",
+        "tests/platform/desktop-reminder-bridge.test.ts"
+      ],
+      "missing": []
+    }
+  ],
+  "commandResults": [
+    {
+      "command": "E:\\7\\新建文件夹\\node.exe C:\\Users\\33864\\Desktop\\nuanban\\node_modules\\vitest\\vitest.mjs run tests/privacy/c03-gate.test.ts tests/privacy/c04-media-relay.test.ts tests/domain/guidance-platform.test.ts tests/provider/provider-sandbox.test.ts tests/integration/local-data.test.ts tests/platform/android-message-host.test.ts tests/platform/native-host.test.ts tests/contract/active-bridge.test.ts tests/platform/desktop-notification-adapter.test.ts tests/platform/desktop-reminder-bridge.test.ts --reporter=dot --maxWorkers=2 --no-file-parallelism",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "stdout": "RUN  v5.0.4 C:/Users/33864/Desktop/nuanban\n\n·································································································································································\n\n Test Files  10 passed (10)\n      Tests  161 passed (161)\n   Start at  23:53:01\n   Duration  6.38s (import 39%, transform 22%, tests 19%, setup 17%, worker 2%)\n\n    Isolate  10 workers spawned · ~302ms startup each (spawn + environment, per file)\n             at least ~2.72s faster with isolate: false — reuses workers across files instead of one per file",
+      "stderr": ""
+    }
+  ],
+  "development": {
+    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "eligible": true,
+    "failedChecks": [],
+    "failed_checks": [],
+    "externalPending": [
+      {
+        "id": "C17_WEBVIEW_DEVICE",
+        "capability": "real_webview_and_lifecycle",
+        "reason": "No real Android WebView or system lifecycle evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_DESKTOP_RUNTIME",
+        "capability": "desktop_install_upgrade_and_system_notification",
+        "reason": "No installed desktop runtime, system permission or Toast evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_INDEPENDENT_REVIEW",
+        "capability": "native_assembly_independent_review",
+        "reason": "C17 native assembly evidence has not received independent review.",
+        "production_enabled": false
+      }
+    ],
+    "external_pending": [
+      {
+        "id": "C17_WEBVIEW_DEVICE",
+        "capability": "real_webview_and_lifecycle",
+        "reason": "No real Android WebView or system lifecycle evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_DESKTOP_RUNTIME",
+        "capability": "desktop_install_upgrade_and_system_notification",
+        "reason": "No installed desktop runtime, system permission or Toast evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_INDEPENDENT_REVIEW",
+        "capability": "native_assembly_independent_review",
+        "reason": "C17 native assembly evidence has not received independent review.",
+        "production_enabled": false
+      }
+    ]
+  },
+  "default": {
+    "mode": "development",
+    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "eligible": true,
+    "externalPending": [
+      {
+        "id": "C17_WEBVIEW_DEVICE",
+        "capability": "real_webview_and_lifecycle",
+        "reason": "No real Android WebView or system lifecycle evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_DESKTOP_RUNTIME",
+        "capability": "desktop_install_upgrade_and_system_notification",
+        "reason": "No installed desktop runtime, system permission or Toast evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_INDEPENDENT_REVIEW",
+        "capability": "native_assembly_independent_review",
+        "reason": "C17 native assembly evidence has not received independent review.",
+        "production_enabled": false
+      }
+    ],
+    "external_pending": [
+      {
+        "id": "C17_WEBVIEW_DEVICE",
+        "capability": "real_webview_and_lifecycle",
+        "reason": "No real Android WebView or system lifecycle evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_DESKTOP_RUNTIME",
+        "capability": "desktop_install_upgrade_and_system_notification",
+        "reason": "No installed desktop runtime, system permission or Toast evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_INDEPENDENT_REVIEW",
+        "capability": "native_assembly_independent_review",
+        "reason": "C17 native assembly evidence has not received independent review.",
+        "production_enabled": false
+      }
+    ]
+  },
+  "external": {
+    "verdict": "EXTERNAL_PENDING",
+    "ready": false,
+    "status": "external_pending",
+    "pending": [
+      {
+        "id": "C17_WEBVIEW_DEVICE",
+        "capability": "real_webview_and_lifecycle",
+        "reason": "No real Android WebView or system lifecycle evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_DESKTOP_RUNTIME",
+        "capability": "desktop_install_upgrade_and_system_notification",
+        "reason": "No installed desktop runtime, system permission or Toast evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_INDEPENDENT_REVIEW",
+        "capability": "native_assembly_independent_review",
+        "reason": "C17 native assembly evidence has not received independent review.",
+        "production_enabled": false
+      }
+    ],
+    "externalPending": [
+      {
+        "id": "C17_WEBVIEW_DEVICE",
+        "capability": "real_webview_and_lifecycle",
+        "reason": "No real Android WebView or system lifecycle evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_DESKTOP_RUNTIME",
+        "capability": "desktop_install_upgrade_and_system_notification",
+        "reason": "No installed desktop runtime, system permission or Toast evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_INDEPENDENT_REVIEW",
+        "capability": "native_assembly_independent_review",
+        "reason": "C17 native assembly evidence has not received independent review.",
+        "production_enabled": false
+      }
+    ],
+    "external_pending": [
+      {
+        "id": "C17_WEBVIEW_DEVICE",
+        "capability": "real_webview_and_lifecycle",
+        "reason": "No real Android WebView or system lifecycle evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_DESKTOP_RUNTIME",
+        "capability": "desktop_install_upgrade_and_system_notification",
+        "reason": "No installed desktop runtime, system permission or Toast evidence is present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_INDEPENDENT_REVIEW",
+        "capability": "native_assembly_independent_review",
+        "reason": "C17 native assembly evidence has not received independent review.",
+        "production_enabled": false
+      }
+    ]
+  },
+  "release": {
+    "verdict": "EXTERNAL_PENDING",
+    "ready": false,
+    "blockers": [
+      {
+        "id": "C17_WEBVIEW_DEVICE",
+        "reason": "No real Android WebView or system lifecycle evidence is present.",
+        "kind": "release"
+      },
+      {
+        "id": "C17_DESKTOP_RUNTIME",
+        "reason": "No installed desktop runtime, system permission or Toast evidence is present.",
+        "kind": "release"
+      },
+      {
+        "id": "C17_INDEPENDENT_REVIEW",
+        "reason": "C17 native assembly evidence has not received independent review.",
+        "kind": "release"
+      }
+    ],
+    "reasonRefs": [
+      "C17_WEBVIEW_DEVICE",
+      "C17_DESKTOP_RUNTIME",
+      "C17_INDEPENDENT_REVIEW"
+    ],
+    "reason_refs": [
+      "C17_WEBVIEW_DEVICE",
+      "C17_DESKTOP_RUNTIME",
+      "C17_INDEPENDENT_REVIEW"
+    ]
+  },
+  "blockers": [
+    "No real Android WebView or system lifecycle evidence is present.",
+    "No installed desktop runtime, system permission or Toast evidence is present.",
+    "C17 native assembly evidence has not received independent review."
+  ],
+  "evidenceInventory": [
+    {
+      "file": "scripts/check-c17-assembly.mjs",
+      "exists": true,
+      "bytes": 17075,
+      "contentSha256": "90ac33a29fe3641f90b8eea1315e8f0458aa626ba763c3848598be87b0c8bec3"
+    },
+    {
+      "file": "vitest.config.ts",
+      "exists": true,
+      "bytes": 575,
+      "contentSha256": "89d8070c219134e32755073124b91c2875afcad830a30d3b2e32fe3dbd5ec0c4"
+    },
+    {
+      "file": "tests/setup.ts",
+      "exists": true,
+      "bytes": 30,
+      "contentSha256": "b49fd5d5843c0fc5362222331c9848c9bc0f56fbe08dccadc27b9c227b9875d9"
+    },
+    {
+      "file": "packages/privacy/src/index.ts",
+      "exists": true,
+      "bytes": 14163,
+      "contentSha256": "a4184e26ed1d54fcb3affc42260f114d56edf5bcb424e325fe0afb3a8b8ef7df"
+    },
+    {
+      "file": "packages/media-relay/src/index.ts",
+      "exists": true,
+      "bytes": 9409,
+      "contentSha256": "23f69db8176c6fd59d670c70cabc4c3fb468798d0516d11f551f29757941b52c"
+    },
+    {
+      "file": "packages/guidance-engine/src/index.ts",
+      "exists": true,
+      "bytes": 22647,
+      "contentSha256": "592d8c762dba8a3a43e7ec82192d0baf76366b034afe350c2809c05cf3fd1119"
+    },
+    {
+      "file": "packages/provider-sandbox/src/index.ts",
+      "exists": true,
+      "bytes": 44745,
+      "contentSha256": "abf698957a1ad4396efef4d778e9ca42d91723adb3988649b4ef77d4020472b6"
+    },
+    {
+      "file": "packages/config/src/index.ts",
+      "exists": true,
+      "bytes": 1048,
+      "contentSha256": "3219ab186389562352a9b3d687536d87a834a64fe3fbf9cc3fea8bd9f6bfcec4"
+    },
+    {
+      "file": "packages/config/src/scenarios.ts",
+      "exists": true,
+      "bytes": 2520,
+      "contentSha256": "8186404c755f8ce32e146d03554f29a7534527648e83cfc2e737b3c083bb2cb0"
+    },
+    {
+      "file": "tests/privacy/c03-gate.test.ts",
+      "exists": true,
+      "bytes": 10595,
+      "contentSha256": "ccb2789350964ebe3fef6460aed1f1352c4c53910f90e4133ba981c96468913c"
+    },
+    {
+      "file": "tests/privacy/c04-media-relay.test.ts",
+      "exists": true,
+      "bytes": 9006,
+      "contentSha256": "21fc43478dab1d49304be4daa235a8e40ae7dc848113703b36d99e45b4ad8531"
+    },
+    {
+      "file": "tests/domain/guidance-platform.test.ts",
+      "exists": true,
+      "bytes": 6649,
+      "contentSha256": "ea06e60f07dd2798250a92f6c63a1ee2aa318acae1a0bc216997041125dfad97"
+    },
+    {
+      "file": "tests/provider/provider-sandbox.test.ts",
+      "exists": true,
+      "bytes": 6465,
+      "contentSha256": "60deb8b5921746486db8ace6b310c820e452f3e2845db4a9e880f018fef6c6c8"
+    },
+    {
+      "file": "apps/web/src/composition.ts",
+      "exists": true,
+      "bytes": 2767,
+      "contentSha256": "c868fd05bd1e1c8a99fce287707395fef872b59df8cc2b55d2a31b01c42c08eb"
+    },
+    {
+      "file": "apps/web/src/bootstrap.tsx",
+      "exists": true,
+      "bytes": 465,
+      "contentSha256": "c660abad05ecbc6cc0189d2a0e1c0fa74d2f225ede422f9a610461d6b1094dd9"
+    },
+    {
+      "file": "packages/local-data/src/index.ts",
+      "exists": true,
+      "bytes": 14656,
+      "contentSha256": "1f490b5f90b6266b18d552995fb062945d373f8a17a2b208b8fa9c04e931f141"
+    },
+    {
+      "file": "packages/platform-ports/src/index.ts",
+      "exists": true,
+      "bytes": 19751,
+      "contentSha256": "349cc844c8685308b7b166481e7eb77738e57305d0d645bb2d22ce2ea8f6bc91"
+    },
+    {
+      "file": "packages/platform-ports/src/android-message-host.ts",
+      "exists": true,
+      "bytes": 8409,
+      "contentSha256": "75f3b58154ce0b5087adf3a8a67971cbbec06e5aefa7279bc2e63f52fa765c79"
+    },
+    {
+      "file": "apps/desktop/reminder-store.cjs",
+      "exists": true,
+      "bytes": 19977,
+      "contentSha256": "954961f94b89e3942126e7ccb247790f8b1bea71313db640f3fd781bc70f1dbb"
+    },
+    {
+      "file": "apps/desktop/notification-adapter.cjs",
+      "exists": true,
+      "bytes": 6537,
+      "contentSha256": "6df78cc82557e772a326e1cc6a720d4f29c86f0aed56aca81a7d3b3412875a4c"
+    },
+    {
+      "file": "apps/desktop/reminder-notification-bridge.cjs",
+      "exists": true,
+      "bytes": 5251,
+      "contentSha256": "0a9445a09452d683617a3cd289ed8085dc1dd86555c97d958419dd8d95bbe4ce"
+    },
+    {
+      "file": "apps/desktop/main.cjs",
+      "exists": true,
+      "bytes": 6543,
+      "contentSha256": "69816da0287322a492af0413df126508b03478ce83e509d7d41ee1ffba752983"
+    },
+    {
+      "file": "apps/desktop/preload.cjs",
+      "exists": true,
+      "bytes": 1479,
+      "contentSha256": "21a2175fcddf98292f08c34cd86e031830b1041e6ed71cc0bed3112d9618b122"
+    },
+    {
+      "file": "apps/android/app/build.gradle.kts",
+      "exists": true,
+      "bytes": 781,
+      "contentSha256": "fd521e1d3035e52c0b86d984d6e249e2636c922718ddfec8b207fcf119f3b062"
+    },
+    {
+      "file": "apps/android/app/src/main/AndroidManifest.xml",
+      "exists": true,
+      "bytes": 767,
+      "contentSha256": "a8440ed3b5b76ab01f8340a2c27c22f972584bf55d22b20e01dcb311aa21e334"
+    },
+    {
+      "file": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderEntity.kt",
+      "exists": true,
+      "bytes": 2468,
+      "contentSha256": "64706d16dc30abf1fde24852a8ffcd754132296e62eeead9002d59ff479e30bb"
+    },
+    {
+      "file": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDao.kt",
+      "exists": true,
+      "bytes": 2279,
+      "contentSha256": "a7d29c3e82fea1735eaa805cef14ca8ac1bf27af262bb086d85e51fa4276d86c"
+    },
+    {
+      "file": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDatabase.kt",
+      "exists": true,
+      "bytes": 1905,
+      "contentSha256": "a7cfb3182fdb4ac4751b1d597773ea8dbcc8f56a76aaf5cf021d3d54fb0a1b72"
+    },
+    {
+      "file": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderStore.kt",
+      "exists": true,
+      "bytes": 19707,
+      "contentSha256": "9b0056ed71f62f660fff946ea4ac3674219b0dbe96768118a6a3da1dd99137c6"
+    },
+    {
+      "file": "apps/android/app/src/main/java/org/nuanban/assistant/ReminderNotificationScheduler.kt",
+      "exists": true,
+      "bytes": 8918,
+      "contentSha256": "b91a7d10b9c46db79ff7bbbf5c0588e77c4d04c4e771ce76e8a829ea77a5bca0"
+    },
+    {
+      "file": "apps/android/app/src/main/java/org/nuanban/assistant/ReminderAlarmReceiver.kt",
+      "exists": true,
+      "bytes": 6852,
+      "contentSha256": "b5c0be623f015d7a4198c07e4b3e80aa295fefca6cf85ca2df1ade84cdaefc96"
+    },
+    {
+      "file": "apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt",
+      "exists": true,
+      "bytes": 17612,
+      "contentSha256": "009ad52bcc1f422787761b17a54a0a0a0cdab7a56d6f1e3916a3162bca151718"
+    },
+    {
+      "file": "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ActiveBridgeProtocol.kt",
+      "exists": true,
+      "bytes": 9728,
+      "contentSha256": "2953e86f1664f68a45afbecaaf620362179e9f9ec900775779f6a964f52f29b0"
+    },
+    {
+      "file": "tests/integration/local-data.test.ts",
+      "exists": true,
+      "bytes": 4065,
+      "contentSha256": "6784d7c6db0bb3c05a729345865d0c0d2a45d296acb458a74f32194452bc43b2"
+    },
+    {
+      "file": "tests/platform/android-message-host.test.ts",
+      "exists": true,
+      "bytes": 13731,
+      "contentSha256": "e5e931d2ec90b3e1f255c2732b53de6836e5b2b0886725fd012aaee61694d032"
+    },
+    {
+      "file": "tests/platform/native-host.test.ts",
+      "exists": true,
+      "bytes": 5302,
+      "contentSha256": "3943661bf6909b4d6d06872f6c74b532c510fe5923a2a5ffd8d0e7c9362bce53"
+    },
+    {
+      "file": "tests/contract/active-bridge.test.ts",
+      "exists": true,
+      "bytes": 4331,
+      "contentSha256": "cffd58245b259c355f809afea58c2d58d725655c8edbdfa04087d2d85c7ffe84"
+    },
+    {
+      "file": "tests/platform/desktop-notification-adapter.test.ts",
+      "exists": true,
+      "bytes": 4953,
+      "contentSha256": "b5ea452cb957e9dda7bd4512f90d62aec779f5305b6b1eb4919750626df3d223"
+    },
+    {
+      "file": "tests/platform/desktop-reminder-bridge.test.ts",
+      "exists": true,
+      "bytes": 6586,
+      "contentSha256": "45810b509f9514882351c78cf747687338fa66e5c8b67f04784b3cf3aad6b385"
+    }
+  ],
+  "recordSchema": [
+    "date_and_timezone",
+    "source_files_and_hashes",
+    "owner_namespace_and_transaction_boundary",
+    "bridge_origin_main_frame_correlation_timeout",
+    "capability_flags_and_disabled_paths",
+    "synthetic_test_commands",
+    "device_webview_room_sqlite_evidence",
+    "limitations_executor_independent_reviewer"
+  ],
+  "limitations": [
+    "IndexedDB、Chrome 同源消息通道和静态组合根只证明本机预备层，不证明真实 WebView 或 Electron 生产运行时。",
+    "Android Room 和 Electron SQLite 的本机预备证据不能替代旧库升级/备份恢复、系统权限、系统投递或应用生命周期回执。",
+    "系统权限不得由 Mock 伪造；真实平台端口、设备矩阵和独立复核仍属于外部发布前置条件。"
+  ]
+}

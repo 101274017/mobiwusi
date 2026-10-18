@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-10-15T22:31:45.531Z",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "C02 independent Windows native-lab package preflight",
+  "platform": "win32-x64",
+  "electron": "44.7.2",
+  "signedProductionRelease": false,
+  "sourceSha256": {
+    "README.md": "bb3c9b58da8ab88972c835a8cd6fdc9ec48da3a629173c37feceba560eb2fa09",
+    "canary.css": "ee0bf411e7668a96fc80fd0a6072b5346476600de480d0cb281217a1da3e2335",
+    "canary.html": "ba9e5784f34898e950f920015ad772c684adf7c09285f417214ecc9d1e1f1a25",
+    "canary.js": "a89a719c635763df66617c8901c5b91d3576d1a6d66826b25d06acb9a9cc0e77",
+    "control.css": "374731c118d5801205930af1ffaf483e3d4b76fa6e8b482a5c2cb07fd7531044",
+    "control.html": "b918502557d28ace32742f8a1dcb8b1a6c7b28a50f31094caf33ed6054c450f5",
+    "control.js": "38c1d10926227a28d96f74588d6fceb3b8fa4ef582304acb3147429261d1e416",
+    "main.cjs": "fde52065829104731a4eebe6ff1dfd94c55d61950baef36880411eb2513530e7",
+    "overlay.css": "ea365735d78ce53ce047f9d2c877a5a89d7e421dc7196ba2c66c39ae1e35fea5",
+    "overlay.html": "adab21311f11e451fb3fa3ed9b099b4d3d123f51f144f66df766898c01bfafb5",
+    "package.json": "4dd85382e5450b2cde181b9b8ae8319003fc08d8aa782f8078981886a733600f",
+    "policy.cjs": "21fa10c83f0f4bd7664af53f23a65415facf90caa746245d5a417099a47775a2",
+    "preload.cjs": "dd02d3eff934dadb581b6e1351055de04ffa247c2662b496c76c72bcd2f79806",
+    "self-test.cjs": "74842fc409fd4991f1786185d1b313b9e999e68bb5a5a6110080956759f927a8",
+    "stop.css": "3812066914a2ab612d0fbbd2db97803afd0e918869ee0f7ce036d0e491d52799",
+    "stop.html": "26ed300c326b715b8c650860c7c5fbe28508f522aa6bc27101013028c2addab7",
+    "stop.js": "81b2053caaf9edfd795302606015e91a9ec9fcafee910f59c8eb0c365204e231"
+  },
+  "filesCompared": 17,
+  "packageJsonSanitizedByPackager": true,
+  "packagedManifestSha256": "af9219980b2df81ec58f144605fbce14f96703dc22444f1fbda9da86948c75a1",
+  "artifact": {
+    "directory": "apps/desktop/native-lab/out/NuanbanC02Lab-win32-x64",
+    "asarSha256": "8e2b1e39afaf187e8e596cbb17d656c5ccfe7689835190dba74708e17325ec38",
+    "asarBytes": 55417,
+    "executableSha256": "e0a1475dbc187659e6675d3df5f185eb3c27d3707b6120ae513a239de55e7c34",
+    "executableBytes": 245590016
+  },
+  "actualDisplayCaptureVerified": false,
+  "independentAcceptance": false,
+  "limitations": [
+    "仅覆盖独立 Windows native-lab 的未签名包、ASAR 文件集和哈希比较。",
+    "没有真实桌面捕获、跨屏、穿透、混合 DPI、系统权限或独立人工复核记录。"
+  ]
+}

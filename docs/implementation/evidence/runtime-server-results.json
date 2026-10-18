@@ -1,0 +1,65 @@
+{
+  "generatedAt": "2026-10-17T14:57:05.730Z",
+  "scope": "Actual loopback server startup with memory storage and fail-closed authentication",
+  "command": "PORT=3017 pnpm server:dev",
+  "nodeVersion": "v24.21.0",
+  "platform": "win32",
+  "baseUrl": "http://127.0.0.1:3017",
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/healthz",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true,
+      "body": {
+        "data": {
+          "status": "ok",
+          "service": "nuanban-server",
+          "storage": "memory"
+        },
+        "request_id": "b484cbf0-45b8-400e-8b74-baef845703f3",
+        "schema_version": "0.2.0"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/relations",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "passed": true,
+      "body": {
+        "error": {
+          "code": "AUTH_FAILED",
+          "message": "Bearer access token is required",
+          "retryable": false
+        },
+        "request_id": "ac908817-9488-47f1-81b9-7ffd1a3dc35d",
+        "schema_version": "0.2.0"
+      }
+    }
+  ],
+  "success": true,
+  "sourceInventory": [
+    {
+      "path": "apps/server/src/main.ts",
+      "sha256": "2bfe498df3ec4083856c54e93181872fac23293269caec76cfa1108e76014704"
+    },
+    {
+      "path": "apps/server/src/http.ts",
+      "sha256": "e0245ebe0ff7295a52bd70001f0983a3594d3d5e4ee4747d629d1f3eaa110018"
+    },
+    {
+      "path": "apps/server/src/auth.ts",
+      "sha256": "bf1294498579d25696db5baf324946b069992ddabe7126a352de9f89a27b0d82"
+    },
+    {
+      "path": "apps/server/src/family.ts",
+      "sha256": "a814d8b4c8433322caf8690a1ef66f6bed3fd5317e09cb69a2341a9e849b36fe"
+    }
+  ],
+  "limitations": [
+    "Loopback HTTP with memory storage, not production deployment or a persistence claim.",
+    "The default Web client remains Mock; this server check does not prove full client/server/supplier or native-device integration."
+  ]
+}

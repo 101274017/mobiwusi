@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "onUnknown": "pause",
+  "onDetectorFailure": "pause",
+  "transaction": "stop-teaching-and-media",
+  "private": "pause-sharing-and-related-guide",
+  "automaticClick": false,
+  "rawMediaUpload": false
+}

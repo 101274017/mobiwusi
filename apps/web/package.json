@@ -1,0 +1,19 @@
+{
+  "name": "@nuanban/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-router-dom": "7.18.4",
+    "zustand": "5.0.15",
+    "lucide-react": "1.57.0",
+    "@radix-ui/react-dialog": "1.3.1"
+  }
+}

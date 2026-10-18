@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "b07-b11-signoff/v1",
+  "generatedAt": null,
+  "source": null,
+  "scenarios": [],
+  "signoff": {
+    "owner": null,
+    "reviewer": null,
+    "signedAt": null,
+    "decision": null,
+    "evidenceRefs": []
+  }
+}

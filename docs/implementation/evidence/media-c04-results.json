@@ -1,0 +1,244 @@
+{
+  "numTotalTestSuites": 3,
+  "numPassedTestSuites": 3,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 15,
+  "numPassedTests": 15,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1792168782454,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 逐帧安全通过后才调用编码器，并将同一安全 artifact 发送给 AI 与家属出口",
+          "status": "passed",
+          "title": "逐帧安全通过后才调用编码器，并将同一安全 artifact 发送给 AI 与家属出口",
+          "duration": 5.412599999999998,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 任何不安全帧都不进入编码器或任一出口: {\"text\":\"请支付验证码 123456\"}",
+          "status": "passed",
+          "title": "任何不安全帧都不进入编码器或任一出口: {\"text\":\"请支付验证码 123456\"}",
+          "duration": 0.5674999999999955,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 任何不安全帧都不进入编码器或任一出口: {\"pageKind\":\"unknown\"}",
+          "status": "passed",
+          "title": "任何不安全帧都不进入编码器或任一出口: {\"pageKind\":\"unknown\"}",
+          "duration": 0.35370000000000346,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 任何不安全帧都不进入编码器或任一出口: {\"detectorStatus\":\"timeout\"}",
+          "status": "passed",
+          "title": "任何不安全帧都不进入编码器或任一出口: {\"detectorStatus\":\"timeout\"}",
+          "duration": 0.7660000000000196,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 任何不安全帧都不进入编码器或任一出口: {\"thirdPartyFaces\":1,\"faceRedaction\":\"failed\"}",
+          "status": "passed",
+          "title": "任何不安全帧都不进入编码器或任一出口: {\"thirdPartyFaces\":1,\"faceRedaction\":\"failed\"}",
+          "duration": 0.5759999999999934,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 任何不安全帧都不进入编码器或任一出口: {\"confidence\":0.5}",
+          "status": "passed",
+          "title": "任何不安全帧都不进入编码器或任一出口: {\"confidence\":0.5}",
+          "duration": 0.46359999999998536,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 任何不安全帧都不进入编码器或任一出口: {\"generation\":7}",
+          "status": "passed",
+          "title": "任何不安全帧都不进入编码器或任一出口: {\"generation\":7}",
+          "duration": 0.44060000000001764,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 未启动、目标撤权和系统撤权都关闭两个出口",
+          "status": "passed",
+          "title": "未启动、目标撤权和系统撤权都关闭两个出口",
+          "duration": 1.4814000000000078,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 队列有界，满时拒绝新帧而不丢旧安全策略",
+          "status": "passed",
+          "title": "队列有界，满时拒绝新帧而不丢旧安全策略",
+          "duration": 4.981700000000018,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 停止先关闭门控、清队列；编码器迟到后不向任一出口发送",
+          "status": "passed",
+          "title": "停止先关闭门控、清队列；编码器迟到后不向任一出口发送",
+          "duration": 0.6030999999999835,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 停止发生在 AI 出口之后时，家属出口也被同一门控阻断",
+          "status": "passed",
+          "title": "停止发生在 AI 出口之后时，家属出口也被同一门控阻断",
+          "duration": 0.4609000000000094,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 编码器不能伪造输入绑定或将未绑定 artifact 发给出口",
+          "status": "passed",
+          "title": "编码器不能伪造输入绑定或将未绑定 artifact 发给出口",
+          "duration": 0.3415999999999997,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 出口抛错会停止两个出口，并且不自动恢复",
+          "status": "passed",
+          "title": "出口抛错会停止两个出口，并且不自动恢复",
+          "duration": 0.5421000000000049,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控媒体源 → 本地编码元数据 → 双出口"
+          ],
+          "fullName": "C04 受控媒体源 → 本地编码元数据 → 双出口 重启需要更高新代际，旧票据/旧帧不会复用",
+          "status": "passed",
+          "title": "重启需要更高新代际，旧票据/旧帧不会复用",
+          "duration": 0.4701000000000022,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        },
+        {
+          "ancestorTitles": [
+            "C04 受控出口的静态边界"
+          ],
+          "fullName": "C04 受控出口的静态边界 安全输出类型没有 raw track、像素、编码器输入或远程地址字段",
+          "status": "passed",
+          "title": "安全输出类型没有 raw track、像素、编码器输入或远程地址字段",
+          "duration": 0.30049999999999955,
+          "failureMessages": [],
+          "meta": {},
+          "tags": [],
+          "benchmarks": []
+        }
+      ],
+      "startTime": 1792168783002,
+      "endTime": 1792168783020.3005,
+      "status": "passed",
+      "message": "",
+      "name": "C:/Users/33864/Desktop/nuanban/tests/privacy/c04-media-relay.test.ts"
+    }
+  ],
+  "generatedAt": "2026-10-16T16:39:43.284Z",
+  "generatedDate": "2026-10-17",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "C04 controlled media relay synthetic test report",
+  "testReport": "media-c04-results.json",
+  "limitations": [
+    "仅覆盖内存中的安全票据、有界队列、双出口 stop fence 和合成失败路径。",
+    "没有真实编码器、WebRTC、网络接收端、抓包结果或独立媒体安全复核记录。"
+  ]
+}

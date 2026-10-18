@@ -1,0 +1,59 @@
+
+> nuanban@0.1.0 desktop:package C:\Users\33864\Desktop\nuanban
+> powershell -NoProfile -ExecutionPolicy Bypass -File scripts/desktop-package.ps1
+
+
+> nuanban@0.1.0 build C:\Users\33864\Desktop\nuanban
+> pnpm typecheck && pnpm --filter @nuanban/web build
+
+
+> nuanban@0.1.0 typecheck C:\Users\33864\Desktop\nuanban
+> tsc --noEmit
+
+
+> @nuanban/web@0.1.0 build C:\Users\33864\Desktop\nuanban\apps\web
+> vite build
+
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 2029 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                       0.58 kB │ gzip:  0.42 kB
+dist/assets/bootstrap-CVGnqZ7q.css    4.27 kB │ gzip:  1.19 kB
+dist/assets/index-Cne_RoAQ.css       40.98 kB │ gzip:  9.71 kB
+dist/assets/index-C3bDKLYo.js       222.22 kB │ gzip: 69.92 kB
+dist/assets/bootstrap-COgrQYsz.js   260.23 kB │ gzip: 85.41 kB
+
+✓ built in 374ms
+
+> @nuanban/desktop@0.1.0 package C:\Users\33864\Desktop\nuanban\apps\desktop
+> electron-forge package
+
+> Checking your system
+> Checking package manager version
+√ Found pnpm@9.12.0
+√ Checking your system
+> Preparing to package application
+√ Preparing to package application
+> Running packaging hooks
+> Running generateAssets hook
+> Running generateAssets hook from forgeConfig
+√ Running generateAssets hook from forgeConfig
+√ Running generateAssets hook
+> Running prePackage hook
+√ Running prePackage hook
+√ Running packaging hooks
+> Packaging application
+› Determining targets...
+> Packaging for x64 on win32
+> Copying files
+√ Copying files
+> Preparing native dependencies
+√ Preparing native dependencies
+> Finalizing package
+√ Finalizing package
+√ Packaging for x64 on win32
+√ Packaging application
+> Running postPackage hook
+√ Running postPackage hook

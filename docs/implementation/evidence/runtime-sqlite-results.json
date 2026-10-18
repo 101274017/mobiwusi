@@ -1,0 +1,87 @@
+{
+  "generatedAt": "2026-10-17T15:54:19.575Z",
+  "scope": "Actual child-process loopback startup, SQLite cold migration and persisted device/session authentication",
+  "command": "node --experimental-transform-types apps/server/src/main.ts",
+  "nodeVersion": "v24.21.0",
+  "platform": "win32",
+  "synthetic": true,
+  "realNetworkEnabled": false,
+  "productionDataEnabled": false,
+  "checks": [
+    {
+      "id": "memory-healthz",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true
+    },
+    {
+      "id": "memory-unauthenticated-relations",
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "passed": true
+    },
+    {
+      "id": "sqlite-cold-start-healthz",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true
+    },
+    {
+      "id": "sqlite-persisted-device-challenge",
+      "expectedStatus": 201,
+      "actualStatus": 201,
+      "passed": true
+    },
+    {
+      "id": "sqlite-device-exchange",
+      "expectedStatus": 201,
+      "actualStatus": 201,
+      "passed": true
+    },
+    {
+      "id": "sqlite-authenticated-relations",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true
+    },
+    {
+      "id": "sqlite-session-survives-process-restart",
+      "expectedStatus": 200,
+      "actualStatus": 200,
+      "passed": true
+    }
+  ],
+  "success": true,
+  "temporaryDatabaseRemoved": true,
+  "allChildrenStopped": true,
+  "sourceInventory": [
+    {
+      "path": "apps/server/src/main.ts",
+      "sha256": "2bfe498df3ec4083856c54e93181872fac23293269caec76cfa1108e76014704"
+    },
+    {
+      "path": "apps/server/src/http.ts",
+      "sha256": "e0245ebe0ff7295a52bd70001f0983a3594d3d5e4ee4747d629d1f3eaa110018"
+    },
+    {
+      "path": "apps/server/src/sqlite.ts",
+      "sha256": "3ed1a97ef82cdf8b390aa60bc47e1506314baa1373ec64b95cc6a9f8dfd8022f"
+    },
+    {
+      "path": "apps/server/src/auth.ts",
+      "sha256": "bf1294498579d25696db5baf324946b069992ddabe7126a352de9f89a27b0d82"
+    },
+    {
+      "path": "apps/server/src/family.ts",
+      "sha256": "a814d8b4c8433322caf8690a1ef66f6bed3fd5317e09cb69a2341a9e849b36fe"
+    },
+    {
+      "path": "packages/sync-engine/src/sqlite.ts",
+      "sha256": "f2f3c734992dc5264c205deb441defc28a954a1facaef6b740d5e88b5b92ee4f"
+    }
+  ],
+  "limitations": [
+    "Loopback HTTP with synthetic accounts only; not a production deployment, live provider or real participant test.",
+    "The default Web UI remains Mock; this audit does not assert UI/API or native-device integration."
+  ]
+}

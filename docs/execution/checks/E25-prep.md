@@ -1,0 +1,37 @@
+# E25 任务卡生成与前置检查
+
+生成时间：2026-10-17T23:40:07+08:00（Asia/Shanghai）  
+正式状态：`blocked / preparatory_not_accepted`；`execution_started=false`  
+开发状态：`implemented`；开发已开始：`true`；自动验证：`not_run`。
+记录性质：WBS 原文提取、开发证据快照与外部待项登记；不是本任务业务验收或发布签收。
+
+## 基线与依赖
+
+- 计划原行（第 367 行）：| E25 供应、授权与发布前提自动核对 | Q-04/05/10/14/15；前置 E24：SS | W14～17 / 4周 | P / 4 | 自动检测配置/权限和已取得证据，输出真实能力开关与发布就绪报告；交付：release-readiness/外部台账 | 缺项不阻断本地业务开发和集成，真实生产就绪不能默认true | 不索取人工批准文件；不伪造供应/用户同意或渠道通过 |
+- SHA-256：`a73d83db7da61702391586ac3d6aeb6c167cce571591f39230e4572265caf477`（UTF-8 原行字节，不含行尾换行）。
+- 原始输入依赖：Q-04/05/10/14/15；前置 E24：SS
+- 验收证据原文：缺项不阻断本地业务开发和集成，真实生产就绪不能默认true
+- 风险/接入点原文：不索取人工批准文件；不伪造供应/用户同意或渠道通过
+
+## 生成时关口快照
+
+- 关口证据生成时间：`2026-10-17T15:14:30.126Z`；D 状态 `blocked` / `preparatory_not_accepted`。
+- `goNoGoEligible=false`、`eAfterDEligible=false`、`eStarted=false`、`fStarted=false`。
+- 开发门禁快照：`DEV_READY_WITH_EXTERNAL_PENDING`；须与前置 development 状态一起核对，不以正式 blocked 阻断独立编码。
+- 不要求人工开发签字、override 文件或 --bypass-d07；真实生产能力仍服从正式门禁与授权。
+
+## 本轮动作与未执行事项
+
+- 从改版计划指定的 E/F WBS 表机械提取原行，生成 docs/execution/tasks/E25.md 与本检查记录；未改动原计划行。
+- 仅生成执行文档；没有修改产品代码、服务、数据库、网络适配、Android/Windows 原生能力或供应集成。
+- 本次未运行该 WBS 实现或测试；已有证据范围为 code_and_test_entry_existence_only，不得将生成动作算成一次新的通过。
+- 既有开发证据：`scripts/check-release-readiness.mjs`。
+- 既有开发证据：`tests/acceptance/release-readiness.test.ts`。
+- E implemented 仅为代码/测试入口存在性；F verified 仅为已有本地检查通过。设备、供应及真人验证继续 external_pending。
+- 未刷新共享 evidence；当前关口值只作为生成时快照，正式执行前必须重查。
+
+## 结论
+
+E25 的 WBS 行已映射到双状态任务卡；开发检查通过可继续本地代码、契约夹具和自动测试，FS/SS/FF 读取 development 状态。正式状态仍为 blocked / preparatory_not_accepted；本地结果不能冒充真实验收或阶段正式完成。
+
+<!-- generated-by: scripts/generate-ef-execution-cards.mjs; sha256:51681a586f27aa584cb573f8d83d1022669cec26093c85644f508ed78adbc14c -->

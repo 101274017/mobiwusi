@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-10-16",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "shared coordinate engine and synthetic C05/C06 vectors",
+  "testReport": "guidance-c05-c06-results.json",
+  "syntheticTests": 9,
+  "syntheticTestsPassed": 9,
+  "sourceSha256": {
+    "packages/guidance-engine/src/index.ts": "592d8c762dba8a3a43e7ec82192d0baf76366b034afe350c2809c05cf3fd1119",
+    "tests/domain/guidance-platform.test.ts": "ea06e60f07dd2798250a92f6c63a1ee2aa318acae1a0bc216997041125dfad97",
+    "tests/privacy/gates.test.ts": "882c73eba3232ec424f06001ddd372a12ac01975e94a424508897bbb3d65c9d3",
+    "docs/implementation/evidence/guidance-c05-c06-results.json": "d7e873262817f621e9b83506e4ca5c635ee48d2d51f5898d21bdb70ea1b3d082"
+  },
+  "androidDeviceVerified": false,
+  "androidActualOverlayVerified": false,
+  "windowsDeviceVerified": false,
+  "windowsMixedDpiVerified": false,
+  "windowsNegativeOriginVerified": false,
+  "childPointerManualAcceptance": false,
+  "inputInjection": "not implemented; source-level boundary test only",
+  "limitations": [
+    "No Android device, system projection permission, or native overlay acceptance was performed.",
+    "No real Windows multi-display, mixed-DPI, negative-origin, or pointer pass-through acceptance was performed.",
+    "The path planner returns render-only points and never invokes platform input APIs."
+  ]
+}

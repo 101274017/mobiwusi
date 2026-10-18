@@ -1,0 +1,641 @@
+
+> nuanban@0.1.0 c15:nv:check C:\Users\33864\Desktop\nuanban
+> node scripts/check-c15-nv-readiness.mjs --evidence docs/implementation/evidence/c15-nv-readiness-results.json
+
+{
+  "generatedAt": "2026-10-16",
+  "scope": "C15 NV-01..NV-12 evidence readiness and safety side-effect audit",
+  "status": "blocked",
+  "acceptance": "preparatory_not_accepted",
+  "auditPassed": true,
+  "goNoGoEligible": false,
+  "deviceVerified": false,
+  "supplierVerified": false,
+  "checks": [
+    {
+      "id": "NV-01",
+      "title": "Android 跨应用捕获与浮层",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "android-lab.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "android-lab.json",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "android-lab.json",
+          "path": "captureVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "android-lab.json",
+          "path": "overlayVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "android-lab.json",
+          "path": "systemPermissionGranted",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "android-lab.json",
+          "path": "independentAcceptance",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "没有连接 Android 设备、系统授权、真实捕获来源和底层可点击记录。"
+      ]
+    },
+    {
+      "id": "NV-02",
+      "title": "服务、通知与自启动",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "android-lab.json",
+          "exists": true,
+          "parseable": true
+        },
+        {
+          "file": "reminder-c07-c08-scope.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "android-lab.json",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "android-lab.json",
+          "path": "systemPermissionGranted",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "reminder-c07-c08-scope.json",
+          "path": "androidRoom",
+          "expected": "integrated",
+          "observed": "not integrated",
+          "passed": false
+        },
+        {
+          "file": "reminder-c07-c08-scope.json",
+          "path": "androidSystemScheduler",
+          "expected": "integrated",
+          "observed": "not integrated",
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "没有权限拒绝、强停、后台、退出、睡眠、重启和真实系统提醒回执记录。"
+      ]
+    },
+    {
+      "id": "NV-03",
+      "title": "Windows 窗口、捕获与多屏",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "desktop-lab-smoke.json",
+          "exists": true,
+          "parseable": true
+        },
+        {
+          "file": "desktop-lab-package.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "actualDisplayCaptureVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "externalApplicationCaptureVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "mousePassThroughVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "mixedDpiMovementVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "negativeOriginMovementVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "independentAcceptance",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "当前仅有隐藏 Electron 合成窗口和单显示器几何记录，没有真实桌面捕获、双屏、混合 DPI、负坐标、穿透和独立复核。"
+      ]
+    },
+    {
+      "id": "NV-04",
+      "title": "采集生命周期",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "没有 stop、revoke、lock、kill、reboot 后的真实轨道、队列、出口和资源释放计数。"
+      ]
+    },
+    {
+      "id": "NV-05",
+      "title": "自身浮层污染",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "exists": true,
+          "parseable": true
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "independentAcceptance",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "没有 Android/Windows 真实捕获对照、浮层排除/隐藏/屏蔽结果和人工复核。"
+      ]
+    },
+    {
+      "id": "NV-06",
+      "title": "本地检测与脱敏",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "privacy-c03-results.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "privacy-c03-results.json",
+          "path": "realModelEvidenceVerified",
+          "expected": true,
+          "observed": null,
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "C03 只有合成门控测试；没有真实 OCR/检测模型、人脸测试素材、坏模型/超时质量和逐帧设备证据。"
+      ]
+    },
+    {
+      "id": "NV-07",
+      "title": "安全媒体出口",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "media-c04-results.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "media-c04-results.json",
+          "path": "realEncoderAndRelayVerified",
+          "expected": true,
+          "observed": null,
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "C04 只有本地内存 relay；没有真实编码器、双出口接收 canary、抓包、WebRTC/TURN 和停止竞态记录。"
+      ]
+    },
+    {
+      "id": "NV-08",
+      "title": "用户自行操作与核验",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "androidDeviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "windowsDeviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "inputInjection",
+          "expected": "device_verified",
+          "observed": "not implemented; source-level boundary test only",
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "共享坐标引擎只有合成向量；没有 Android/Windows 设备调用、真实页面核验或人工操作轨迹。"
+      ]
+    },
+    {
+      "id": "NV-09",
+      "title": "儿童指向",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "exists": true,
+          "parseable": true
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "androidDeviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "windowsDeviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "childPointerManualAcceptance",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted",
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "没有原生桌宠路径、真实动画/遮挡、替代停靠、儿童可理解性和人工可达性记录。"
+      ]
+    },
+    {
+      "id": "NV-10",
+      "title": "2D、画布与 3D 规格",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "c11-3d-scope.json",
+          "exists": true,
+          "parseable": true
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "c11-3d-scope.json",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted",
+          "passed": false
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted",
+          "passed": false
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "path": "publishEligible",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "C11/C13 仅有结构门控；没有真实 VRM/FBX/GLB、渲染器、供应资产、设备帧率/内存、视觉和儿童质量验收。"
+      ]
+    },
+    {
+      "id": "NV-11",
+      "title": "语音、多模态与生成",
+      "layer": "supplier_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted",
+          "passed": false
+        },
+        {
+          "file": "c12-sandbox-scope.json",
+          "path": "realCredentialState",
+          "expected": "available",
+          "observed": "missing",
+          "passed": false
+        },
+        {
+          "file": "c12-sandbox-scope.json",
+          "path": "productionReady",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "C12 合成场景通过但真实凭证缺失；没有真实区域、价格/配额、数据保留、合同、首片段、取消延迟和质量证据。"
+      ]
+    },
+    {
+      "id": "NV-12",
+      "title": "免密、人脸与无 SIM",
+      "layer": "supplier_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "exists": true,
+          "parseable": true
+        },
+        {
+          "file": "c14-handoff-results.json",
+          "exists": true,
+          "parseable": true
+        }
+      ],
+      "signals": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "path": "realCredentialState",
+          "expected": "available",
+          "observed": "missing",
+          "passed": false
+        },
+        {
+          "file": "c14-handoff-results.json",
+          "path": "serverProofVerified",
+          "expected": true,
+          "observed": null,
+          "passed": false
+        },
+        {
+          "file": "c14-handoff-results.json",
+          "path": "replayProtectionVerified",
+          "expected": true,
+          "observed": null,
+          "passed": false
+        }
+      ],
+      "blockers": [
+        "没有服务端证明、防重放、真实失败替代、认领和供应凭证实测；本机解锁或契约元数据不构成服务端人脸证明。"
+      ]
+    }
+  ],
+  "evidenceInventory": [
+    {
+      "file": "android-lab.json",
+      "exists": true,
+      "parseable": true,
+      "scope": "C01-preparatory-build-static-and-jvm-only",
+      "status": null
+    },
+    {
+      "file": "reminder-c07-c08-scope.json",
+      "exists": true,
+      "parseable": true,
+      "scope": "C07/C08 shared reminder preflight and native capability boundary",
+      "status": "preparatory_not_accepted"
+    },
+    {
+      "file": "desktop-lab-smoke.json",
+      "exists": true,
+      "parseable": true,
+      "scope": "hidden-Electron-native-windows-own-synthetic-render-and-canvas-track-only",
+      "status": null
+    },
+    {
+      "file": "desktop-lab-package.json",
+      "exists": true,
+      "parseable": true,
+      "scope": null,
+      "status": null
+    },
+    {
+      "file": "lifecycle-c09-c10-scope.json",
+      "exists": true,
+      "parseable": true,
+      "scope": "shared C09/C10 lifecycle cleanup coordinator",
+      "status": "preparatory_not_accepted"
+    },
+    {
+      "file": "privacy-c03-results.json",
+      "exists": true,
+      "parseable": true,
+      "scope": null,
+      "status": null
+    },
+    {
+      "file": "media-c04-results.json",
+      "exists": true,
+      "parseable": true,
+      "scope": null,
+      "status": null
+    },
+    {
+      "file": "guidance-c05-c06-scope.json",
+      "exists": true,
+      "parseable": true,
+      "scope": "shared coordinate engine and synthetic C05/C06 vectors",
+      "status": null
+    },
+    {
+      "file": "pet-c13-scope.json",
+      "exists": true,
+      "parseable": true,
+      "scope": "C13 shared animated 2D pet asset manifest and quality gate",
+      "status": "preparatory_not_accepted"
+    },
+    {
+      "file": "c11-3d-scope.json",
+      "exists": true,
+      "parseable": true,
+      "scope": "C11 local VRM/FBX/GLB container, inspection and resource-budget preflight",
+      "status": "preparatory_not_accepted"
+    },
+    {
+      "file": "c12-sandbox-scope.json",
+      "exists": true,
+      "parseable": true,
+      "scope": "C12 authentication, voice, multimodal and animated 2D generation supplier sandbox preflight",
+      "status": "preparatory_not_accepted"
+    },
+    {
+      "file": "c14-handoff-results.json",
+      "exists": true,
+      "parseable": true,
+      "scope": "C14 backend contract handoff preparation",
+      "status": "draft_review_required"
+    }
+  ],
+  "blockers": [
+    "当前没有 Android/Windows 真实设备记录、系统权限回执、跨应用捕获或多屏/生命周期计数。",
+    "当前没有真实 OCR/人脸/编码/WebRTC/AI/语音/生成供应凭证或服务端证明。",
+    "合成测试、契约审查、打包和单屏几何记录不能替代 C15 的设备/供应层证据。",
+    "在所有必要 NV 记录完成并经独立复核前，不得进入 D Go/No-Go，也不得启动真实 E/F 交付。"
+  ],
+  "recordSchema": [
+    "date_and_timezone",
+    "build_and_package_hash",
+    "device_model_os_dpi",
+    "case_and_synthetic_material_hash",
+    "permissions_and_consent",
+    "steps_expected_actual",
+    "frame_encoding_send_receive_cache_counters",
+    "screenshots_or_video_reference",
+    "limitations_executor_independent_reviewer"
+  ]
+}

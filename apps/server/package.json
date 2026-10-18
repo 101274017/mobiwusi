@@ -1,0 +1,10 @@
+{
+  "name": "@nuanban/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --experimental-transform-types src/main.ts",
+    "check": "node --experimental-transform-types --check src/main.ts"
+  }
+}

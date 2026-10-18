@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>暖伴 · C02 原生验证</title><link rel="stylesheet" href="control.css"><script defer src="control.js"></script>
+</head>
+<body>
+  <main>
+    <header><div class="brand"><span class="seal" aria-hidden="true">暖</span><span>暖伴 / 原生实验手记</span></div><span class="edition">C02 · WINDOWS</span></header>
+    <section class="intro"><div><p class="eyebrow">先验证边界，再连接能力</p><h1>一扇小窗，<br>一次明确的同意。</h1><p class="lede">只对本样例自己的合成窗口进行捕获实验。<br>不枚举其他窗口、不采集桌面、不连接网络。</p></div><aside><span class="tag">开发样例 · 未验收</span><p>真实捕获必须由你手动开始。<br>自动检查不申请屏幕采集。</p><p>正常暖伴演示包与此模块隔离，<br>共享前端采集能力仍关闭。</p></aside></section>
+    <div class="workspace">
+      <section class="paper"><div class="section-label"><span>01</span><h2>准备与授权</h2></div><p>请勿在合成窗口中放入真实账号、聊天、支付或验证码。窗口内容固定，不能选择其他应用。</p>
+        <button id="canary" class="secondary" type="button">显示合成测试窗口</button>
+        <label><input id="consent" type="checkbox"><span>我了解本次只捕获合成窗口；不保存、编码或上传，设有 30 秒自动停止计时。</span></label>
+        <label><input id="overlay" type="checkbox"><span>同时测试透明穿透标记与独立停止浮层（可不选）</span></label>
+        <div class="actions"><button id="start" type="button">开始本次受控捕获</button><button id="stop" class="danger" type="button">立即停止</button></div>
+        <p id="message" role="status" aria-live="polite">尚未请求任何捕获。系统是否允许仍需实际验证。</p>
+      </section>
+      <section class="paper"><div class="section-label"><span>02</span><h2>状态与资源</h2></div><dl id="status"><dt>状态</dt><dd>初始化中</dd></dl><p class="note">帧计数只代表视频回调，不是检测结果或系统总帧数。停止先封闭代际，再等待轨道结束；超时将关闭持有轨道的页面。</p><p class="note">计时受系统调度影响，不能保证恰好 30 秒完成 OS 资源清理。</p></section>
+    </div>
+    <section class="paper displays"><div class="section-label"><span>03</span><h2>显示与 DPI 记录</h2></div><div id="displays"></div><p class="note">移动窗口会先停止本次采集。当前物理坐标使用 Windows 原生换算 API，不把显示器原点简单乘缩放因子；合成负坐标测试不等于真实混合 DPI 验收。</p><pre id="geometry" aria-label="合成窗口坐标记录"></pre></section>
+    <footer>无 AI、远程媒体或真实账户接入。C02 / NV-03 仍需人工触摸穿透、混合 DPI、负坐标及真实捕获验证。</footer>
+    <video id="capture" muted playsinline aria-hidden="true" tabindex="-1"></video>
+  </main>
+</body>
+</html>

@@ -1,0 +1,598 @@
+{
+  "snapshotType": "d02-contract-snapshot",
+  "snapshotVersion": 1,
+  "task": "D02",
+  "step": "prep-01",
+  "generatedAt": "2026-10-17T10:14:56+08:00",
+  "timeZone": "Asia/Shanghai",
+  "status": "blocked",
+  "acceptance": "preparatory_not_accepted",
+  "purpose": "本地契约快照预备：建立可复算的源/生成物/活动桥/fixture/兼容说明 SHA-256 边界，不作冻结或签收。",
+  "contractSummary": {
+    "schemaVersion": "0.2.0",
+    "operations": 60,
+    "definitions": 118,
+    "generatedOpenApiOperations": 60,
+    "sourceOfTruth": "packages/contracts/src/spec/ 与 packages/contracts/src/active-bridge.ts",
+    "conversationEventSchema": "被 validate-contracts 校验，但当前不在 scripts/generate-contracts.mjs 生成映射中。"
+  },
+  "versionControl": {
+    "system": "git",
+    "repositoryDetected": false,
+    "commit": null,
+    "tree": null,
+    "commands": [
+      {
+        "command": "git status --short --branch",
+        "exitCode": 128,
+        "observed": "fatal: not a git repository (or any of the parent directories): .git"
+      },
+      {
+        "command": "git rev-parse --show-toplevel",
+        "exitCode": 128,
+        "observed": "fatal: not a git repository (or any of the parent directories): .git"
+      }
+    ],
+    "interpretation": "实际工作区不含 .git；不虚构 commit、分支或可提交状态。"
+  },
+  "scope": {
+    "allowedWrites": [
+      "docs/implementation/d02-contract-handoff.md",
+      "docs/execution/tasks/D02.md",
+      "docs/execution/checks/D02-prep.md",
+      "docs/implementation/evidence/d02-contract-snapshot.json"
+    ],
+    "existingEvidencePolicy": "只读引用 docs/implementation/evidence 中已有文件；不覆盖其他 evidence。",
+    "snapshotSelfHash": "不纳入 assets，避免快照对自身形成循环哈希。",
+    "excluded": [
+      {
+        "path": "node_modules/**",
+        "reason": "依赖树，不是 D02 契约交接资产。"
+      },
+      {
+        "path": "**/build/**",
+        "reason": "构建目录，不是可冻结源/生成物；避免把构建缓存当契约版本。"
+      },
+      {
+        "path": "test-results/**",
+        "reason": "测试运行输出，不是本地契约源或生成物。"
+      },
+      {
+        "path": ".cache/**",
+        "reason": "工具缓存；本轮未运行会写缓存的 Kotlin 检查。"
+      },
+      {
+        "path": "docs/execution/RUN.md",
+        "reason": "共享执行状态，由主代理维护；本轮未修改。"
+      },
+      {
+        "path": "docs/implementation/status.md",
+        "reason": "共享状态总账；本轮未修改。"
+      }
+    ]
+  },
+  "assets": [
+    {
+      "category": "contract_source",
+      "role": "schema_primitives",
+      "path": "packages/contracts/src/spec/primitives.ts",
+      "exists": true,
+      "bytes": 2367,
+      "sha256": "9cc4ae693033f19498b69cee74d1610d0e97dd10d525b09c28e8f5af67be77cb",
+      "note": "唯一来源：版本、基础类型与格式约束"
+    },
+    {
+      "category": "contract_source",
+      "role": "models",
+      "path": "packages/contracts/src/spec/models.ts",
+      "exists": true,
+      "bytes": 14974,
+      "sha256": "5b0a6f22d305dd70ca8b6034a32387bc244aecb9c9bc69f1899e7510ca58fae4",
+      "note": "唯一来源：DTO 定义"
+    },
+    {
+      "category": "contract_source",
+      "role": "events",
+      "path": "packages/contracts/src/spec/events.ts",
+      "exists": true,
+      "bytes": 5442,
+      "sha256": "2288c2440c03260de512d0a946d84e1f460113bb0a7a0320266f396f8ec3579b",
+      "note": "唯一来源：事件/流定义"
+    },
+    {
+      "category": "contract_source",
+      "role": "errors",
+      "path": "packages/contracts/src/spec/errors.ts",
+      "exists": true,
+      "bytes": 388,
+      "sha256": "27124d0ddb3bcffcd7f65177caedb00191dfa8f892d8f234dd73aecfe0f71b66",
+      "note": "唯一来源：错误码与错误语义"
+    },
+    {
+      "category": "contract_source",
+      "role": "operations",
+      "path": "packages/contracts/src/spec/operations.ts",
+      "exists": true,
+      "bytes": 12071,
+      "sha256": "95118a211b11dc9230a98e785ae678b1eca8779f6c08ee40956a8d643c3380ee",
+      "note": "唯一来源：操作、授权、幂等与版本元数据"
+    },
+    {
+      "category": "contract_source",
+      "role": "catalog",
+      "path": "packages/contracts/src/spec/catalog.ts",
+      "exists": true,
+      "bytes": 1079,
+      "sha256": "75d4df906ca406819dcd42febd07cc07f207a8a9c356006f8475af2280fe46db",
+      "note": "唯一来源：服务 Schema/操作目录"
+    },
+    {
+      "category": "contract_source",
+      "role": "active_bridge_source",
+      "path": "packages/contracts/src/active-bridge.ts",
+      "exists": true,
+      "bytes": 14836,
+      "sha256": "d6c21764d1f0ed65a12458fb440121eddb8b4f325c88e62a191b669384aa2afa",
+      "note": "当前活动桥请求/回复协议唯一 TypeScript 来源"
+    },
+    {
+      "category": "contract_runtime_support",
+      "role": "wire_formats",
+      "path": "packages/contracts/src/formats.ts",
+      "exists": true,
+      "bytes": 1301,
+      "sha256": "3babf919dde1d811c61cd6021a72ab60c299a0a56e8a8549d5938ba7a30314b5",
+      "note": "契约格式校验运行时支持"
+    },
+    {
+      "category": "contract_runtime_support",
+      "role": "runtime_validation",
+      "path": "packages/contracts/src/validation.ts",
+      "exists": true,
+      "bytes": 879,
+      "sha256": "9ed723ad39059f723628dc8b4ef771402c10c6b5a2c627217fa71a2072593101",
+      "note": "Schema 运行时校验支持"
+    },
+    {
+      "category": "contract_runtime_support",
+      "role": "public_exports",
+      "path": "packages/contracts/src/index.ts",
+      "exists": true,
+      "bytes": 2069,
+      "sha256": "fd6b3814423aef460c1aef1e1bacfac035cb82fc88d6c374bb1cd15c4bb6bb9e",
+      "note": "契约公开导出与事件运行时边界"
+    },
+    {
+      "category": "generated_artifact",
+      "role": "openapi",
+      "path": "packages/contracts/openapi.json",
+      "exists": true,
+      "bytes": 485835,
+      "sha256": "8054d8be16705bc6902e86494c53ca9bff2c3ade4903d698b4367a5957c92e41",
+      "note": "由 scripts/generate-contracts.mjs 生成"
+    },
+    {
+      "category": "generated_artifact",
+      "role": "services_schema",
+      "path": "packages/contracts/schemas/services.schema.json",
+      "exists": true,
+      "bytes": 153176,
+      "sha256": "fcfa25e2c2c77b1c138e539b5077b70374f5660603c9f0ea9bf42052230c04ba",
+      "note": "由 scripts/generate-contracts.mjs 生成"
+    },
+    {
+      "category": "generated_artifact",
+      "role": "note_schema",
+      "path": "packages/contracts/schemas/note.schema.json",
+      "exists": true,
+      "bytes": 3205,
+      "sha256": "59056c01b11c45877fac5599555ea60dba6740fea3979b438d3d78608e486884",
+      "note": "由 scripts/generate-contracts.mjs 生成"
+    },
+    {
+      "category": "generated_artifact",
+      "role": "service_error_schema",
+      "path": "packages/contracts/schemas/service-error.schema.json",
+      "exists": true,
+      "bytes": 1393,
+      "sha256": "8acf0192008f36fd7bc64476d9d02faca3becaacea756c0cf81fae0a9b16e793",
+      "note": "由 scripts/generate-contracts.mjs 生成"
+    },
+    {
+      "category": "generated_artifact",
+      "role": "bridge_schema",
+      "path": "packages/contracts/schemas/bridge.schema.json",
+      "exists": true,
+      "bytes": 7834,
+      "sha256": "2504c18bcf8e4835f863b2ba98762e1b89fe1a5d49e18a61d10a1928ffd10298",
+      "note": "由 scripts/generate-contracts.mjs 生成；活动桥"
+    },
+    {
+      "category": "generated_artifact",
+      "role": "android_bridge_reply_schema",
+      "path": "packages/contracts/schemas/android-bridge-reply.schema.json",
+      "exists": true,
+      "bytes": 4930,
+      "sha256": "b8303d25e6d8a597c4b944ec923d2f96cd93f4ea3cdd73f7cd6a5b8763497c6b",
+      "note": "由 scripts/generate-contracts.mjs 生成；活动桥"
+    },
+    {
+      "category": "validated_schema_artifact",
+      "role": "conversation_event_schema",
+      "path": "packages/contracts/schemas/conversation-event.schema.json",
+      "exists": true,
+      "bytes": 617,
+      "sha256": "7fc3b8750976e9ca949fc4f6a1e0636be742b607d26b4e2f5d90d94921e452aa",
+      "note": "被 validate-contracts 校验；当前不在 generate-contracts 映射中"
+    },
+    {
+      "category": "generated_artifact",
+      "role": "typescript_dto",
+      "path": "packages/contracts/src/types.generated.ts",
+      "exists": true,
+      "bytes": 22099,
+      "sha256": "5d9c5cfd7332ef0ea865314f931492689147d134b3d6a769b69fd5c51973442d",
+      "note": "由 scripts/generate-contracts.mjs 生成；禁止手工编辑"
+    },
+    {
+      "category": "generated_artifact",
+      "role": "kotlin_dto",
+      "path": "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ServiceDtos.generated.kt",
+      "exists": true,
+      "bytes": 251879,
+      "sha256": "4a9b4d40c22e081bc7f46f6ef79acbe0936604f83dce18444f77ef04fe8a1fc3",
+      "note": "由 scripts/generate-contracts.mjs 生成"
+    },
+    {
+      "category": "generated_artifact",
+      "role": "kotlin_rules",
+      "path": "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ContractRules.generated.kt",
+      "exists": true,
+      "bytes": 112594,
+      "sha256": "81bf50d03587f8e017498c47715789d44b251f05f2f7712d1afa1af98afdc482",
+      "note": "由 scripts/generate-contracts.mjs 生成"
+    },
+    {
+      "category": "active_bridge_protocol",
+      "role": "kotlin_active_bridge",
+      "path": "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ActiveBridgeProtocol.kt",
+      "exists": true,
+      "bytes": 9728,
+      "sha256": "2953e86f1664f68a45afbecaaf620362179e9f9ec900775779f6a964f52f29b0",
+      "note": "Android 活动桥严格解析/白名单协议"
+    },
+    {
+      "category": "active_bridge_protocol",
+      "role": "kotlin_contract_runtime",
+      "path": "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ContractRuntime.kt",
+      "exists": true,
+      "bytes": 8290,
+      "sha256": "133cd910746a82f618cae2f979730eab2c37a931740c96d2f43b54e59c70a0c3",
+      "note": "Kotlin 契约运行时支持"
+    },
+    {
+      "category": "active_bridge_protocol",
+      "role": "android_message_host",
+      "path": "packages/platform-ports/src/android-message-host.ts",
+      "exists": true,
+      "bytes": 8409,
+      "sha256": "75f3b58154ce0b5087adf3a8a67971cbbec06e5aefa7279bc2e63f52fa765c79",
+      "note": "Web/Android 活动桥适配边界"
+    },
+    {
+      "category": "active_bridge_protocol",
+      "role": "platform_port_exports",
+      "path": "packages/platform-ports/src/index.ts",
+      "exists": true,
+      "bytes": 19751,
+      "sha256": "349cc844c8685308b7b166481e7eb77738e57305d0d645bb2d22ce2ea8f6bc91",
+      "note": "平台端口公开导出边界"
+    },
+    {
+      "category": "active_bridge_protocol",
+      "role": "android_host_integration",
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt",
+      "exists": true,
+      "bytes": 16055,
+      "sha256": "0edc345d414b4891cba1b6d5724ab72198b9bf95dc60ba0750fae5a103c53dae",
+      "note": "Android 宿主实际接入边界"
+    },
+    {
+      "category": "active_bridge_protocol",
+      "role": "desktop_preload",
+      "path": "apps/desktop/preload.cjs",
+      "exists": true,
+      "bytes": 1479,
+      "sha256": "21a2175fcddf98292f08c34cd86e031830b1041e6ed71cc0bed3112d9618b122",
+      "note": "Electron 活动桥 preload 入口"
+    },
+    {
+      "category": "fixture",
+      "role": "typescript_fixture_factory",
+      "path": "tests/contract/fixtures.ts",
+      "exists": true,
+      "bytes": 1612,
+      "sha256": "7b8a5f2bbb6667f501a795edc123427b83a4d9a983f1c10245b7c68e8c739b03",
+      "note": "合成 DTO fixture 生成器"
+    },
+    {
+      "category": "fixture",
+      "role": "kotlin_fixture_generator",
+      "path": "scripts/generate-kotlin-fixtures.mjs",
+      "exists": true,
+      "bytes": 14176,
+      "sha256": "3040dfb8c5cebe7803aa58f3e6702ae2facc8eff7d4ad1536297081815c913a1",
+      "note": "Kotlin/Ajv fixture 生成器"
+    },
+    {
+      "category": "fixture_validation",
+      "role": "active_bridge_fixture_tests",
+      "path": "tests/contract/active-bridge.test.ts",
+      "exists": true,
+      "bytes": 4331,
+      "sha256": "cffd58245b259c355f809afea58c2d58d725655c8edbdfa04087d2d85c7ffe84",
+      "note": "活动桥正反例测试"
+    },
+    {
+      "category": "fixture_validation",
+      "role": "service_fixture_tests",
+      "path": "tests/contract/services.test.ts",
+      "exists": true,
+      "bytes": 5018,
+      "sha256": "7f26aaef8032b4331ffcfcd0eca9ed143eb7839e56f14f57144270a61e281723",
+      "note": "服务定义正反例测试"
+    },
+    {
+      "category": "fixture_validation",
+      "role": "schema_fixture_tests",
+      "path": "tests/contract/schema.test.ts",
+      "exists": true,
+      "bytes": 770,
+      "sha256": "a97dd7950acc2dd78bd93ab6987aca4de97ac45bfcff5dffcdcb37c9f4d932fc",
+      "note": "Schema fixture 测试"
+    },
+    {
+      "category": "fixture_validation",
+      "role": "kotlin_generation_tests",
+      "path": "tests/contract/kotlin-generation.test.ts",
+      "exists": true,
+      "bytes": 3048,
+      "sha256": "a240a05bfd58c294a89e70764cec733e9b95b39c834e615f94695a4510742d08",
+      "note": "生成物/对照测试"
+    },
+    {
+      "category": "fixture_validation",
+      "role": "mapper_fixture_tests",
+      "path": "tests/contract/mappers.test.ts",
+      "exists": true,
+      "bytes": 3870,
+      "sha256": "a5aa88f020182d587fc37814310a05565998980bc36182976405fded7e217d1d",
+      "note": "DTO mapper fixture 测试"
+    },
+    {
+      "category": "fixture_validation",
+      "role": "conversation_fixture_tests",
+      "path": "tests/contract/conversation.test.ts",
+      "exists": true,
+      "bytes": 2130,
+      "sha256": "3d7587e3ffc38b356ede914140f572c4bb77cfee461836e2e89454d87e830c55",
+      "note": "事件 fixture 测试"
+    },
+    {
+      "category": "active_bridge_validation",
+      "role": "android_host_tests",
+      "path": "tests/platform/android-message-host.test.ts",
+      "exists": true,
+      "bytes": 13731,
+      "sha256": "e5e931d2ec90b3e1f255c2732b53de6836e5b2b0886725fd012aaee61694d032",
+      "note": "Android 活动桥适配测试"
+    },
+    {
+      "category": "active_bridge_validation",
+      "role": "native_host_e2e_spec",
+      "path": "tests/e2e/native-host.spec.ts",
+      "exists": true,
+      "bytes": 3642,
+      "sha256": "ace29b32fe96fd0e8c0fc9a75f471727d159b3d474fec05508cd29d53a3ac1bb",
+      "note": "原生宿主桥接场景规格；不等于本轮已执行"
+    },
+    {
+      "category": "existing_evidence_reference",
+      "role": "kotlin_fixture_manifest",
+      "path": "docs/implementation/evidence/kotlin-fixtures.json",
+      "exists": true,
+      "bytes": 3391,
+      "sha256": "4d0aeb576a2ded4bfc605a044b506c0c75efafdb3e3edbd64acf5302a38fa2da",
+      "note": "既有 fixture manifest，只读引用，不覆盖"
+    },
+    {
+      "category": "existing_evidence_reference",
+      "role": "kotlin_fixture_results",
+      "path": "docs/implementation/evidence/kotlin-results.json",
+      "exists": true,
+      "bytes": 1741,
+      "sha256": "c9bead8afcac8d6195a25fa361b8cfea6e548d3f67d8ab00809d31df4420f37d",
+      "note": "既有 fixture 执行结果，只读引用，不覆盖"
+    },
+    {
+      "category": "existing_evidence_reference",
+      "role": "contract_check_output",
+      "path": "docs/implementation/evidence/contracts.txt",
+      "exists": true,
+      "bytes": 614,
+      "sha256": "61b16a588609067e9f4c91b5aa3a7789c291870d049dbc7a186a2d06e8484a45",
+      "note": "既有契约检查摘要，只读引用，不覆盖"
+    },
+    {
+      "category": "compatibility_note",
+      "role": "package_compatibility_notes",
+      "path": "packages/contracts/README.md",
+      "exists": true,
+      "bytes": 5920,
+      "sha256": "39a2a0543cff0f95d58787787a9ee6ad4c989cbdecb33c9e6c5d23c8ab506fb3",
+      "note": "契约兼容/活动桥适配说明"
+    },
+    {
+      "category": "compatibility_note",
+      "role": "baseline_compatibility_boundary",
+      "path": "docs/implementation/baseline.md",
+      "exists": true,
+      "bytes": 6581,
+      "sha256": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "note": "当前契约差异、版本和边界说明"
+    },
+    {
+      "category": "compatibility_note",
+      "role": "c14_handoff_compatibility",
+      "path": "docs/implementation/c14-backend-handoff.md",
+      "exists": true,
+      "bytes": 4319,
+      "sha256": "207bf2c8deea7106a32101a9da01f5bdde93a9cfe6cf8072b363a72bcc852932",
+      "note": "C14 交接兼容/限制说明"
+    },
+    {
+      "category": "compatibility_note",
+      "role": "independent_review_criteria",
+      "path": "docs/implementation/c14-independent-review-template.md",
+      "exists": true,
+      "bytes": 17404,
+      "sha256": "9afadb74944bb9017a2aca52227a82e2cf7054850ac24018a6152da8e43ade94",
+      "note": "版本、兼容和迁移评审标准"
+    },
+    {
+      "category": "compatibility_note",
+      "role": "android_compatibility_notes",
+      "path": "apps/android/README.md",
+      "exists": true,
+      "bytes": 4125,
+      "sha256": "dd7a6f1b8ef704fef25a6fb66fb707b3a1a877d9e263199741d037cff68274a6",
+      "note": "Android 活动桥与兼容限制说明"
+    },
+    {
+      "category": "reproduction_tooling",
+      "role": "contract_generator",
+      "path": "scripts/generate-contracts.mjs",
+      "exists": true,
+      "bytes": 7291,
+      "sha256": "bdc7453337bc6251b59a78f7e6b595fc90028f2fe006ddc89f0f8b0ea01e05e1",
+      "note": "生成/--check 命令实现"
+    },
+    {
+      "category": "reproduction_tooling",
+      "role": "kotlin_generator_support",
+      "path": "scripts/kotlin-contracts.mjs",
+      "exists": true,
+      "bytes": 12594,
+      "sha256": "b603ef0d6787fbd57d87da0732447ba134364d35e1e9e156674e73e1e6679a0e",
+      "note": "Kotlin 生成实现"
+    },
+    {
+      "category": "reproduction_tooling",
+      "role": "contract_validator",
+      "path": "scripts/validate-contracts.mjs",
+      "exists": true,
+      "bytes": 853,
+      "sha256": "ddfc1c305c402d81b51f1f4d2ddb52f1d7bbdca743089981d253c3a7e951f9ea",
+      "note": "Schema/定义校验命令实现"
+    },
+    {
+      "category": "reproduction_tooling",
+      "role": "package_manifest",
+      "path": "package.json",
+      "exists": true,
+      "bytes": 5863,
+      "sha256": "0ef39b59eab6f2c2eac78ecda736b08f10efb8c18dd40f7a6619696bedcca8e5",
+      "note": "命令与依赖入口"
+    },
+    {
+      "category": "reproduction_tooling",
+      "role": "lockfile",
+      "path": "pnpm-lock.yaml",
+      "exists": true,
+      "bytes": 87694,
+      "sha256": "2a3b4466b04ea84baee2bdad1a75e6a174437744c2dcf915de8a5196e006d990",
+      "note": "依赖解析锁定边界"
+    }
+  ],
+  "coverage": {
+    "assetCount": 49,
+    "missing": [],
+    "missingInterpretation": "本清单声明的 49 个文件均存在并已计算 SHA-256；这不表示人工评审、冻结或服务端实现已完成。",
+    "categories": [
+      "contract_source",
+      "contract_runtime_support",
+      "generated_artifact",
+      "validated_schema_artifact",
+      "active_bridge_protocol",
+      "fixture",
+      "fixture_validation",
+      "active_bridge_validation",
+      "existing_evidence_reference",
+      "compatibility_note",
+      "reproduction_tooling"
+    ]
+  },
+  "observedChecks": [
+    {
+      "command": "pnpm contracts:check",
+      "exitCode": 0,
+      "writes": false,
+      "summary": "契约 0.2.0；60 个操作；118 个定义；0 个文件更新；6 个 JSON Schema 校验通过；118 个服务定义逐项编译通过。"
+    },
+    {
+      "command": "node scripts/check-c14-handoff.mjs --no-write",
+      "exitCode": 0,
+      "writes": false,
+      "summary": "success=true；status=draft_review_required；passed=9；failed=0；backendStarted=false。"
+    },
+    {
+      "command": "node scripts/check-c16-decision-readiness.mjs --no-write",
+      "exitCode": 0,
+      "writes": false,
+      "summary": "status=blocked；decisionState=unconfirmed；decisionReady=false；top20Approved=false；pilotEligible=false。"
+    },
+    {
+      "command": "node scripts/check-d-gate-readiness.mjs --no-write",
+      "exitCode": 0,
+      "writes": false,
+      "summary": "auditPassed=true；status=blocked；acceptance=preparatory_not_accepted；D02=blocked；contractsFrozen=false；realBackendConnected=false；realBackendRequiredForD02=false；eStarted=false；fStarted=false；goNoGoEligible=false。"
+    },
+    {
+      "command": "PowerShell Get-FileHash -Algorithm SHA256 over declared assets",
+      "exitCode": 0,
+      "writes": false,
+      "summary": "49 个声明文件存在；missing=0；哈希输入为原始文件字节。"
+    }
+  ],
+  "notRun": [
+    {
+      "command": "pnpm contracts:kotlin:check",
+      "reason": "脚本会写 .cache/kotlin-contracts、docs/implementation/evidence/kotlin-results.json、kotlin-fixtures.json 和 kotlin-compile.txt，超出本轮无副作用范围。"
+    },
+    {
+      "command": "pnpm c14:handoff:check",
+      "reason": "会刷新共享 C14 evidence，本轮不覆盖共享 evidence。"
+    },
+    {
+      "command": "pnpm c16:decision:check",
+      "reason": "会刷新共享 C16 evidence，本轮不覆盖共享 evidence。"
+    },
+    {
+      "command": "pnpm d:gate:check",
+      "reason": "会刷新共享 D 关口 evidence，本轮不覆盖共享 evidence。"
+    }
+  ],
+  "limitations": [
+    "C14 自动审查虽为 success=true、9/9，但仍是 draft_review_required；A02/C14 独立评审、协议冻结建议、偏差关闭和签收缺失。",
+    "C16 仍为 blocked/unconfirmed，接口范围相关业务、授权、留存和试点边界未由负责人确认。",
+    "真实 HTTP/SSE/WS、认证/鉴权、生产数据库、媒体中继和真实供应接入未连接；按 D02 边界登记为后续 E 阶段限制，不伪造完成。",
+    "快照完整性仅指声明文件存在且可哈希；不构成契约冻结、D Go/No-Go、后端可用证明、人工签收或 E/F 启动许可。"
+  ],
+  "downstream": {
+    "eStarted": false,
+    "fStarted": false,
+    "eAfterDEligible": false,
+    "freezeSigned": false,
+    "goNoGoSigned": false
+  }
+}

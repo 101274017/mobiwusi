@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["request_id", "sequence", "type"],
+  "properties": {
+    "request_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "sequence": { "type": "integer", "minimum": 0 },
+    "type": { "enum": ["started", "delta", "completed"] },
+    "text": { "type": "string", "minLength": 1, "maxLength": 4000 }
+  },
+  "if": { "properties": { "type": { "const": "delta" } } },
+  "then": { "properties": { "text": {} }, "required": ["text"] },
+  "else": { "properties": { "text": false } }
+}

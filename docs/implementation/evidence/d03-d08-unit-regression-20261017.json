@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "d03-d08-unit-regression/v1",
+  "generatedAt": "2026-10-17T03:27:16.199Z",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "Full local Vitest regression after D03/D08 work and C16 validator changes",
+  "command": "pnpm exec vitest run --reporter=json --outputFile=.cache/d03-d08-unit-20261017.json",
+  "exitCode": 0,
+  "success": true,
+  "testFiles": 44,
+  "passed": 681,
+  "failed": 0,
+  "pending": 0,
+  "acceptance": "preparatory_not_accepted",
+  "sourceInventory": [
+    {
+      "path": ".cache/d03-d08-unit-20261017.json",
+      "bytes": 247358,
+      "sha256": "ad98aadb275d644bdfc00c6e7347ab73232347848925cd51139176479efc1e3a"
+    }
+  ],
+  "limitations": [
+    "本地自动化测试结果，不替代任何真实设备、供应、人类独立评审或 D Go/No-Go。",
+    "历史 unit-results.json 未覆盖。"
+  ]
+}

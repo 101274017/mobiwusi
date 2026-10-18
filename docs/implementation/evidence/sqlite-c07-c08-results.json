@@ -1,0 +1,63 @@
+{
+  "generatedAt": "2026-10-17",
+  "scope": "independent Node 24 SQLite preflight for C07/C08",
+  "runtime": "v24.21.0",
+  "engine": "node:sqlite.DatabaseSync",
+  "schemaVersion": 1,
+  "status": "preparatory_not_accepted",
+  "success": true,
+  "checks": [
+    {
+      "name": "node sqlite runtime",
+      "passed": true,
+      "detail": "DatabaseSync available in v24.21.0"
+    },
+    {
+      "name": "schema migration is idempotent",
+      "passed": true,
+      "detail": "independent schema reopen and production desktop v1→v2 migration preserve the legacy reminder"
+    },
+    {
+      "name": "account partition prevents cross-account reads",
+      "passed": true,
+      "detail": "same reminder id is stored independently per account"
+    },
+    {
+      "name": "same schedule is idempotent",
+      "passed": true,
+      "detail": "replaying the same version does not duplicate the row"
+    },
+    {
+      "name": "older version is rejected",
+      "passed": true,
+      "detail": "a lower schedule version cannot overwrite a newer row"
+    },
+    {
+      "name": "same version conflict is rejected",
+      "passed": true,
+      "detail": "same version with different content is not silently merged"
+    },
+    {
+      "name": "cancelled reminder does not submit when due",
+      "passed": true,
+      "detail": "cancelled rows remain cancelled at the due time"
+    },
+    {
+      "name": "submitted status survives close and reopen",
+      "passed": true,
+      "detail": "independent reopen plus production account, instance/version, monotonic receipt, and failure terminal checks passed"
+    }
+  ],
+  "passed": 8,
+  "failed": 0,
+  "productionElectronIntegration": false,
+  "productionStorePreflight": true,
+  "deviceVerified": false,
+  "systemSchedulerVerified": false,
+  "limitations": [
+    "This runs Node 24 node:sqlite fixtures and the production desktop store module without launching Electron; it is not a system-device or Electron runtime verification.",
+    "No Android Room, notification permission, AlarmManager/WorkManager, Windows encryption key storage or system notification was tested.",
+    "No force-stop, sleep, reboot, desktop toast, user-visible receipt or real background delivery was tested.",
+    "Database files are temporary and removed after the preflight completes."
+  ]
+}

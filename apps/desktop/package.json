@@ -1,0 +1,19 @@
+{
+  "name": "@nuanban/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "暖伴 Windows 演示宿主，未完成生产原生验收",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "package": "electron-forge package"
+  },
+  "devDependencies": {
+    "electron": "44.7.2",
+    "@electron-forge/cli": "8.0.1",
+    "@electron-forge/maker-squirrel": "8.0.1"
+  },
+  "config": {
+    "forge": "./forge.config.cjs"
+  }
+}

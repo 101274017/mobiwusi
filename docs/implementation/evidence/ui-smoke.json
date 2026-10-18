@@ -1,0 +1,93 @@
+{
+  "generatedAt": "2026-10-15T22:18:14.754779+08:00",
+  "artifact": "apps/web/dist",
+  "webIndexSha256": "d6037397fd5ba5c2b97a60aacb714c21248d39b8a055698e78d24b9cacf77bed",
+  "playwrightPython": "1.63.0",
+  "channel": "chrome",
+  "deviceVerified": false,
+  "source": "built-static-ui",
+  "pageErrors": [],
+  "pages": [
+    {
+      "scene": "pet-settings",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "horizontalOverflow": false,
+      "skipLinkHiddenUntilFocus": true,
+      "screenshot": "docs/implementation/evidence/screenshots/pet-settings-desktop.png"
+    },
+    {
+      "scene": "conflicts",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "horizontalOverflow": false,
+      "skipLinkHiddenUntilFocus": true,
+      "screenshot": "docs/implementation/evidence/screenshots/conflicts-desktop.png"
+    },
+    {
+      "scene": "account-demo",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "horizontalOverflow": false,
+      "skipLinkHiddenUntilFocus": true,
+      "screenshot": "docs/implementation/evidence/screenshots/account-demo-desktop.png"
+    },
+    {
+      "scene": "native-stop-failure",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "horizontalOverflow": false,
+      "skipLinkHiddenUntilFocus": true,
+      "screenshot": "docs/implementation/evidence/screenshots/native-stop-failure-desktop.png"
+    },
+    {
+      "scene": "pet-settings",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "skipLinkHiddenUntilFocus": true,
+      "screenshot": "docs/implementation/evidence/screenshots/pet-settings-mobile.png"
+    },
+    {
+      "scene": "conflicts",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "skipLinkHiddenUntilFocus": true,
+      "screenshot": "docs/implementation/evidence/screenshots/conflicts-mobile.png"
+    },
+    {
+      "scene": "account-demo",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "skipLinkHiddenUntilFocus": true,
+      "screenshot": "docs/implementation/evidence/screenshots/account-demo-mobile.png"
+    },
+    {
+      "scene": "native-stop-failure",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "skipLinkHiddenUntilFocus": true,
+      "screenshot": "docs/implementation/evidence/screenshots/native-stop-failure-mobile.png"
+    }
+  ],
+  "passed": true
+}

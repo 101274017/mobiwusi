@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-10-16",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "C09/C10 shared lifecycle coordinator and host-event assembly",
+  "testReport": "lifecycle-c09-c10-results.json",
+  "tests": 16,
+  "testsPassed": 16,
+  "status": "preparatory_not_accepted",
+  "platforms": [
+    "android",
+    "windows"
+  ],
+  "invariants": [
+    "close outlets before invalidating the active generation",
+    "clear queued work after invalidation",
+    "stop the active track and hide the overlay",
+    "reject old generations after stop",
+    "share concurrent stop results without repeating cleanup",
+    "block restart after cleanup failure",
+    "do not auto-restore capture after process restart",
+    "map Android host pause/destroy and Windows quit/renderer/window events to fixed signals",
+    "unbind lifecycle listeners without retaining a cleanup callback",
+    "coalesce Windows main-process stop requests",
+    "require explicit native-host confirmation that capture and media are stopped"
+  ],
+  "deviceVerified": false,
+  "limitations": [
+    "No Android lock-screen, permission-revocation, process-kill, projection or overlay device run was performed.",
+    "No Windows lock, real window movement, recursive desktop capture, display change or pass-through device run was performed.",
+    "The coordinator uses injected resource ports and synthetic signals; it does not call OS capture, notification, overlay or input APIs.",
+    "Android page notifications can be lost during process kill or WebView destruction; Windows main-process cleanup is only a preflight controller and has no production capture resources."
+  ]
+}

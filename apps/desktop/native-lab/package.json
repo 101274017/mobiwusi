@@ -1,0 +1,7 @@
+{
+  "name": "nuanban-c02-native-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "C02 Windows 独立受控窗口验证样例，未完成设备验收",
+  "main": "main.cjs"
+}

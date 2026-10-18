@@ -1,0 +1,12 @@
+
+> nuanban@0.1.0 contracts:check C:\Users\33864\Desktop\nuanban
+> node scripts/generate-contracts.mjs --check && node scripts/validate-contracts.mjs
+
+契约 0.2.0: 60 个操作，118 个定义，0 个文件更新
+android-bridge-reply.schema.json: JSON Schema 2020-12 校验通过
+bridge.schema.json: JSON Schema 2020-12 校验通过
+conversation-event.schema.json: JSON Schema 2020-12 校验通过
+note.schema.json: JSON Schema 2020-12 校验通过
+service-error.schema.json: JSON Schema 2020-12 校验通过
+118 个服务定义逐项编译通过
+services.schema.json: JSON Schema 2020-12 校验通过

@@ -1,0 +1,171 @@
+{
+  "passed": true,
+  "generatedAt": "2026-10-17T09:57:18.493Z",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "hidden-Electron-native-windows-own-synthetic-render-and-canvas-track-only",
+  "electron": "44.7.2",
+  "platform": "win32",
+  "cases": [
+    {
+      "name": "no automatic display capture and all windows hidden",
+      "passed": true,
+      "displayCaptureRequested": false
+    },
+    {
+      "name": "sandboxed renderer and no bridge in synthetic source",
+      "passed": true
+    },
+    {
+      "name": "start without purpose consent does not request capture",
+      "passed": true
+    },
+    {
+      "name": "extra IPC fields are rejected before consent state",
+      "passed": true
+    },
+    {
+      "name": "native hidden UI render 1160 DIP",
+      "passed": true,
+      "screenshot": "screenshots/desktop-lab-control-1160.png",
+      "image": {
+        "width": 1160,
+        "height": 941
+      },
+      "externalScreenCapture": false
+    },
+    {
+      "name": "native hidden UI render 760 DIP",
+      "passed": true,
+      "screenshot": "screenshots/desktop-lab-control-760.png",
+      "image": {
+        "width": 760,
+        "height": 941
+      },
+      "externalScreenCapture": false
+    },
+    {
+      "name": "canary buttons use synthetic state only",
+      "passed": true,
+      "screenshot": "screenshots/desktop-lab-canary.png",
+      "nativeHitPassVerified": false
+    },
+    {
+      "name": "native DIP conversion round trip in current environment",
+      "passed": true,
+      "geometry": {
+        "contentDip": {
+          "x": 533,
+          "y": 184,
+          "width": 640,
+          "height": 651
+        },
+        "windowDip": {
+          "x": 533,
+          "y": 184,
+          "width": 640,
+          "height": 651
+        },
+        "contentPhysical": {
+          "x": 800,
+          "y": 276,
+          "width": 961,
+          "height": 977
+        },
+        "centerDip": {
+          "x": 853,
+          "y": 509.5
+        },
+        "centerPhysical": {
+          "x": 1280,
+          "y": 765
+        },
+        "roundTripDip": {
+          "x": 853.3333740234375,
+          "y": 510
+        },
+        "captureFrameCalibration": "not-implemented",
+        "note": "窗口几何记录，不是跨应用教学坐标或捕获内容区标定"
+      },
+      "mixedDpiMovementVerified": false,
+      "negativeOriginMovementVerified": false
+    },
+    {
+      "name": "transparent topmost native windows, no visible overlay",
+      "passed": true,
+      "fixture": "canvas MediaStreamTrack; not desktop media",
+      "transparentRenderPixels": 2484,
+      "mousePassThroughConfigured": true,
+      "mousePassThroughVerified": false
+    },
+    {
+      "name": "pending late stream cannot restart a stopped generation",
+      "passed": true
+    },
+    {
+      "name": "real display capture was never requested by automation",
+      "passed": true
+    },
+    {
+      "name": "renderer error observer has a positive synthetic control",
+      "passed": true
+    }
+  ],
+  "counters": {
+    "displayRequestCount": 0,
+    "deniedNetworkRequests": 0,
+    "pageErrors": [
+      "renderer-console-error"
+    ]
+  },
+  "expectedErrorCanaries": 1,
+  "unexpectedPageErrors": 0,
+  "displays": [
+    {
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1707,
+        "height": 1067
+      },
+      "workArea": {
+        "x": 0,
+        "y": 0,
+        "width": 1707,
+        "height": 1019
+      },
+      "scaleFactor": 1.5,
+      "rotation": 0
+    }
+  ],
+  "actualDisplayCaptureVerified": false,
+  "externalApplicationCaptureVerified": false,
+  "mousePassThroughVerified": false,
+  "mixedDpiMovementVerified": false,
+  "negativeOriginMovementVerified": false,
+  "independentAcceptance": false,
+  "limitations": [
+    "仅覆盖隐藏 Electron 的自有合成窗口、画布轨道、DIP/显示器几何和停止逻辑。",
+    "没有真实跨应用捕获、系统权限、鼠标穿透、混合 DPI 或人工独立复核记录。"
+  ],
+  "sourceSha256": {
+    "README-c07-c08-sqlite.md": "34f7329eec80b056f77dac95ca18a1555e7f324fba79bbece6ecda9f522b6324",
+    "README.md": "bb3c9b58da8ab88972c835a8cd6fdc9ec48da3a629173c37feceba560eb2fa09",
+    "c07-c08-sqlite-preflight.mjs": "ca6a8c4d9a21f997b97eea6f48a99c9a5254791776543594fb2eaeea1e95917a",
+    "canary.css": "ee0bf411e7668a96fc80fd0a6072b5346476600de480d0cb281217a1da3e2335",
+    "canary.html": "ba9e5784f34898e950f920015ad772c684adf7c09285f417214ecc9d1e1f1a25",
+    "canary.js": "a89a719c635763df66617c8901c5b91d3576d1a6d66826b25d06acb9a9cc0e77",
+    "control.css": "374731c118d5801205930af1ffaf483e3d4b76fa6e8b482a5c2cb07fd7531044",
+    "control.html": "b918502557d28ace32742f8a1dcb8b1a6c7b28a50f31094caf33ed6054c450f5",
+    "control.js": "38c1d10926227a28d96f74588d6fceb3b8fa4ef582304acb3147429261d1e416",
+    "main.cjs": "fde52065829104731a4eebe6ff1dfd94c55d61950baef36880411eb2513530e7",
+    "overlay.css": "ea365735d78ce53ce047f9d2c877a5a89d7e421dc7196ba2c66c39ae1e35fea5",
+    "overlay.html": "adab21311f11e451fb3fa3ed9b099b4d3d123f51f144f66df766898c01bfafb5",
+    "package.json": "4dd85382e5450b2cde181b9b8ae8319003fc08d8aa782f8078981886a733600f",
+    "policy.cjs": "21fa10c83f0f4bd7664af53f23a65415facf90caa746245d5a417099a47775a2",
+    "preload.cjs": "dd02d3eff934dadb581b6e1351055de04ffa247c2662b496c76c72bcd2f79806",
+    "self-test.cjs": "096abc68c89a8fb3efa32ceed9c8409c79c4ebe48816dc197b8f2f2aad760fb0",
+    "stop.css": "3812066914a2ab612d0fbbd2db97803afd0e918869ee0f7ce036d0e491d52799",
+    "stop.html": "26ed300c326b715b8c650860c7c5fbe28508f522aa6bc27101013028c2addab7",
+    "stop.js": "81b2053caaf9edfd795302606015e91a9ec9fcafee910f59c8eb0c365204e231"
+  }
+}

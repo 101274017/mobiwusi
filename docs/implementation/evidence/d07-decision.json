@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "d07-decision/v2",
+  "generatedBy": "nuanban/scripts/check-d07-decision.mjs",
+  "generatedAt": "2026-10-17T15:58:47.722Z",
+  "decisionId": "d07-development-cd66cc5b64f74058",
+  "decision": "go",
+  "decisionMode": "development",
+  "reviewType": "automated",
+  "review_type": "automated",
+  "development": {
+    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "eligible": true,
+    "evidenceRefs": [
+      "docs/implementation/evidence/acceptance-bundle-results.json",
+      "docs/implementation/evidence/c15-nv-readiness-results.json",
+      "docs/implementation/evidence/c16-decision-readiness-results.json",
+      "docs/implementation/evidence/c17-assembly-results.json",
+      "docs/implementation/evidence/c14-handoff-results.json"
+    ],
+    "externalPending": [
+      {
+        "id": "C15_EXTERNAL_EVIDENCE",
+        "capability": "device_supplier_verification",
+        "reason": "C15 真实设备、供应凭证和独立复核仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "C16_EXTERNAL_AUTHORIZATION",
+        "capability": "field_trial_authorization",
+        "reason": "C16 真实授权、试点和参与者输入仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "C17_EXTERNAL_RUNTIME",
+        "capability": "native_platform_verification",
+        "reason": "C17 WebView、桌面运行时、系统权限和独立发布复核仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "C14_EXTERNAL_REVIEW",
+        "capability": "contract_independent_review",
+        "reason": "C14 自动技术冻结已完成，但 A02 独立评审仍为 external_pending。",
+        "production_enabled": false
+      },
+      {
+        "id": "D07_FORMAL_RELEASE_GATE",
+        "capability": "formal_release_authorization",
+        "reason": "正式发布门禁仍有待项；不影响开发门禁继续。",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/acceptance-bundle-results.json",
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "docs/implementation/evidence/c16-decision-readiness-results.json",
+          "docs/implementation/evidence/c17-assembly-results.json",
+          "docs/implementation/evidence/c14-handoff-results.json"
+        ]
+      }
+    ]
+  },
+  "release": {
+    "verdict": "EXTERNAL_PENDING",
+    "ready": false,
+    "reasonRefs": [
+      "C15_EXTERNAL_EVIDENCE",
+      "C16_EXTERNAL_AUTHORIZATION",
+      "C17_EXTERNAL_RUNTIME",
+      "C14_EXTERNAL_REVIEW",
+      "D07_FORMAL_RELEASE_GATE"
+    ],
+    "formalDecision": null
+  },
+  "inputFingerprint": "cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
+  "idempotencyKey": "cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
+  "limitations": [
+    "该决定由本机自动检查生成，reviewType=automated，不冒充负责人、独立人员或真人试点签收。",
+    "development go 只允许继续代码、契约、夹具和本地验证；release.ready=false 时不得开放真实生产能力。",
+    "真实设备、供应凭证、用户同意、试点和正式发布仍由 release 门禁单独验证。"
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "c16-decision-input/v1",
+  "generatedAt": null,
+  "source": null,
+  "decisions": {
+    "Q-02": {
+      "approvedTop20List": null,
+      "applicationVersions": null,
+      "riskBreakpoints": null,
+      "owner": null,
+      "decisionDate": null
+    },
+    "Q-05": {
+      "guardianVerification": null,
+      "consentScopes": null,
+      "childDataBoundary": null,
+      "owner": null,
+      "decisionDate": null
+    },
+    "Q-10": {
+      "retentionByDataKind": null,
+      "deletionAndBackupPurge": null,
+      "supplierRetentionTerms": null,
+      "owner": null,
+      "decisionDate": null
+    },
+    "Q-11": {
+      "masteryConfirmation": null,
+      "unpromptedReproductionMetric": null,
+      "assistanceExclusion": null,
+      "owner": null,
+      "decisionDate": null
+    },
+    "Q-14": {
+      "binding": null,
+      "archiveAccess": null,
+      "delegatedTodo": null,
+      "currentSessionMedia": null,
+      "deferredFamilyScope": null,
+      "owner": null,
+      "decisionDate": null
+    }
+  },
+  "top20Slots": [
+    { "slot": 1, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 2, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 3, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 4, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 5, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 6, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 7, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 8, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 9, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 10, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 11, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 12, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 13, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 14, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 15, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 16, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 17, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 18, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 19, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null },
+    { "slot": 20, "status": "unconfirmed", "name": null, "applicationVersion": null, "riskBoundary": null, "consent": null, "flowPackageVersion": null, "fallbackPlan": null }
+  ],
+  "signoff": {
+    "owner": null,
+    "reviewer": null,
+    "pilotPartner": null,
+    "signedAt": null,
+    "evidenceRefs": []
+  }
+}

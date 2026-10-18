@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>暖伴桌宠</title>
+  <link rel="stylesheet" href="./pet.css">
+  <script defer src="./pet.js"></script>
+</head>
+<body>
+  <main id="pet-window" class="pet-window" aria-label="暖伴独立桌宠">
+    <section id="pet-panel" class="pet-panel" aria-labelledby="panel-title" hidden>
+      <header class="panel-header">
+        <div><span class="eyebrow">一步一步，陪你学会</span><h1 id="panel-title">和暖暖一起做</h1></div>
+        <button id="collapse-panel" class="icon-button" type="button" aria-label="收起面板，桌宠继续运行" title="收起面板（Esc）">−</button>
+      </header>
+      <div class="panel-body">
+        <section id="error-notice" class="error-notice" role="alert" hidden>
+          <p id="error-text"></p>
+          <div class="button-row"><button id="retry-action" type="button">重试</button><button id="dismiss-error" class="text-button" type="button">关闭提示</button></div>
+        </section>
+        <section class="status-card" aria-label="观察与分析状态">
+          <div class="status-row"><span id="observation-status" class="status-badge" role="status">观察状态待确认</span><span id="analysis-status" class="analysis-status" role="status">云分析待确认</span></div>
+          <p id="observation-detail">默认不开启屏幕观察或麦克风，等待运行核心确认。</p>
+          <p id="analysis-detail" class="muted" hidden></p>
+          <div id="privacy-notice" class="privacy-notice" role="status" hidden>
+            <strong id="privacy-title">共享已暂停</strong>
+            <p id="privacy-detail">只有你本人继续共享并通过检查后，才可恢复。</p>
+            <button id="resume-sharing" class="primary-button" type="button" disabled>本人继续共享</button>
+          </div>
+          <div class="button-row"><button id="start-observation" type="button" disabled>开启本地观察</button><button id="stop-observation" class="danger-button" type="button" disabled>停止观察</button></div>
+          <p class="fine-print">开启时由系统让你选择共享来源并确认用途。需要云分析时，仅按需发送通过本地检查与脱敏的内容。</p>
+        </section>
+        <section id="lesson-card" class="lesson-card" aria-labelledby="step-title">
+          <div class="section-heading"><span class="eyebrow">这一步</span><span id="task-status" class="muted" role="status">等待教学状态</span></div>
+          <p id="presentation-note" class="candidate-note" hidden>可能是这里 · 请先核对，再亲手操作</p>
+          <h2 id="step-title">你想学什么？</h2>
+          <p id="step-explanation">直接在下面提问，不用打开管理客户端。软件由你亲手打开、切换和操作。</p>
+          <p id="step-result" class="step-result" hidden></p>
+          <div class="lesson-actions"><button id="verify-step" class="primary-button" type="button" disabled>我点好了，请核验</button><button id="repeat-step" type="button" disabled>再讲一遍</button><button id="finish-lesson" class="text-button" type="button" disabled>结束教学</button></div>
+          <p class="fine-print">“我点好了”只请求新画面核验，不代表已完成，也不会替你点击或输入。</p>
+        </section>
+        <section id="conversation" class="conversation" aria-label="最近的问答" hidden><ol id="message-list" aria-live="polite" aria-relevant="additions text"></ol></section>
+        <details class="more-options">
+          <summary>字幕、语音与管理</summary>
+          <div class="options-body">
+            <button id="toggle-captions" type="button" aria-pressed="false" disabled>字幕状态待确认</button>
+            <p id="wake-status" class="muted">语音唤醒待确认，默认关闭。</p>
+            <button id="toggle-wake" type="button" disabled>启用本地语音唤醒</button>
+            <p class="fine-print">语音需单独授权。未唤醒音频不持续上传。</p>
+            <nav class="management-links" aria-label="按需打开管理窗口">
+              <button type="button" data-route="/settings">设置与隐私 ↗</button><button type="button" data-route="/pets/draw">画一画 ↗</button><button type="button" data-route="/notes">学习档案 ↗</button><button type="button" data-route="/todos">待办与复习 ↗</button>
+            </nav>
+            <button id="close-pet" class="text-button danger-button" type="button">退出桌宠</button>
+            <div id="exit-confirmation" class="exit-confirmation" hidden><p>退出会结束桌宠并由运行核心清理观察任务。只想收起？请点击右上角的“−”。</p><div class="button-row"><button id="confirm-exit" class="danger-button" type="button">确认退出桌宠</button><button id="cancel-exit" type="button">暂不退出</button></div></div>
+          </div>
+        </details>
+      </div>
+      <form id="question-form" class="question-form" aria-label="直接向桌宠提问">
+        <label for="question">说说你想做什么</label>
+        <textarea id="question" name="question" rows="2" maxlength="2000" placeholder="例如：教我在浏览器里收藏网页" aria-describedby="question-hint" disabled></textarea>
+        <div class="composer-footer"><span id="question-hint">Enter 发送 · Shift + Enter 换行</span><button id="send-question" class="primary-button" type="submit" disabled>问暖暖 <span aria-hidden="true">↗</span></button></div>
+      </form>
+    </section>
+    <p id="caption-line" class="caption-line" role="status" hidden></p>
+    <div class="pet-dock">
+      <button id="pet-toggle" class="pet-stage" type="button" aria-label="展开暖暖面板" aria-controls="pet-panel" aria-expanded="false" title="点击或按 Enter 提问；右键打开功能菜单">
+      <svg class="pet" viewBox="0 0 240 260" role="img" aria-label="小橘猫暖暖">
+        <ellipse cx="122" cy="241" rx="68" ry="11" fill="#503A23" opacity=".08"/>
+        <path d="M165 204c60 6 43-77 18-52" fill="none" stroke="#D98347" stroke-width="23" stroke-linecap="round"/>
+        <path d="M75 146q-24 78 9 92h75q33-17 7-92" fill="#D98347"/>
+        <ellipse cx="121" cy="195" rx="30" ry="36" fill="#FFE8C8"/>
+        <path d="m61 88 5-64 44 38" fill="#D98347"/>
+        <path d="m134 63 40-40 10 66" fill="#D98347"/>
+        <path d="m73 63 3-20 18 17" fill="#EDB7A4"/>
+        <path d="m151 59 16-17 3 22" fill="#EDB7A4"/>
+        <path d="M53 107c0-75 139-76 139 0 0 37-29 61-68 61-44 0-71-20-71-61" fill="#D98347"/>
+        <path d="m107 49 13 23 12-23" fill="#B55F36" opacity=".5"/>
+        <ellipse cx="86" cy="116" rx="9" ry="11" fill="#392A24"/>
+        <ellipse cx="155" cy="116" rx="9" ry="11" fill="#392A24"/>
+        <circle cx="89" cy="112" r="3" fill="#FFF"/>
+        <circle cx="158" cy="112" r="3" fill="#FFF"/>
+        <ellipse cx="71" cy="132" rx="13" ry="7" fill="#ECAC86"/>
+        <ellipse cx="173" cy="132" rx="13" ry="7" fill="#ECAC86"/>
+        <path d="m114 128 8 5 8-5" fill="#754330"/>
+        <path d="M122 135v6m0 0q-8 8-15 0m15 0q8 8 15 0" fill="none" stroke="#754330" stroke-width="3" stroke-linecap="round"/>
+        <path d="M79 172 67 199m96-28 15 27" stroke="#D98347" stroke-width="21" stroke-linecap="round"/>
+        <path d="M90 235h-9m69 0h11" stroke="#9A532F" stroke-width="3" stroke-linecap="round"/>
+        <path d="m83 159 36 13 40-13-9 18-31 1-32-1Z" fill="#6C8172"/>
+        <circle cx="120" cy="180" r="7" fill="#EAC966"/>
+      </svg>
+      </button>
+      <div class="dock-copy"><p id="message" role="status">我在这里，点我聊聊</p><div class="dock-tools"><span class="drag-handle" aria-hidden="true" title="仅按住此处拖动桌宠">⠿ 移动</span><button id="pet-menu" type="button" title="打开原生菜单；位置调整由桌面宿主提供">功能与位置</button></div></div>
+    </div>
+  </main>
+</body>
+</html>

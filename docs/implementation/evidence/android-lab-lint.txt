@@ -1,0 +1,43 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+> Task :native-lab:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :native-lab:preBuild UP-TO-DATE
+> Task :native-lab:preDebugBuild UP-TO-DATE
+> Task :native-lab:checkDebugAarMetadata UP-TO-DATE
+> Task :native-lab:processDebugNavigationResources UP-TO-DATE
+> Task :native-lab:compileDebugNavigationResources UP-TO-DATE
+> Task :native-lab:generateDebugResValues UP-TO-DATE
+> Task :native-lab:mapDebugSourceSetPaths UP-TO-DATE
+> Task :native-lab:generateDebugResources UP-TO-DATE
+> Task :native-lab:mergeDebugResources UP-TO-DATE
+> Task :native-lab:packageDebugResources UP-TO-DATE
+> Task :native-lab:parseDebugLocalResources UP-TO-DATE
+> Task :native-lab:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :native-lab:extractDeepLinksDebug UP-TO-DATE
+> Task :native-lab:processDebugMainManifest UP-TO-DATE
+> Task :native-lab:processDebugManifest UP-TO-DATE
+> Task :native-lab:processDebugManifestForPackage UP-TO-DATE
+> Task :native-lab:processDebugResources UP-TO-DATE
+> Task :native-lab:compileDebugKotlin UP-TO-DATE
+> Task :native-lab:javaPreCompileDebug UP-TO-DATE
+> Task :native-lab:compileDebugJavaWithJavac NO-SOURCE
+> Task :native-lab:preDebugAndroidTestBuild SKIPPED
+> Task :native-lab:generateDebugAndroidTestResValues UP-TO-DATE
+> Task :native-lab:extractProguardFiles UP-TO-DATE
+> Task :native-lab:bundleDebugClassesToCompileJar
+> Task :native-lab:generateDebugLintReportModel
+> Task :native-lab:generateDebugAndroidTestLintModel
+> Task :native-lab:preDebugUnitTestBuild UP-TO-DATE
+> Task :native-lab:generateDebugUnitTestLintModel
+> Task :native-lab:lintAnalyzeDebugUnitTest
+> Task :native-lab:lintAnalyzeDebugAndroidTest
+> Task :native-lab:lintAnalyzeDebug
+
+> Task :native-lab:lintReportDebug
+Wrote HTML report to file:///C:/Users/33864/Desktop/nuanban/apps/android/native-lab/build/reports/lint-results-debug.html
+
+> Task :native-lab:lintDebug
+
+BUILD SUCCESSFUL in 13s
+28 actionable tasks: 9 executed, 19 up-to-date

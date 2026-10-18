@@ -1,0 +1,125 @@
+[WebServer] (node:50252) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:37556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:50808) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 96 tests using 2 workers
+
+
+(node:55896) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/96] [desktop-chromium] › tests\e2e\account-demo.spec.ts:3:1 › 儿童社区认领缺监护核验不能继续，完成也不是登录成功
+(node:54556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[2/96] [desktop-chromium] › tests\e2e\accessibility.spec.ts:3:1 › 键盘可以跳过导航、进入主内容并操作首页入口
+[3/96] [desktop-chromium] › tests\e2e\accessibility.spec.ts:18:1 › 最大字号、减少动画与移动视口不产生横向溢出
+[4/96] [desktop-chromium] › tests\e2e\account-demo.spec.ts:22:1 › Windows 无本机号码入口，陌生人脸不自动绑定；可安全改走家属路径
+[5/96] [desktop-chromium] › tests\e2e\accessibility.spec.ts:31:1 › 静音只关闭声音，文字字幕和重读入口仍可用
+[6/96] [desktop-chromium] › tests\e2e\account-demo.spec.ts:39:1 › 校验中停止隔离迟到结果，刷新不恢复认领或发放会话
+[7/96] [desktop-chromium] › tests\e2e\accessibility.spec.ts:44:1 › 语音不可用时明确降级到字幕，不阻塞讲解完成
+[8/96] [desktop-chromium] › tests\e2e\app.spec.ts:3:1 › 首页可访问且没有水平溢出
+[9/96] [desktop-chromium] › tests\e2e\accessibility.spec.ts:53:1 › 模态框具备可访问名称、Escape 关闭与焦点回收
+[10/96] [desktop-chromium] › tests\e2e\app.spec.ts:4:1 › 教学必须真正操作并核验，失败不能直接完成
+[11/96] [desktop-chromium] › tests\e2e\conflicts.spec.ts:3:1 › 笔记冲突刷新保留草稿，逐项比较后明确选择本机版本
+[12/96] [desktop-chromium] › tests\e2e\conflicts.spec.ts:27:1 › 待办时间确认后失败保稿，采用另一版本不会误报云同步
+[13/96] [desktop-chromium] › tests\e2e\native-host.spec.ts:3:1 › 普通网页不能因同名消息对象取得 Android 宿主身份
+[14/96] [desktop-chromium] › tests\e2e\native-host.spec.ts:15:1 › 模拟宿主停止失败时告知未确认，不产生未处理异常
+[15/96] [desktop-chromium] › tests\e2e\app.spec.ts:8:1 › 风险暂停后须再次确认
+[16/96] [desktop-chromium] › tests\e2e\native-host.spec.ts:27:1 › 模拟原生暂停事件会停止讲解，恢复页面也不自动续播
+[17/96] [desktop-chromium] › tests\e2e\app.spec.ts:9:1 › 停止对话不应用迟到回复
+[18/96] [desktop-chromium] › tests\e2e\native-host.spec.ts:42:3 › 原生能力关闭时只显示页面提醒，不越权调用系统通知
+[19/96] [desktop-chromium] › tests\e2e\app.spec.ts:10:1 › 自动笔记本地保存且刷新不丢失
+[20/96] [desktop-chromium] › tests\e2e\native-host.spec.ts:42:3 › 浏览器已授权通知仍可提醒，作为能力门控的正对照
+[21/96] [desktop-chromium] › tests\e2e\pet-appearance.spec.ts:3:1 › 内置伙伴先预览确认再应用，刷新可撤回
+[22/96] [desktop-chromium] › tests\e2e\app.spec.ts:11:1 › 复习不会自动掌握，提醒需要复述确认
+[23/96] [desktop-chromium] › tests\e2e\pet-appearance.spec.ts:30:1 › 未保存的微调可以放弃，保存冲突不替换伙伴
+[24/96] [desktop-chromium] › tests\e2e\app.spec.ts:12:1 › 亲情关系默认无权，授权和撤权分别生效
+[25/96] [desktop-chromium] › tests\e2e\pet-job.spec.ts:17:1 › 模拟任务须预览确认，刷新后不冒充生成桌宠
+[26/96] [desktop-chromium] › tests\e2e\app.spec.ts:13:1 › 画稿保存刷新后可继续，不伪造 AI 生成
+[27/96] [desktop-chromium] › tests\e2e\app.spec.ts:14:1 › 设置页可以清空资料，重开不恢复示例
+[28/96] [desktop-chromium] › tests\e2e\pet-job.spec.ts:31:1 › 模拟失败保留原稿，可以重新排队
+[29/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:19:1 › 验收台列出 13 个可重放场景且移动端无溢出
+[30/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:25:1 › 验收台切换使用同文档地址，新场景优先于旧查询参数
+[31/96] [desktop-chromium] › tests\e2e\pet-job.spec.ts:43:1 › 停止任务后迟到结果不复活，清空画布需确认
+[32/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:38:3 › timeout 保留输入，不保存未完成笔记
+[33/96] [desktop-chromium] › tests\e2e\pet-job.spec.ts:57:1 › 处理中刷新不自动继续任务，画稿不丢失
+[34/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:38:3 › offline 保留输入，不保存未完成笔记
+[35/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:38:3 › provider-quota 保留输入，不保存未完成笔记
+
+(node:45304) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[36/96] [mobile-chromium] › tests\e2e\accessibility.spec.ts:3:1 › 键盘可以跳过导航、进入主内容并操作首页入口
+[37/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:38:3 › stream-interrupted 保留输入，不保存未完成笔记
+[38/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:38:3 › partial-failure 保留输入，不保存未完成笔记
+[39/96] [mobile-chromium] › tests\e2e\accessibility.spec.ts:18:1 › 最大字号、减少动画与移动视口不产生横向溢出
+[40/96] [mobile-chromium] › tests\e2e\accessibility.spec.ts:31:1 › 静音只关闭声音，文字字幕和重读入口仍可用
+[41/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:51:1 › 权限拒绝提供替代入口，不声称获得系统权限
+[42/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:60:1 › 长等待停止后无迟到回复或自动笔记
+[43/96] [mobile-chromium] › tests\e2e\accessibility.spec.ts:44:1 › 语音不可用时明确降级到字幕，不阻塞讲解完成
+[44/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:73:1 › 敏感文字本机拦截且不出现在消息历史
+[45/96] [mobile-chromium] › tests\e2e\accessibility.spec.ts:53:1 › 模态框具备可访问名称、Escape 关闭与焦点回收
+[46/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:83:1 › 空资料场景不影响正常场景且只重置本场景
+[47/96] [mobile-chromium] › tests\e2e\account-demo.spec.ts:3:1 › 儿童社区认领缺监护核验不能继续，完成也不是登录成功
+[48/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:98:1 › 低置信不显示目标，停止后不复活
+[49/96] [mobile-chromium] › tests\e2e\account-demo.spec.ts:22:1 › Windows 无本机号码入口，陌生人脸不自动绑定；可安全改走家属路径
+[50/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:108:1 › 风险夹具只有明确确认后才能恢复教学
+[51/96] [mobile-chromium] › tests\e2e\account-demo.spec.ts:39:1 › 校验中停止隔离迟到结果，刷新不恢复认领或发放会话
+[52/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:121:1 › 演示版本冲突不覆盖掌握状态
+[53/96] [mobile-chromium] › tests\e2e\app.spec.ts:3:1 › 首页可访问且没有水平溢出
+[54/96] [mobile-chromium] › tests\e2e\app.spec.ts:4:1 › 教学必须真正操作并核验，失败不能直接完成
+[55/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:132:1 › 正常邀请必须接听并确认当次演示后才进入连接状态
+[56/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:146:1 › 无人接听结束后可以重新发起，且不会自动接通
+[57/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:159:1 › 过期邀请不能接听或自动建立媒体
+[58/96] [desktop-chromium] › tests\e2e\scenarios.spec.ts:167:1 › 未知场景给出可恢复错误，不静默正常运行
+[59/96] [mobile-chromium] › tests\e2e\app.spec.ts:8:1 › 风险暂停后须再次确认
+[60/96] [mobile-chromium] › tests\e2e\app.spec.ts:9:1 › 停止对话不应用迟到回复
+
+(node:44928) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[61/96] [mobile-chromium] › tests\e2e\conflicts.spec.ts:3:1 › 笔记冲突刷新保留草稿，逐项比较后明确选择本机版本
+[62/96] [mobile-chromium] › tests\e2e\app.spec.ts:10:1 › 自动笔记本地保存且刷新不丢失
+[63/96] [mobile-chromium] › tests\e2e\conflicts.spec.ts:27:1 › 待办时间确认后失败保稿，采用另一版本不会误报云同步
+[64/96] [mobile-chromium] › tests\e2e\native-host.spec.ts:3:1 › 普通网页不能因同名消息对象取得 Android 宿主身份
+[65/96] [mobile-chromium] › tests\e2e\app.spec.ts:11:1 › 复习不会自动掌握，提醒需要复述确认
+[66/96] [mobile-chromium] › tests\e2e\native-host.spec.ts:15:1 › 模拟宿主停止失败时告知未确认，不产生未处理异常
+[67/96] [mobile-chromium] › tests\e2e\app.spec.ts:12:1 › 亲情关系默认无权，授权和撤权分别生效
+[68/96] [mobile-chromium] › tests\e2e\native-host.spec.ts:27:1 › 模拟原生暂停事件会停止讲解，恢复页面也不自动续播
+[69/96] [mobile-chromium] › tests\e2e\app.spec.ts:13:1 › 画稿保存刷新后可继续，不伪造 AI 生成
+[70/96] [mobile-chromium] › tests\e2e\native-host.spec.ts:42:3 › 原生能力关闭时只显示页面提醒，不越权调用系统通知
+[71/96] [mobile-chromium] › tests\e2e\app.spec.ts:14:1 › 设置页可以清空资料，重开不恢复示例
+[72/96] [mobile-chromium] › tests\e2e\native-host.spec.ts:42:3 › 浏览器已授权通知仍可提醒，作为能力门控的正对照
+[73/96] [mobile-chromium] › tests\e2e\pet-appearance.spec.ts:3:1 › 内置伙伴先预览确认再应用，刷新可撤回
+[74/96] [mobile-chromium] › tests\e2e\pet-job.spec.ts:17:1 › 模拟任务须预览确认，刷新后不冒充生成桌宠
+[75/96] [mobile-chromium] › tests\e2e\pet-appearance.spec.ts:30:1 › 未保存的微调可以放弃，保存冲突不替换伙伴
+[76/96] [mobile-chromium] › tests\e2e\pet-job.spec.ts:31:1 › 模拟失败保留原稿，可以重新排队
+[77/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:19:1 › 验收台列出 13 个可重放场景且移动端无溢出
+[78/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:25:1 › 验收台切换使用同文档地址，新场景优先于旧查询参数
+[79/96] [mobile-chromium] › tests\e2e\pet-job.spec.ts:43:1 › 停止任务后迟到结果不复活，清空画布需确认
+[80/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:38:3 › timeout 保留输入，不保存未完成笔记
+[81/96] [mobile-chromium] › tests\e2e\pet-job.spec.ts:57:1 › 处理中刷新不自动继续任务，画稿不丢失
+[82/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:38:3 › offline 保留输入，不保存未完成笔记
+[83/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:38:3 › provider-quota 保留输入，不保存未完成笔记
+[84/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:38:3 › stream-interrupted 保留输入，不保存未完成笔记
+[85/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:38:3 › partial-failure 保留输入，不保存未完成笔记
+[86/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:51:1 › 权限拒绝提供替代入口，不声称获得系统权限
+[87/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:60:1 › 长等待停止后无迟到回复或自动笔记
+[88/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:73:1 › 敏感文字本机拦截且不出现在消息历史
+[89/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:83:1 › 空资料场景不影响正常场景且只重置本场景
+[90/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:98:1 › 低置信不显示目标，停止后不复活
+[91/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:108:1 › 风险夹具只有明确确认后才能恢复教学
+[92/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:121:1 › 演示版本冲突不覆盖掌握状态
+[93/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:132:1 › 正常邀请必须接听并确认当次演示后才进入连接状态
+[94/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:146:1 › 无人接听结束后可以重新发起，且不会自动接通
+[95/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:159:1 › 过期邀请不能接听或自动建立媒体
+[96/96] [mobile-chromium] › tests\e2e\scenarios.spec.ts:167:1 › 未知场景给出可恢复错误，不静默正常运行
+  96 passed (2.2m)

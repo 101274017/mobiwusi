@@ -1,0 +1,28 @@
+{
+  "generatedAt": "2026-10-15T22:21:50.188768+08:00",
+  "allFilesMatch": true,
+  "fileCount": 6,
+  "expectedFiles": {
+    "favicon.svg": "b3d5f7e1b3224b4b12503c7801964abe9d4a205d5597322801221a000ca8412c",
+    "index.html": "d6037397fd5ba5c2b97a60aacb714c21248d39b8a055698e78d24b9cacf77bed",
+    "assets/bootstrap-CVGnqZ7q.css": "3ae2f75d9909d40fff86a3e73edccd54dbf4b90d5b219f1403a8f7be0556f67b",
+    "assets/bootstrap-rc8k0hYl.js": "b96301e2614b88760758e76f9a7949a7fc2e0185a51bb46a5f5463cfb1bc5d22",
+    "assets/index-Cne_RoAQ.css": "a23d7be6d2513be59105686cdb52b3538037532c4465a5121db1690a7c5d0139",
+    "assets/index-Dbaoex5I.js": "5f5813f2250bcdc6cfc0d5601530a9b3f1a5f1539d09ae6148bec8e043d1b917"
+  },
+  "packagedFiles": {
+    "favicon.svg": "b3d5f7e1b3224b4b12503c7801964abe9d4a205d5597322801221a000ca8412c",
+    "assets/index-Cne_RoAQ.css": "a23d7be6d2513be59105686cdb52b3538037532c4465a5121db1690a7c5d0139",
+    "assets/bootstrap-CVGnqZ7q.css": "3ae2f75d9909d40fff86a3e73edccd54dbf4b90d5b219f1403a8f7be0556f67b",
+    "assets/bootstrap-rc8k0hYl.js": "b96301e2614b88760758e76f9a7949a7fc2e0185a51bb46a5f5463cfb1bc5d22",
+    "assets/index-Dbaoex5I.js": "5f5813f2250bcdc6cfc0d5601530a9b3f1a5f1539d09ae6148bec8e043d1b917",
+    "index.html": "d6037397fd5ba5c2b97a60aacb714c21248d39b8a055698e78d24b9cacf77bed"
+  },
+  "contractClassesInDex": {
+    "ActiveBridgeRequest": true,
+    "ContractValidator": true,
+    "GeneratedContractDtos": true,
+    "TodoPatch": true
+  },
+  "deviceVerified": false
+}

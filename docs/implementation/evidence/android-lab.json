@@ -1,0 +1,66 @@
+{
+    "generatedAt":  "2026-10-15T22:40:27.8527055+08:00",
+    "generatedTimeZone":  "Asia/Shanghai",
+    "scope":  "C01-preparatory-build-static-and-jvm-only",
+    "artifact":  {
+                     "path":  "apps/android/native-lab/build/outputs/apk/debug/native-lab-debug.apk",
+                     "bytes":  900063,
+                     "sha256":  "d3d49e2b8725a55a2704dcb108bb268235e74bad4d18e83b7205f17daeba5822",
+                     "debugSigned":  true,
+                     "productionRelease":  false
+                 },
+    "permissions":  [
+                        "android.permission.FOREGROUND_SERVICE",
+                        "android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION",
+                        "android.permission.POST_NOTIFICATIONS",
+                        "android.permission.SYSTEM_ALERT_WINDOW"
+                    ],
+    "normalDemoSourcePermissionsUnchanged":  true,
+    "webUiAssetsPresent":  false,
+    "classesInDex":  {
+                         "CaptureLabActivity":  true,
+                         "CaptureLabService":  true,
+                         "LabSession":  true,
+                         "LabTicket":  true
+                     },
+    "jvmCases":  35,
+    "lint":  {
+                 "errors":  0,
+                 "warnings":  [
+                                  {
+                                      "id":  "SetTextI18n",
+                                      "count":  6
+                                  }
+                              ],
+                 "reportSha256":  "04542c991a5802f1302f7d0c3acc578c4f68638edcee9877cd4ebe6610a8b829"
+             },
+    "logs":  {
+                 "buildSha256":  "ce3a9ac897c2fc16f9977b271746d811977271ec9dd5d49e6e588bb92f7443f5",
+                 "lintSha256":  "0bff386ec939ff13829ac4e1f51b91f599274d0dfc32388e947d885fb96d2bff"
+             },
+    "sourceSha256":  {
+                         "apps/android/native-lab/src/main/AndroidManifest.xml":  "c752786a0e3036746087b337736c39331bc0bc25f8ae32ac5cb96dcca624f0b6",
+                         "apps/android/native-lab/src/main/java/org/nuanban/nativelab/CaptureLabActivity.kt":  "cc05ea34c22f7e7cdbc860bfa508687def9bebfd42c3e4a6bfe6cad6b1026c29",
+                         "apps/android/native-lab/src/main/java/org/nuanban/nativelab/CaptureLabService.kt":  "17191510e313cc5ad87b24c3c36302ff1e53dc4c3b3f3f1970180b300d3ecb0c",
+                         "apps/android/native-lab/src/main/java/org/nuanban/nativelab/LabSession.kt":  "12b57ebe41ba228521366afe3ec606045b6afe437797280dd091c3ea1e77148d",
+                         "apps/android/native-lab/src/main/res/drawable/lab_icon.xml":  "963ad9051643b3767dbf65465ec72ba8136076db8d30e2ed7fe702bc783ce921",
+                         "apps/android/native-lab/src/main/res/xml/data_extraction_rules.xml":  "e97b896cce46f4ba929fb5e4011f3cae0f896e8caf89d5d1143262784489314c",
+                         "apps/android/native-lab/build.gradle.kts":  "f1580ea9c7a844eadc8653b764bd7cc83865e551a6a1ad5dccc9a6cd23608ff7",
+                         "apps/android/build.gradle.kts":  "aa5a3e250437f49d11a6a8869628434be5eb43fbb75709e440132d8fee6deec6",
+                         "apps/android/settings.gradle.kts":  "cdb2114625d026cfd71e37d8ef82bfc4cb52760243ba6e6bce1ca4a7a0379aeb",
+                         "apps/android/gradle.properties":  "fa078c27c9e4bde28a029d673875b028884505efa436b68cf60e1ac0be5b679b"
+                     },
+    "connectedAdbDeviceCount":  0,
+    "installedByAgent":  false,
+    "launchedByAgent":  false,
+    "deviceVerified":  false,
+    "captureVerified":  false,
+    "overlayVerified":  false,
+    "systemPermissionGranted":  false,
+    "independentAcceptance":  false,
+    "limitations":  [
+        "仅覆盖独立 native-lab 的源码、Debug APK、JVM 状态机和本机 ADB 枚举。",
+        "没有安装、启动或授权 Android 真机，也没有跨应用捕获、浮层或系统资源释放记录。",
+        "deviceVerified、captureVerified、overlayVerified、systemPermissionGranted 和 independentAcceptance 保持 false。"
+    ]
+}

@@ -1,0 +1,89 @@
+
+> nuanban@0.1.0 android:build C:\Users\33864\Desktop\nuanban
+> powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-build.ps1 "-Offline"
+
+
+> nuanban@0.1.0 android:sync C:\Users\33864\Desktop\nuanban
+> pnpm build && node scripts/sync-android.mjs
+
+
+> nuanban@0.1.0 build C:\Users\33864\Desktop\nuanban
+> pnpm typecheck && pnpm --filter @nuanban/web build
+
+
+> nuanban@0.1.0 typecheck C:\Users\33864\Desktop\nuanban
+> tsc --noEmit
+
+
+> @nuanban/web@0.1.0 build C:\Users\33864\Desktop\nuanban\apps\web
+> vite build
+
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 2029 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                       0.58 kB │ gzip:  0.42 kB
+dist/assets/bootstrap-CVGnqZ7q.css    4.27 kB │ gzip:  1.19 kB
+dist/assets/index-Cne_RoAQ.css       40.98 kB │ gzip:  9.71 kB
+dist/assets/index-GxDqQeY5.js       222.22 kB │ gzip: 69.92 kB
+dist/assets/bootstrap-BiW8x0lf.js   259.80 kB │ gzip: 85.25 kB
+
+✓ built in 332ms
+共享 UI 已复制到 Android 本地 assets/ui
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :app:compileDebugKotlin UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+> Task :app:mergeDebugShaders UP-TO-DATE
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:compressDebugAssets UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:dexBuilderDebug UP-TO-DATE
+> Task :app:mergeDebugGlobalSynthetics UP-TO-DATE
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :app:mergeDebugJavaResource UP-TO-DATE
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+> Task :app:mergeExtDexDebug UP-TO-DATE
+> Task :app:mergeLibDexDebug UP-TO-DATE
+> Task :app:mergeProjectDexDebug UP-TO-DATE
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+> Task :app:mergeDebugNativeLibs NO-SOURCE
+> Task :app:stripDebugDebugSymbols NO-SOURCE
+> Task :app:validateSigningDebug UP-TO-DATE
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :app:packageDebug UP-TO-DATE
+> Task :app:createDebugApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleDebug UP-TO-DATE
+
+BUILD SUCCESSFUL in 11s
+35 actionable tasks: 35 up-to-date
+
+FullName                                                                               Length LastWriteTime      
+--------                                                                               ------ -------------      
+C:\Users\33864\Desktop\nuanban\apps\android\app\build\outputs\apk\debug\app-debug.apk 1914159 2026/10/16 12:34:07
+
+

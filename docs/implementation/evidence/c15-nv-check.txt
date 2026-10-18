@@ -1,0 +1,1945 @@
+
+> nuanban@0.1.0 c15:nv:check C:\Users\33864\Desktop\nuanban
+> node scripts/check-c15-nv-readiness.mjs --evidence docs/implementation/evidence/c15-nv-readiness-results.json
+
+{
+  "generatedAt": "2026-10-16T15:21:38.206Z",
+  "generatedDate": "2026-10-16",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "C15 NV-01..NV-12 evidence readiness and safety side-effect audit",
+  "status": "blocked",
+  "acceptance": "preparatory_not_accepted",
+  "auditPassed": true,
+  "evidenceQualityPassed": false,
+  "goNoGoEligible": false,
+  "deviceVerified": false,
+  "supplierVerified": false,
+  "checks": [
+    {
+      "id": "NV-01",
+      "title": "Android 跨应用捕获与浮层",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "android-lab.json",
+          "sourcePath": "docs/implementation/evidence/android-lab.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 3695,
+          "contentSha256": "098d71c30599238f0fd97d2983297c9e1b6d4381f794a5eb25e168a5dbf71033",
+          "declaredGeneratedAt": "2026-10-15T22:40:27.8527055+08:00",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": true,
+          "sourceDescriptor": "C01-preparatory-build-static-and-jvm-only",
+          "limitationsPresent": false,
+          "qualityIssues": [
+            "MISSING_LIMITATIONS"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "android-lab.json",
+          "sourcePath": "docs/implementation/evidence/android-lab.json",
+          "contentSha256": "098d71c30599238f0fd97d2983297c9e1b6d4381f794a5eb25e168a5dbf71033",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "android-lab.json",
+          "sourcePath": "docs/implementation/evidence/android-lab.json",
+          "contentSha256": "098d71c30599238f0fd97d2983297c9e1b6d4381f794a5eb25e168a5dbf71033",
+          "path": "captureVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "android-lab.json",
+          "sourcePath": "docs/implementation/evidence/android-lab.json",
+          "contentSha256": "098d71c30599238f0fd97d2983297c9e1b6d4381f794a5eb25e168a5dbf71033",
+          "path": "overlayVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "android-lab.json",
+          "sourcePath": "docs/implementation/evidence/android-lab.json",
+          "contentSha256": "098d71c30599238f0fd97d2983297c9e1b6d4381f794a5eb25e168a5dbf71033",
+          "path": "systemPermissionGranted",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "android-lab.json",
+          "sourcePath": "docs/implementation/evidence/android-lab.json",
+          "contentSha256": "098d71c30599238f0fd97d2983297c9e1b6d4381f794a5eb25e168a5dbf71033",
+          "path": "independentAcceptance",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "android-lab.json",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "android-lab.json",
+          "path": "captureVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "android-lab.json",
+          "path": "overlayVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "android-lab.json",
+          "path": "systemPermissionGranted",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "android-lab.json",
+          "path": "independentAcceptance",
+          "expected": true,
+          "observed": false
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_01_EVIDENCE_GAP",
+          "reason": "没有连接 Android 设备、系统授权、真实捕获来源和底层可点击记录。",
+          "signalPaths": [
+            "android-lab.json:deviceVerified",
+            "android-lab.json:captureVerified",
+            "android-lab.json:overlayVerified",
+            "android-lab.json:systemPermissionGranted",
+            "android-lab.json:independentAcceptance"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "android-lab.json",
+              "code": "MISSING_LIMITATIONS"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "没有连接 Android 设备、系统授权、真实捕获来源和底层可点击记录。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    },
+    {
+      "id": "NV-02",
+      "title": "服务、通知与自启动",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "android-lab.json",
+          "sourcePath": "docs/implementation/evidence/android-lab.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 3695,
+          "contentSha256": "098d71c30599238f0fd97d2983297c9e1b6d4381f794a5eb25e168a5dbf71033",
+          "declaredGeneratedAt": "2026-10-15T22:40:27.8527055+08:00",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": true,
+          "sourceDescriptor": "C01-preparatory-build-static-and-jvm-only",
+          "limitationsPresent": false,
+          "qualityIssues": [
+            "MISSING_LIMITATIONS"
+          ]
+        },
+        {
+          "file": "reminder-c07-c08-scope.json",
+          "sourcePath": "docs/implementation/evidence/reminder-c07-c08-scope.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 1969,
+          "contentSha256": "6d424f0f13b7d398de732a19c7a574e3e980419f5b6293411b529a181e19ae46",
+          "declaredGeneratedAt": "2026-10-16",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": "reminder-c07-c08-results.json",
+          "limitationsPresent": true,
+          "qualityIssues": [
+            "GENERATED_AT_MISSING_TIMEZONE"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "android-lab.json",
+          "sourcePath": "docs/implementation/evidence/android-lab.json",
+          "contentSha256": "098d71c30599238f0fd97d2983297c9e1b6d4381f794a5eb25e168a5dbf71033",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "android-lab.json",
+          "sourcePath": "docs/implementation/evidence/android-lab.json",
+          "contentSha256": "098d71c30599238f0fd97d2983297c9e1b6d4381f794a5eb25e168a5dbf71033",
+          "path": "systemPermissionGranted",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "reminder-c07-c08-scope.json",
+          "sourcePath": "docs/implementation/evidence/reminder-c07-c08-scope.json",
+          "contentSha256": "6d424f0f13b7d398de732a19c7a574e3e980419f5b6293411b529a181e19ae46",
+          "path": "androidRoom",
+          "expected": "integrated",
+          "observed": "compile_only",
+          "passed": false
+        },
+        {
+          "file": "reminder-c07-c08-scope.json",
+          "sourcePath": "docs/implementation/evidence/reminder-c07-c08-scope.json",
+          "contentSha256": "6d424f0f13b7d398de732a19c7a574e3e980419f5b6293411b529a181e19ae46",
+          "path": "androidSystemScheduler",
+          "expected": "integrated",
+          "observed": "not integrated",
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "android-lab.json",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "android-lab.json",
+          "path": "systemPermissionGranted",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "reminder-c07-c08-scope.json",
+          "path": "androidRoom",
+          "expected": "integrated",
+          "observed": "compile_only"
+        },
+        {
+          "file": "reminder-c07-c08-scope.json",
+          "path": "androidSystemScheduler",
+          "expected": "integrated",
+          "observed": "not integrated"
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_02_EVIDENCE_GAP",
+          "reason": "没有权限拒绝、强停、后台、退出、睡眠、重启和真实系统提醒回执记录。",
+          "signalPaths": [
+            "android-lab.json:deviceVerified",
+            "android-lab.json:systemPermissionGranted",
+            "reminder-c07-c08-scope.json:androidRoom",
+            "reminder-c07-c08-scope.json:androidSystemScheduler"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "android-lab.json",
+              "code": "MISSING_LIMITATIONS"
+            },
+            {
+              "file": "reminder-c07-c08-scope.json",
+              "code": "GENERATED_AT_MISSING_TIMEZONE"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "没有权限拒绝、强停、后台、退出、睡眠、重启和真实系统提醒回执记录。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    },
+    {
+      "id": "NV-03",
+      "title": "Windows 窗口、捕获与多屏",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "desktop-lab-smoke.json",
+          "sourcePath": "docs/implementation/evidence/desktop-lab-smoke.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 5186,
+          "contentSha256": "0c4f4731600fa1795e60af92a78701bdd4b1563de17e6d5bfb74d9dfd8e8d802",
+          "declaredGeneratedAt": "2026-10-15T22:31:42.503Z",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": true,
+          "sourceDescriptor": "hidden-Electron-native-windows-own-synthetic-render-and-canvas-track-only",
+          "limitationsPresent": false,
+          "qualityIssues": [
+            "MISSING_LIMITATIONS"
+          ]
+        },
+        {
+          "file": "desktop-lab-package.json",
+          "sourcePath": "docs/implementation/evidence/desktop-lab-package.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 2187,
+          "contentSha256": "eeaa294d8baeeaf464a4eef5c7a85bd9fead1682c5e15f5185700234c3fe5d94",
+          "declaredGeneratedAt": "2026-10-15T22:31:45.531Z",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": true,
+          "sourceDescriptor": null,
+          "limitationsPresent": false,
+          "qualityIssues": [
+            "MISSING_SOURCE_DESCRIPTOR",
+            "MISSING_LIMITATIONS"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "desktop-lab-smoke.json",
+          "sourcePath": "docs/implementation/evidence/desktop-lab-smoke.json",
+          "contentSha256": "0c4f4731600fa1795e60af92a78701bdd4b1563de17e6d5bfb74d9dfd8e8d802",
+          "path": "actualDisplayCaptureVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "sourcePath": "docs/implementation/evidence/desktop-lab-smoke.json",
+          "contentSha256": "0c4f4731600fa1795e60af92a78701bdd4b1563de17e6d5bfb74d9dfd8e8d802",
+          "path": "externalApplicationCaptureVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "sourcePath": "docs/implementation/evidence/desktop-lab-smoke.json",
+          "contentSha256": "0c4f4731600fa1795e60af92a78701bdd4b1563de17e6d5bfb74d9dfd8e8d802",
+          "path": "mousePassThroughVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "sourcePath": "docs/implementation/evidence/desktop-lab-smoke.json",
+          "contentSha256": "0c4f4731600fa1795e60af92a78701bdd4b1563de17e6d5bfb74d9dfd8e8d802",
+          "path": "mixedDpiMovementVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "sourcePath": "docs/implementation/evidence/desktop-lab-smoke.json",
+          "contentSha256": "0c4f4731600fa1795e60af92a78701bdd4b1563de17e6d5bfb74d9dfd8e8d802",
+          "path": "negativeOriginMovementVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "sourcePath": "docs/implementation/evidence/desktop-lab-smoke.json",
+          "contentSha256": "0c4f4731600fa1795e60af92a78701bdd4b1563de17e6d5bfb74d9dfd8e8d802",
+          "path": "independentAcceptance",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "actualDisplayCaptureVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "externalApplicationCaptureVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "mousePassThroughVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "mixedDpiMovementVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "negativeOriginMovementVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "independentAcceptance",
+          "expected": true,
+          "observed": false
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_03_EVIDENCE_GAP",
+          "reason": "当前仅有隐藏 Electron 合成窗口和单显示器几何记录，没有真实桌面捕获、双屏、混合 DPI、负坐标、穿透和独立复核。",
+          "signalPaths": [
+            "desktop-lab-smoke.json:actualDisplayCaptureVerified",
+            "desktop-lab-smoke.json:externalApplicationCaptureVerified",
+            "desktop-lab-smoke.json:mousePassThroughVerified",
+            "desktop-lab-smoke.json:mixedDpiMovementVerified",
+            "desktop-lab-smoke.json:negativeOriginMovementVerified",
+            "desktop-lab-smoke.json:independentAcceptance"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "desktop-lab-smoke.json",
+              "code": "MISSING_LIMITATIONS"
+            },
+            {
+              "file": "desktop-lab-package.json",
+              "code": "MISSING_SOURCE_DESCRIPTOR"
+            },
+            {
+              "file": "desktop-lab-package.json",
+              "code": "MISSING_LIMITATIONS"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "当前仅有隐藏 Electron 合成窗口和单显示器几何记录，没有真实桌面捕获、双屏、混合 DPI、负坐标、穿透和独立复核。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    },
+    {
+      "id": "NV-04",
+      "title": "采集生命周期",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "sourcePath": "docs/implementation/evidence/lifecycle-c09-c10-scope.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 1598,
+          "contentSha256": "3db0027ca8523b1d60df7f0c015a9748d90d4bdd98414734a7d522f6ba38061f",
+          "declaredGeneratedAt": "2026-10-16",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": "lifecycle-c09-c10-results.json",
+          "limitationsPresent": true,
+          "qualityIssues": [
+            "GENERATED_AT_MISSING_TIMEZONE"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "sourcePath": "docs/implementation/evidence/lifecycle-c09-c10-scope.json",
+          "contentSha256": "3db0027ca8523b1d60df7f0c015a9748d90d4bdd98414734a7d522f6ba38061f",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_04_EVIDENCE_GAP",
+          "reason": "没有 stop、revoke、lock、kill、reboot 后的真实轨道、队列、出口和资源释放计数。",
+          "signalPaths": [
+            "lifecycle-c09-c10-scope.json:deviceVerified"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "lifecycle-c09-c10-scope.json",
+              "code": "GENERATED_AT_MISSING_TIMEZONE"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "没有 stop、revoke、lock、kill、reboot 后的真实轨道、队列、出口和资源释放计数。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    },
+    {
+      "id": "NV-05",
+      "title": "自身浮层污染",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "sourcePath": "docs/implementation/evidence/lifecycle-c09-c10-scope.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 1598,
+          "contentSha256": "3db0027ca8523b1d60df7f0c015a9748d90d4bdd98414734a7d522f6ba38061f",
+          "declaredGeneratedAt": "2026-10-16",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": "lifecycle-c09-c10-results.json",
+          "limitationsPresent": true,
+          "qualityIssues": [
+            "GENERATED_AT_MISSING_TIMEZONE"
+          ]
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "sourcePath": "docs/implementation/evidence/desktop-lab-smoke.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 5186,
+          "contentSha256": "0c4f4731600fa1795e60af92a78701bdd4b1563de17e6d5bfb74d9dfd8e8d802",
+          "declaredGeneratedAt": "2026-10-15T22:31:42.503Z",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": true,
+          "sourceDescriptor": "hidden-Electron-native-windows-own-synthetic-render-and-canvas-track-only",
+          "limitationsPresent": false,
+          "qualityIssues": [
+            "MISSING_LIMITATIONS"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "sourcePath": "docs/implementation/evidence/lifecycle-c09-c10-scope.json",
+          "contentSha256": "3db0027ca8523b1d60df7f0c015a9748d90d4bdd98414734a7d522f6ba38061f",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "sourcePath": "docs/implementation/evidence/desktop-lab-smoke.json",
+          "contentSha256": "0c4f4731600fa1795e60af92a78701bdd4b1563de17e6d5bfb74d9dfd8e8d802",
+          "path": "independentAcceptance",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "path": "deviceVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "path": "independentAcceptance",
+          "expected": true,
+          "observed": false
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_05_EVIDENCE_GAP",
+          "reason": "没有 Android/Windows 真实捕获对照、浮层排除/隐藏/屏蔽结果和人工复核。",
+          "signalPaths": [
+            "lifecycle-c09-c10-scope.json:deviceVerified",
+            "desktop-lab-smoke.json:independentAcceptance"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "lifecycle-c09-c10-scope.json",
+              "code": "GENERATED_AT_MISSING_TIMEZONE"
+            },
+            {
+              "file": "desktop-lab-smoke.json",
+              "code": "MISSING_LIMITATIONS"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "没有 Android/Windows 真实捕获对照、浮层排除/隐藏/屏蔽结果和人工复核。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    },
+    {
+      "id": "NV-06",
+      "title": "本地检测与脱敏",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "privacy-c03-results.json",
+          "sourcePath": "docs/implementation/evidence/privacy-c03-results.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 16893,
+          "contentSha256": "6d83ca669b80d9cf2fa7cf07296f842816345aa0a2e5bcbce8c4cc101ce3756b",
+          "declaredGeneratedAt": null,
+          "generatedAtValid": false,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": null,
+          "limitationsPresent": false,
+          "qualityIssues": [
+            "MISSING_OR_INVALID_GENERATED_AT",
+            "MISSING_SOURCE_DESCRIPTOR",
+            "MISSING_LIMITATIONS"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "privacy-c03-results.json",
+          "sourcePath": "docs/implementation/evidence/privacy-c03-results.json",
+          "contentSha256": "6d83ca669b80d9cf2fa7cf07296f842816345aa0a2e5bcbce8c4cc101ce3756b",
+          "path": "realModelEvidenceVerified",
+          "expected": true,
+          "observed": null,
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "privacy-c03-results.json",
+          "path": "realModelEvidenceVerified",
+          "expected": true,
+          "observed": null
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_06_EVIDENCE_GAP",
+          "reason": "C03 只有合成门控测试；没有真实 OCR/检测模型、人脸测试素材、坏模型/超时质量和逐帧设备证据。",
+          "signalPaths": [
+            "privacy-c03-results.json:realModelEvidenceVerified"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "privacy-c03-results.json",
+              "code": "MISSING_OR_INVALID_GENERATED_AT"
+            },
+            {
+              "file": "privacy-c03-results.json",
+              "code": "MISSING_SOURCE_DESCRIPTOR"
+            },
+            {
+              "file": "privacy-c03-results.json",
+              "code": "MISSING_LIMITATIONS"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "C03 只有合成门控测试；没有真实 OCR/检测模型、人脸测试素材、坏模型/超时质量和逐帧设备证据。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    },
+    {
+      "id": "NV-07",
+      "title": "安全媒体出口",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "media-c04-results.json",
+          "sourcePath": "docs/implementation/evidence/media-c04-results.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 7027,
+          "contentSha256": "bf9597d97bc625798e57aa589e7605f633351fd8dedb4982edb3777e407b4969",
+          "declaredGeneratedAt": null,
+          "generatedAtValid": false,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": null,
+          "limitationsPresent": false,
+          "qualityIssues": [
+            "MISSING_OR_INVALID_GENERATED_AT",
+            "MISSING_SOURCE_DESCRIPTOR",
+            "MISSING_LIMITATIONS"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "media-c04-results.json",
+          "sourcePath": "docs/implementation/evidence/media-c04-results.json",
+          "contentSha256": "bf9597d97bc625798e57aa589e7605f633351fd8dedb4982edb3777e407b4969",
+          "path": "realEncoderAndRelayVerified",
+          "expected": true,
+          "observed": null,
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "media-c04-results.json",
+          "path": "realEncoderAndRelayVerified",
+          "expected": true,
+          "observed": null
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_07_EVIDENCE_GAP",
+          "reason": "C04 只有本地内存 relay；没有真实编码器、双出口接收 canary、抓包、WebRTC/TURN 和停止竞态记录。",
+          "signalPaths": [
+            "media-c04-results.json:realEncoderAndRelayVerified"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "media-c04-results.json",
+              "code": "MISSING_OR_INVALID_GENERATED_AT"
+            },
+            {
+              "file": "media-c04-results.json",
+              "code": "MISSING_SOURCE_DESCRIPTOR"
+            },
+            {
+              "file": "media-c04-results.json",
+              "code": "MISSING_LIMITATIONS"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "C04 只有本地内存 relay；没有真实编码器、双出口接收 canary、抓包、WebRTC/TURN 和停止竞态记录。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    },
+    {
+      "id": "NV-08",
+      "title": "用户自行操作与核验",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "sourcePath": "docs/implementation/evidence/guidance-c05-c06-scope.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 1321,
+          "contentSha256": "2af9bbf5a00a53ca903f0143fde5d516951eab24a8a8776684c66e196cf9fe82",
+          "declaredGeneratedAt": "2026-10-16",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": "guidance-c05-c06-results.json",
+          "limitationsPresent": true,
+          "qualityIssues": [
+            "GENERATED_AT_MISSING_TIMEZONE"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "sourcePath": "docs/implementation/evidence/guidance-c05-c06-scope.json",
+          "contentSha256": "2af9bbf5a00a53ca903f0143fde5d516951eab24a8a8776684c66e196cf9fe82",
+          "path": "androidDeviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "sourcePath": "docs/implementation/evidence/guidance-c05-c06-scope.json",
+          "contentSha256": "2af9bbf5a00a53ca903f0143fde5d516951eab24a8a8776684c66e196cf9fe82",
+          "path": "windowsDeviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "sourcePath": "docs/implementation/evidence/guidance-c05-c06-scope.json",
+          "contentSha256": "2af9bbf5a00a53ca903f0143fde5d516951eab24a8a8776684c66e196cf9fe82",
+          "path": "inputInjection",
+          "expected": "device_verified",
+          "observed": "not implemented; source-level boundary test only",
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "androidDeviceVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "windowsDeviceVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "inputInjection",
+          "expected": "device_verified",
+          "observed": "not implemented; source-level boundary test only"
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_08_EVIDENCE_GAP",
+          "reason": "共享坐标引擎只有合成向量；没有 Android/Windows 设备调用、真实页面核验或人工操作轨迹。",
+          "signalPaths": [
+            "guidance-c05-c06-scope.json:androidDeviceVerified",
+            "guidance-c05-c06-scope.json:windowsDeviceVerified",
+            "guidance-c05-c06-scope.json:inputInjection"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "guidance-c05-c06-scope.json",
+              "code": "GENERATED_AT_MISSING_TIMEZONE"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "共享坐标引擎只有合成向量；没有 Android/Windows 设备调用、真实页面核验或人工操作轨迹。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    },
+    {
+      "id": "NV-09",
+      "title": "儿童指向",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "sourcePath": "docs/implementation/evidence/guidance-c05-c06-scope.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 1321,
+          "contentSha256": "2af9bbf5a00a53ca903f0143fde5d516951eab24a8a8776684c66e196cf9fe82",
+          "declaredGeneratedAt": "2026-10-16",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": "guidance-c05-c06-results.json",
+          "limitationsPresent": true,
+          "qualityIssues": [
+            "GENERATED_AT_MISSING_TIMEZONE"
+          ]
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "sourcePath": "docs/implementation/evidence/pet-c13-scope.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 1014,
+          "contentSha256": "538442e6dd465048dd43abf165d994868cc7cb38ab40c2e7229a7d3c934ba5f3",
+          "declaredGeneratedAt": "2026-10-16",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": "pet-c13-results.json",
+          "limitationsPresent": true,
+          "qualityIssues": [
+            "GENERATED_AT_MISSING_TIMEZONE"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "sourcePath": "docs/implementation/evidence/guidance-c05-c06-scope.json",
+          "contentSha256": "2af9bbf5a00a53ca903f0143fde5d516951eab24a8a8776684c66e196cf9fe82",
+          "path": "androidDeviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "sourcePath": "docs/implementation/evidence/guidance-c05-c06-scope.json",
+          "contentSha256": "2af9bbf5a00a53ca903f0143fde5d516951eab24a8a8776684c66e196cf9fe82",
+          "path": "windowsDeviceVerified",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "sourcePath": "docs/implementation/evidence/guidance-c05-c06-scope.json",
+          "contentSha256": "2af9bbf5a00a53ca903f0143fde5d516951eab24a8a8776684c66e196cf9fe82",
+          "path": "childPointerManualAcceptance",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "sourcePath": "docs/implementation/evidence/pet-c13-scope.json",
+          "contentSha256": "538442e6dd465048dd43abf165d994868cc7cb38ab40c2e7229a7d3c934ba5f3",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted",
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "androidDeviceVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "windowsDeviceVerified",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "path": "childPointerManualAcceptance",
+          "expected": true,
+          "observed": false
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted"
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_09_EVIDENCE_GAP",
+          "reason": "没有原生桌宠路径、真实动画/遮挡、替代停靠、儿童可理解性和人工可达性记录。",
+          "signalPaths": [
+            "guidance-c05-c06-scope.json:androidDeviceVerified",
+            "guidance-c05-c06-scope.json:windowsDeviceVerified",
+            "guidance-c05-c06-scope.json:childPointerManualAcceptance",
+            "pet-c13-scope.json:status"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "guidance-c05-c06-scope.json",
+              "code": "GENERATED_AT_MISSING_TIMEZONE"
+            },
+            {
+              "file": "pet-c13-scope.json",
+              "code": "GENERATED_AT_MISSING_TIMEZONE"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "没有原生桌宠路径、真实动画/遮挡、替代停靠、儿童可理解性和人工可达性记录。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    },
+    {
+      "id": "NV-10",
+      "title": "2D、画布与 3D 规格",
+      "layer": "device_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "c11-3d-scope.json",
+          "sourcePath": "docs/implementation/evidence/c11-3d-scope.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 1397,
+          "contentSha256": "4b0c0329e4054d5545836f443cba2a12d6e7b309be35208d2d88536b705a413a",
+          "declaredGeneratedAt": "2026-10-16",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": "c11-3d-results.json",
+          "limitationsPresent": true,
+          "qualityIssues": [
+            "GENERATED_AT_MISSING_TIMEZONE"
+          ]
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "sourcePath": "docs/implementation/evidence/pet-c13-scope.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 1014,
+          "contentSha256": "538442e6dd465048dd43abf165d994868cc7cb38ab40c2e7229a7d3c934ba5f3",
+          "declaredGeneratedAt": "2026-10-16",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": "pet-c13-results.json",
+          "limitationsPresent": true,
+          "qualityIssues": [
+            "GENERATED_AT_MISSING_TIMEZONE"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "c11-3d-scope.json",
+          "sourcePath": "docs/implementation/evidence/c11-3d-scope.json",
+          "contentSha256": "4b0c0329e4054d5545836f443cba2a12d6e7b309be35208d2d88536b705a413a",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted",
+          "passed": false
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "sourcePath": "docs/implementation/evidence/pet-c13-scope.json",
+          "contentSha256": "538442e6dd465048dd43abf165d994868cc7cb38ab40c2e7229a7d3c934ba5f3",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted",
+          "passed": false
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "sourcePath": "docs/implementation/evidence/pet-c13-scope.json",
+          "contentSha256": "538442e6dd465048dd43abf165d994868cc7cb38ab40c2e7229a7d3c934ba5f3",
+          "path": "publishEligible",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "c11-3d-scope.json",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted"
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted"
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "path": "publishEligible",
+          "expected": true,
+          "observed": false
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_10_EVIDENCE_GAP",
+          "reason": "C11/C13 仅有结构门控；没有真实 VRM/FBX/GLB、渲染器、供应资产、设备帧率/内存、视觉和儿童质量验收。",
+          "signalPaths": [
+            "c11-3d-scope.json:status",
+            "pet-c13-scope.json:status",
+            "pet-c13-scope.json:publishEligible"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "c11-3d-scope.json",
+              "code": "GENERATED_AT_MISSING_TIMEZONE"
+            },
+            {
+              "file": "pet-c13-scope.json",
+              "code": "GENERATED_AT_MISSING_TIMEZONE"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "C11/C13 仅有结构门控；没有真实 VRM/FBX/GLB、渲染器、供应资产、设备帧率/内存、视觉和儿童质量验收。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    },
+    {
+      "id": "NV-11",
+      "title": "语音、多模态与生成",
+      "layer": "supplier_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "sourcePath": "docs/implementation/evidence/c12-sandbox-scope.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 1806,
+          "contentSha256": "7f55f165001ddd22f94c569f5d24b577d01853aa4b79e47ab8b64a331946c43c",
+          "declaredGeneratedAt": "2026-10-16",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": "c12-sandbox-results.json",
+          "limitationsPresent": true,
+          "qualityIssues": [
+            "GENERATED_AT_MISSING_TIMEZONE"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "sourcePath": "docs/implementation/evidence/c12-sandbox-scope.json",
+          "contentSha256": "7f55f165001ddd22f94c569f5d24b577d01853aa4b79e47ab8b64a331946c43c",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted",
+          "passed": false
+        },
+        {
+          "file": "c12-sandbox-scope.json",
+          "sourcePath": "docs/implementation/evidence/c12-sandbox-scope.json",
+          "contentSha256": "7f55f165001ddd22f94c569f5d24b577d01853aa4b79e47ab8b64a331946c43c",
+          "path": "realCredentialState",
+          "expected": "available",
+          "observed": "missing",
+          "passed": false
+        },
+        {
+          "file": "c12-sandbox-scope.json",
+          "sourcePath": "docs/implementation/evidence/c12-sandbox-scope.json",
+          "contentSha256": "7f55f165001ddd22f94c569f5d24b577d01853aa4b79e47ab8b64a331946c43c",
+          "path": "productionReady",
+          "expected": true,
+          "observed": false,
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "path": "status",
+          "expected": "accepted",
+          "observed": "preparatory_not_accepted"
+        },
+        {
+          "file": "c12-sandbox-scope.json",
+          "path": "realCredentialState",
+          "expected": "available",
+          "observed": "missing"
+        },
+        {
+          "file": "c12-sandbox-scope.json",
+          "path": "productionReady",
+          "expected": true,
+          "observed": false
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_11_EVIDENCE_GAP",
+          "reason": "C12 合成场景通过但真实凭证缺失；没有真实区域、价格/配额、数据保留、合同、首片段、取消延迟和质量证据。",
+          "signalPaths": [
+            "c12-sandbox-scope.json:status",
+            "c12-sandbox-scope.json:realCredentialState",
+            "c12-sandbox-scope.json:productionReady"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "c12-sandbox-scope.json",
+              "code": "GENERATED_AT_MISSING_TIMEZONE"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "C12 合成场景通过但真实凭证缺失；没有真实区域、价格/配额、数据保留、合同、首片段、取消延迟和质量证据。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    },
+    {
+      "id": "NV-12",
+      "title": "免密、人脸与无 SIM",
+      "layer": "supplier_verified",
+      "status": "blocked",
+      "auditPassed": true,
+      "evidenceQualityPassed": false,
+      "readyForIndependentReview": false,
+      "artifacts": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "sourcePath": "docs/implementation/evidence/c12-sandbox-scope.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 1806,
+          "contentSha256": "7f55f165001ddd22f94c569f5d24b577d01853aa4b79e47ab8b64a331946c43c",
+          "declaredGeneratedAt": "2026-10-16",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": false,
+          "sourceDescriptor": "c12-sandbox-results.json",
+          "limitationsPresent": true,
+          "qualityIssues": [
+            "GENERATED_AT_MISSING_TIMEZONE"
+          ]
+        },
+        {
+          "file": "c14-handoff-results.json",
+          "sourcePath": "docs/implementation/evidence/c14-handoff-results.json",
+          "exists": true,
+          "parseable": true,
+          "bytes": 4567,
+          "contentSha256": "25c1a2ae149f94d549f03dc573a171ecd4401d68cd879616f5d62dafac076d8d",
+          "declaredGeneratedAt": "2026-10-16T15:20:16.209Z",
+          "generatedAtValid": true,
+          "generatedAtHasTimeZone": true,
+          "sourceDescriptor": "C14 backend contract handoff preparation",
+          "limitationsPresent": false,
+          "qualityIssues": [
+            "MISSING_LIMITATIONS"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "sourcePath": "docs/implementation/evidence/c12-sandbox-scope.json",
+          "contentSha256": "7f55f165001ddd22f94c569f5d24b577d01853aa4b79e47ab8b64a331946c43c",
+          "path": "realCredentialState",
+          "expected": "available",
+          "observed": "missing",
+          "passed": false
+        },
+        {
+          "file": "c14-handoff-results.json",
+          "sourcePath": "docs/implementation/evidence/c14-handoff-results.json",
+          "contentSha256": "25c1a2ae149f94d549f03dc573a171ecd4401d68cd879616f5d62dafac076d8d",
+          "path": "serverProofVerified",
+          "expected": true,
+          "observed": null,
+          "passed": false
+        },
+        {
+          "file": "c14-handoff-results.json",
+          "sourcePath": "docs/implementation/evidence/c14-handoff-results.json",
+          "contentSha256": "25c1a2ae149f94d549f03dc573a171ecd4401d68cd879616f5d62dafac076d8d",
+          "path": "replayProtectionVerified",
+          "expected": true,
+          "observed": null,
+          "passed": false
+        }
+      ],
+      "failedSignals": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "path": "realCredentialState",
+          "expected": "available",
+          "observed": "missing"
+        },
+        {
+          "file": "c14-handoff-results.json",
+          "path": "serverProofVerified",
+          "expected": true,
+          "observed": null
+        },
+        {
+          "file": "c14-handoff-results.json",
+          "path": "replayProtectionVerified",
+          "expected": true,
+          "observed": null
+        }
+      ],
+      "blockerRefs": [
+        {
+          "code": "NV_12_EVIDENCE_GAP",
+          "reason": "没有服务端证明、防重放、真实失败替代、认领和供应凭证实测；本机解锁或契约元数据不构成服务端人脸证明。",
+          "signalPaths": [
+            "c12-sandbox-scope.json:realCredentialState",
+            "c14-handoff-results.json:serverProofVerified",
+            "c14-handoff-results.json:replayProtectionVerified"
+          ]
+        },
+        {
+          "code": "EVIDENCE_PROVENANCE_GAP",
+          "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+          "signalPaths": [],
+          "qualityIssues": [
+            {
+              "file": "c12-sandbox-scope.json",
+              "code": "GENERATED_AT_MISSING_TIMEZONE"
+            },
+            {
+              "file": "c14-handoff-results.json",
+              "code": "MISSING_LIMITATIONS"
+            }
+          ]
+        }
+      ],
+      "blockers": [
+        "没有服务端证明、防重放、真实失败替代、认领和供应凭证实测；本机解锁或契约元数据不构成服务端人脸证明。",
+        "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。"
+      ]
+    }
+  ],
+  "evidenceInventory": [
+    {
+      "file": "android-lab.json",
+      "sourcePath": "docs/implementation/evidence/android-lab.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 3695,
+      "contentSha256": "098d71c30599238f0fd97d2983297c9e1b6d4381f794a5eb25e168a5dbf71033",
+      "declaredGeneratedAt": "2026-10-15T22:40:27.8527055+08:00",
+      "generatedAtValid": true,
+      "generatedAtHasTimeZone": true,
+      "sourceDescriptor": "C01-preparatory-build-static-and-jvm-only",
+      "limitationsPresent": false,
+      "qualityIssues": [
+        "MISSING_LIMITATIONS"
+      ],
+      "scope": "C01-preparatory-build-static-and-jvm-only",
+      "status": null
+    },
+    {
+      "file": "reminder-c07-c08-scope.json",
+      "sourcePath": "docs/implementation/evidence/reminder-c07-c08-scope.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 1969,
+      "contentSha256": "6d424f0f13b7d398de732a19c7a574e3e980419f5b6293411b529a181e19ae46",
+      "declaredGeneratedAt": "2026-10-16",
+      "generatedAtValid": true,
+      "generatedAtHasTimeZone": false,
+      "sourceDescriptor": "reminder-c07-c08-results.json",
+      "limitationsPresent": true,
+      "qualityIssues": [
+        "GENERATED_AT_MISSING_TIMEZONE"
+      ],
+      "scope": "C07/C08 shared reminder rules, dispatch gate and native capability boundary",
+      "status": "preparatory_not_accepted"
+    },
+    {
+      "file": "desktop-lab-smoke.json",
+      "sourcePath": "docs/implementation/evidence/desktop-lab-smoke.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 5186,
+      "contentSha256": "0c4f4731600fa1795e60af92a78701bdd4b1563de17e6d5bfb74d9dfd8e8d802",
+      "declaredGeneratedAt": "2026-10-15T22:31:42.503Z",
+      "generatedAtValid": true,
+      "generatedAtHasTimeZone": true,
+      "sourceDescriptor": "hidden-Electron-native-windows-own-synthetic-render-and-canvas-track-only",
+      "limitationsPresent": false,
+      "qualityIssues": [
+        "MISSING_LIMITATIONS"
+      ],
+      "scope": "hidden-Electron-native-windows-own-synthetic-render-and-canvas-track-only",
+      "status": null
+    },
+    {
+      "file": "desktop-lab-package.json",
+      "sourcePath": "docs/implementation/evidence/desktop-lab-package.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 2187,
+      "contentSha256": "eeaa294d8baeeaf464a4eef5c7a85bd9fead1682c5e15f5185700234c3fe5d94",
+      "declaredGeneratedAt": "2026-10-15T22:31:45.531Z",
+      "generatedAtValid": true,
+      "generatedAtHasTimeZone": true,
+      "sourceDescriptor": null,
+      "limitationsPresent": false,
+      "qualityIssues": [
+        "MISSING_SOURCE_DESCRIPTOR",
+        "MISSING_LIMITATIONS"
+      ],
+      "scope": null,
+      "status": null
+    },
+    {
+      "file": "lifecycle-c09-c10-scope.json",
+      "sourcePath": "docs/implementation/evidence/lifecycle-c09-c10-scope.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 1598,
+      "contentSha256": "3db0027ca8523b1d60df7f0c015a9748d90d4bdd98414734a7d522f6ba38061f",
+      "declaredGeneratedAt": "2026-10-16",
+      "generatedAtValid": true,
+      "generatedAtHasTimeZone": false,
+      "sourceDescriptor": "lifecycle-c09-c10-results.json",
+      "limitationsPresent": true,
+      "qualityIssues": [
+        "GENERATED_AT_MISSING_TIMEZONE"
+      ],
+      "scope": "C09/C10 shared lifecycle coordinator and host-event assembly",
+      "status": "preparatory_not_accepted"
+    },
+    {
+      "file": "privacy-c03-results.json",
+      "sourcePath": "docs/implementation/evidence/privacy-c03-results.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 16893,
+      "contentSha256": "6d83ca669b80d9cf2fa7cf07296f842816345aa0a2e5bcbce8c4cc101ce3756b",
+      "declaredGeneratedAt": null,
+      "generatedAtValid": false,
+      "generatedAtHasTimeZone": false,
+      "sourceDescriptor": null,
+      "limitationsPresent": false,
+      "qualityIssues": [
+        "MISSING_OR_INVALID_GENERATED_AT",
+        "MISSING_SOURCE_DESCRIPTOR",
+        "MISSING_LIMITATIONS"
+      ],
+      "scope": null,
+      "status": null
+    },
+    {
+      "file": "media-c04-results.json",
+      "sourcePath": "docs/implementation/evidence/media-c04-results.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 7027,
+      "contentSha256": "bf9597d97bc625798e57aa589e7605f633351fd8dedb4982edb3777e407b4969",
+      "declaredGeneratedAt": null,
+      "generatedAtValid": false,
+      "generatedAtHasTimeZone": false,
+      "sourceDescriptor": null,
+      "limitationsPresent": false,
+      "qualityIssues": [
+        "MISSING_OR_INVALID_GENERATED_AT",
+        "MISSING_SOURCE_DESCRIPTOR",
+        "MISSING_LIMITATIONS"
+      ],
+      "scope": null,
+      "status": null
+    },
+    {
+      "file": "guidance-c05-c06-scope.json",
+      "sourcePath": "docs/implementation/evidence/guidance-c05-c06-scope.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 1321,
+      "contentSha256": "2af9bbf5a00a53ca903f0143fde5d516951eab24a8a8776684c66e196cf9fe82",
+      "declaredGeneratedAt": "2026-10-16",
+      "generatedAtValid": true,
+      "generatedAtHasTimeZone": false,
+      "sourceDescriptor": "guidance-c05-c06-results.json",
+      "limitationsPresent": true,
+      "qualityIssues": [
+        "GENERATED_AT_MISSING_TIMEZONE"
+      ],
+      "scope": "shared coordinate engine and synthetic C05/C06 vectors",
+      "status": null
+    },
+    {
+      "file": "pet-c13-scope.json",
+      "sourcePath": "docs/implementation/evidence/pet-c13-scope.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 1014,
+      "contentSha256": "538442e6dd465048dd43abf165d994868cc7cb38ab40c2e7229a7d3c934ba5f3",
+      "declaredGeneratedAt": "2026-10-16",
+      "generatedAtValid": true,
+      "generatedAtHasTimeZone": false,
+      "sourceDescriptor": "pet-c13-results.json",
+      "limitationsPresent": true,
+      "qualityIssues": [
+        "GENERATED_AT_MISSING_TIMEZONE"
+      ],
+      "scope": "C13 shared animated 2D pet asset manifest and quality gate",
+      "status": "preparatory_not_accepted"
+    },
+    {
+      "file": "c11-3d-scope.json",
+      "sourcePath": "docs/implementation/evidence/c11-3d-scope.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 1397,
+      "contentSha256": "4b0c0329e4054d5545836f443cba2a12d6e7b309be35208d2d88536b705a413a",
+      "declaredGeneratedAt": "2026-10-16",
+      "generatedAtValid": true,
+      "generatedAtHasTimeZone": false,
+      "sourceDescriptor": "c11-3d-results.json",
+      "limitationsPresent": true,
+      "qualityIssues": [
+        "GENERATED_AT_MISSING_TIMEZONE"
+      ],
+      "scope": "C11 local VRM/FBX/GLB container, inspection and resource-budget preflight",
+      "status": "preparatory_not_accepted"
+    },
+    {
+      "file": "c12-sandbox-scope.json",
+      "sourcePath": "docs/implementation/evidence/c12-sandbox-scope.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 1806,
+      "contentSha256": "7f55f165001ddd22f94c569f5d24b577d01853aa4b79e47ab8b64a331946c43c",
+      "declaredGeneratedAt": "2026-10-16",
+      "generatedAtValid": true,
+      "generatedAtHasTimeZone": false,
+      "sourceDescriptor": "c12-sandbox-results.json",
+      "limitationsPresent": true,
+      "qualityIssues": [
+        "GENERATED_AT_MISSING_TIMEZONE"
+      ],
+      "scope": "C12 authentication, voice, multimodal and animated 2D generation supplier sandbox preflight",
+      "status": "preparatory_not_accepted"
+    },
+    {
+      "file": "c14-handoff-results.json",
+      "sourcePath": "docs/implementation/evidence/c14-handoff-results.json",
+      "exists": true,
+      "parseable": true,
+      "bytes": 4567,
+      "contentSha256": "25c1a2ae149f94d549f03dc573a171ecd4401d68cd879616f5d62dafac076d8d",
+      "declaredGeneratedAt": "2026-10-16T15:20:16.209Z",
+      "generatedAtValid": true,
+      "generatedAtHasTimeZone": true,
+      "sourceDescriptor": "C14 backend contract handoff preparation",
+      "limitationsPresent": false,
+      "qualityIssues": [
+        "MISSING_LIMITATIONS"
+      ],
+      "scope": "C14 backend contract handoff preparation",
+      "status": "draft_review_required"
+    }
+  ],
+  "blockerRefs": [
+    {
+      "checkId": "NV-01",
+      "code": "NV_01_EVIDENCE_GAP",
+      "reason": "没有连接 Android 设备、系统授权、真实捕获来源和底层可点击记录。",
+      "signalPaths": [
+        "android-lab.json:deviceVerified",
+        "android-lab.json:captureVerified",
+        "android-lab.json:overlayVerified",
+        "android-lab.json:systemPermissionGranted",
+        "android-lab.json:independentAcceptance"
+      ]
+    },
+    {
+      "checkId": "NV-01",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "android-lab.json",
+          "code": "MISSING_LIMITATIONS"
+        }
+      ]
+    },
+    {
+      "checkId": "NV-02",
+      "code": "NV_02_EVIDENCE_GAP",
+      "reason": "没有权限拒绝、强停、后台、退出、睡眠、重启和真实系统提醒回执记录。",
+      "signalPaths": [
+        "android-lab.json:deviceVerified",
+        "android-lab.json:systemPermissionGranted",
+        "reminder-c07-c08-scope.json:androidRoom",
+        "reminder-c07-c08-scope.json:androidSystemScheduler"
+      ]
+    },
+    {
+      "checkId": "NV-02",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "android-lab.json",
+          "code": "MISSING_LIMITATIONS"
+        },
+        {
+          "file": "reminder-c07-c08-scope.json",
+          "code": "GENERATED_AT_MISSING_TIMEZONE"
+        }
+      ]
+    },
+    {
+      "checkId": "NV-03",
+      "code": "NV_03_EVIDENCE_GAP",
+      "reason": "当前仅有隐藏 Electron 合成窗口和单显示器几何记录，没有真实桌面捕获、双屏、混合 DPI、负坐标、穿透和独立复核。",
+      "signalPaths": [
+        "desktop-lab-smoke.json:actualDisplayCaptureVerified",
+        "desktop-lab-smoke.json:externalApplicationCaptureVerified",
+        "desktop-lab-smoke.json:mousePassThroughVerified",
+        "desktop-lab-smoke.json:mixedDpiMovementVerified",
+        "desktop-lab-smoke.json:negativeOriginMovementVerified",
+        "desktop-lab-smoke.json:independentAcceptance"
+      ]
+    },
+    {
+      "checkId": "NV-03",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "desktop-lab-smoke.json",
+          "code": "MISSING_LIMITATIONS"
+        },
+        {
+          "file": "desktop-lab-package.json",
+          "code": "MISSING_SOURCE_DESCRIPTOR"
+        },
+        {
+          "file": "desktop-lab-package.json",
+          "code": "MISSING_LIMITATIONS"
+        }
+      ]
+    },
+    {
+      "checkId": "NV-04",
+      "code": "NV_04_EVIDENCE_GAP",
+      "reason": "没有 stop、revoke、lock、kill、reboot 后的真实轨道、队列、出口和资源释放计数。",
+      "signalPaths": [
+        "lifecycle-c09-c10-scope.json:deviceVerified"
+      ]
+    },
+    {
+      "checkId": "NV-04",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "code": "GENERATED_AT_MISSING_TIMEZONE"
+        }
+      ]
+    },
+    {
+      "checkId": "NV-05",
+      "code": "NV_05_EVIDENCE_GAP",
+      "reason": "没有 Android/Windows 真实捕获对照、浮层排除/隐藏/屏蔽结果和人工复核。",
+      "signalPaths": [
+        "lifecycle-c09-c10-scope.json:deviceVerified",
+        "desktop-lab-smoke.json:independentAcceptance"
+      ]
+    },
+    {
+      "checkId": "NV-05",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "lifecycle-c09-c10-scope.json",
+          "code": "GENERATED_AT_MISSING_TIMEZONE"
+        },
+        {
+          "file": "desktop-lab-smoke.json",
+          "code": "MISSING_LIMITATIONS"
+        }
+      ]
+    },
+    {
+      "checkId": "NV-06",
+      "code": "NV_06_EVIDENCE_GAP",
+      "reason": "C03 只有合成门控测试；没有真实 OCR/检测模型、人脸测试素材、坏模型/超时质量和逐帧设备证据。",
+      "signalPaths": [
+        "privacy-c03-results.json:realModelEvidenceVerified"
+      ]
+    },
+    {
+      "checkId": "NV-06",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "privacy-c03-results.json",
+          "code": "MISSING_OR_INVALID_GENERATED_AT"
+        },
+        {
+          "file": "privacy-c03-results.json",
+          "code": "MISSING_SOURCE_DESCRIPTOR"
+        },
+        {
+          "file": "privacy-c03-results.json",
+          "code": "MISSING_LIMITATIONS"
+        }
+      ]
+    },
+    {
+      "checkId": "NV-07",
+      "code": "NV_07_EVIDENCE_GAP",
+      "reason": "C04 只有本地内存 relay；没有真实编码器、双出口接收 canary、抓包、WebRTC/TURN 和停止竞态记录。",
+      "signalPaths": [
+        "media-c04-results.json:realEncoderAndRelayVerified"
+      ]
+    },
+    {
+      "checkId": "NV-07",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "media-c04-results.json",
+          "code": "MISSING_OR_INVALID_GENERATED_AT"
+        },
+        {
+          "file": "media-c04-results.json",
+          "code": "MISSING_SOURCE_DESCRIPTOR"
+        },
+        {
+          "file": "media-c04-results.json",
+          "code": "MISSING_LIMITATIONS"
+        }
+      ]
+    },
+    {
+      "checkId": "NV-08",
+      "code": "NV_08_EVIDENCE_GAP",
+      "reason": "共享坐标引擎只有合成向量；没有 Android/Windows 设备调用、真实页面核验或人工操作轨迹。",
+      "signalPaths": [
+        "guidance-c05-c06-scope.json:androidDeviceVerified",
+        "guidance-c05-c06-scope.json:windowsDeviceVerified",
+        "guidance-c05-c06-scope.json:inputInjection"
+      ]
+    },
+    {
+      "checkId": "NV-08",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "code": "GENERATED_AT_MISSING_TIMEZONE"
+        }
+      ]
+    },
+    {
+      "checkId": "NV-09",
+      "code": "NV_09_EVIDENCE_GAP",
+      "reason": "没有原生桌宠路径、真实动画/遮挡、替代停靠、儿童可理解性和人工可达性记录。",
+      "signalPaths": [
+        "guidance-c05-c06-scope.json:androidDeviceVerified",
+        "guidance-c05-c06-scope.json:windowsDeviceVerified",
+        "guidance-c05-c06-scope.json:childPointerManualAcceptance",
+        "pet-c13-scope.json:status"
+      ]
+    },
+    {
+      "checkId": "NV-09",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "guidance-c05-c06-scope.json",
+          "code": "GENERATED_AT_MISSING_TIMEZONE"
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "code": "GENERATED_AT_MISSING_TIMEZONE"
+        }
+      ]
+    },
+    {
+      "checkId": "NV-10",
+      "code": "NV_10_EVIDENCE_GAP",
+      "reason": "C11/C13 仅有结构门控；没有真实 VRM/FBX/GLB、渲染器、供应资产、设备帧率/内存、视觉和儿童质量验收。",
+      "signalPaths": [
+        "c11-3d-scope.json:status",
+        "pet-c13-scope.json:status",
+        "pet-c13-scope.json:publishEligible"
+      ]
+    },
+    {
+      "checkId": "NV-10",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "c11-3d-scope.json",
+          "code": "GENERATED_AT_MISSING_TIMEZONE"
+        },
+        {
+          "file": "pet-c13-scope.json",
+          "code": "GENERATED_AT_MISSING_TIMEZONE"
+        }
+      ]
+    },
+    {
+      "checkId": "NV-11",
+      "code": "NV_11_EVIDENCE_GAP",
+      "reason": "C12 合成场景通过但真实凭证缺失；没有真实区域、价格/配额、数据保留、合同、首片段、取消延迟和质量证据。",
+      "signalPaths": [
+        "c12-sandbox-scope.json:status",
+        "c12-sandbox-scope.json:realCredentialState",
+        "c12-sandbox-scope.json:productionReady"
+      ]
+    },
+    {
+      "checkId": "NV-11",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "code": "GENERATED_AT_MISSING_TIMEZONE"
+        }
+      ]
+    },
+    {
+      "checkId": "NV-12",
+      "code": "NV_12_EVIDENCE_GAP",
+      "reason": "没有服务端证明、防重放、真实失败替代、认领和供应凭证实测；本机解锁或契约元数据不构成服务端人脸证明。",
+      "signalPaths": [
+        "c12-sandbox-scope.json:realCredentialState",
+        "c14-handoff-results.json:serverProofVerified",
+        "c14-handoff-results.json:replayProtectionVerified"
+      ]
+    },
+    {
+      "checkId": "NV-12",
+      "code": "EVIDENCE_PROVENANCE_GAP",
+      "reason": "证据文件的日期/时区、来源描述、限制或可追溯哈希字段不完整。",
+      "signalPaths": [],
+      "qualityIssues": [
+        {
+          "file": "c12-sandbox-scope.json",
+          "code": "GENERATED_AT_MISSING_TIMEZONE"
+        },
+        {
+          "file": "c14-handoff-results.json",
+          "code": "MISSING_LIMITATIONS"
+        }
+      ]
+    }
+  ],
+  "blockers": [
+    "当前没有 Android/Windows 真实设备记录、系统权限回执、跨应用捕获或多屏/生命周期计数。",
+    "当前没有真实 OCR/人脸/编码/WebRTC/AI/语音/生成供应凭证或服务端证明。",
+    "合成测试、契约审查、打包和单屏几何记录不能替代 C15 的设备/供应层证据。",
+    "在所有必要 NV 记录完成并经独立复核前，不得进入 D Go/No-Go，也不得启动真实 E/F 交付。"
+  ],
+  "recordSchema": [
+    "date_and_timezone",
+    "build_and_package_hash",
+    "device_model_os_dpi",
+    "case_and_synthetic_material_hash",
+    "permissions_and_consent",
+    "steps_expected_actual",
+    "frame_encoding_send_receive_cache_counters",
+    "screenshots_or_video_reference",
+    "limitations_executor_independent_reviewer"
+  ],
+  "provenanceSchema": [
+    "source_path",
+    "content_sha256",
+    "declared_generated_at",
+    "declared_source_descriptor",
+    "metadata_quality_issues"
+  ]
+}

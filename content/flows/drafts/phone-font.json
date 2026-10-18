@@ -1,0 +1,25 @@
+{
+  "id": "demo-phone-font",
+  "version": "0.1.0",
+  "status": "synthetic-demo",
+  "application": "in-app-sandbox",
+  "verifiedDevices": [],
+  "title": "把手机字体调大",
+  "steps": [
+    {
+      "id": "open-settings",
+      "instruction": "请点一下「设置」。",
+      "expectedState": "settings-open"
+    },
+    {
+      "id": "open-display",
+      "instruction": "找到「显示与字体」，点一下。",
+      "expectedState": "display-open"
+    },
+    {
+      "id": "increase-font",
+      "instruction": "点「大字体」，再点「保存设置」。",
+      "expectedState": "font-saved"
+    }
+  ]
+}

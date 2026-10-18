@@ -1,0 +1,49 @@
+{
+  "generatedAt": "2026-10-16",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "C12 authentication, voice, multimodal and animated 2D generation supplier sandbox preflight",
+  "testReport": "c12-sandbox-results.json",
+  "testAssertions": 14,
+  "syntheticChecks": 11,
+  "syntheticChecksPassed": 11,
+  "status": "preparatory_not_accepted",
+  "realCredentialState": "missing",
+  "productionReady": false,
+  "providers": [
+    "carrier_auth",
+    "face_auth",
+    "multimodal",
+    "asr",
+    "tts",
+    "pet_generation"
+  ],
+  "scenarios": [
+    "success",
+    "stream_cancelled",
+    "asr_no_result",
+    "tts_timeout",
+    "face_invalid_proof",
+    "carrier_no_sim",
+    "generation_cancelled",
+    "quality_below_threshold",
+    "rate_limited",
+    "provider_unavailable",
+    "missing_credential"
+  ],
+  "safetyBoundaries": [
+    "missing or invalid credentials block before any provider event",
+    "synthetic fixtures and managed-vault references carry metadata only",
+    "cancelled streams and generations never emit completed events",
+    "ASR, TTS, authentication, carrier and generation failures use explicit fallbacks",
+    "networkAttempted is always false",
+    "rawPayloadsRetained is always zero",
+    "real provider readiness remains false until controlled credentials and terms are reviewed"
+  ],
+  "limitations": [
+    "No real carrier, face/liveness, multimodal, ASR, TTS or generation credential was supplied.",
+    "No real region, price, quota, retention, callback signature or contract terms were verified.",
+    "No real audio, liveness, first-token, cancellation-latency or generated-asset quality evidence was collected.",
+    "Synthetic event checks do not prove network connectivity, provider behavior or production acceptance.",
+    "This does not complete NV-11, NV-12, E01, E08, E09, C15 or D acceptance."
+  ]
+}

@@ -1,0 +1,65 @@
+
+> nuanban@0.1.0 android:lab:build C:\Users\33864\Desktop\nuanban
+> powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-build.ps1 -NativeLab "-Offline"
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+> Task :native-lab:preBuild UP-TO-DATE
+> Task :native-lab:preDebugBuild UP-TO-DATE
+> Task :native-lab:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :native-lab:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :native-lab:checkDebugAarMetadata UP-TO-DATE
+> Task :native-lab:processDebugNavigationResources UP-TO-DATE
+> Task :native-lab:compileDebugNavigationResources UP-TO-DATE
+> Task :native-lab:generateDebugResValues UP-TO-DATE
+> Task :native-lab:mapDebugSourceSetPaths UP-TO-DATE
+> Task :native-lab:generateDebugResources UP-TO-DATE
+> Task :native-lab:mergeDebugResources UP-TO-DATE
+> Task :native-lab:packageDebugResources UP-TO-DATE
+> Task :native-lab:parseDebugLocalResources UP-TO-DATE
+> Task :native-lab:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :native-lab:extractDeepLinksDebug UP-TO-DATE
+> Task :native-lab:processDebugMainManifest UP-TO-DATE
+> Task :native-lab:processDebugManifest UP-TO-DATE
+> Task :native-lab:processDebugManifestForPackage UP-TO-DATE
+> Task :native-lab:processDebugResources UP-TO-DATE
+> Task :native-lab:javaPreCompileDebug UP-TO-DATE
+> Task :native-lab:mergeDebugShaders UP-TO-DATE
+> Task :native-lab:compileDebugShaders NO-SOURCE
+> Task :native-lab:generateDebugAssets UP-TO-DATE
+> Task :native-lab:mergeDebugAssets UP-TO-DATE
+> Task :native-lab:compressDebugAssets UP-TO-DATE
+> Task :native-lab:desugarDebugFileDependencies UP-TO-DATE
+> Task :native-lab:checkDebugDuplicateClasses UP-TO-DATE
+> Task :native-lab:mergeExtDexDebug UP-TO-DATE
+> Task :native-lab:mergeLibDexDebug UP-TO-DATE
+> Task :native-lab:mergeDebugJniLibFolders UP-TO-DATE
+> Task :native-lab:mergeDebugNativeLibs NO-SOURCE
+> Task :native-lab:stripDebugDebugSymbols NO-SOURCE
+> Task :native-lab:validateSigningDebug UP-TO-DATE
+> Task :native-lab:writeDebugAppMetadata UP-TO-DATE
+> Task :native-lab:writeDebugSigningConfigVersions UP-TO-DATE
+
+> Task :native-lab:compileDebugKotlin
+w: file:///C:/Users/33864/Desktop/nuanban/apps/android/native-lab/src/main/java/org/nuanban/nativelab/CaptureLabService.kt:104:29 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+
+> Task :native-lab:compileDebugJavaWithJavac NO-SOURCE
+> Task :native-lab:dexBuilderDebug
+> Task :native-lab:mergeDebugGlobalSynthetics UP-TO-DATE
+> Task :native-lab:processDebugJavaRes UP-TO-DATE
+> Task :native-lab:mergeDebugJavaResource UP-TO-DATE
+> Task :native-lab:mergeProjectDexDebug
+> Task :native-lab:packageDebug
+> Task :native-lab:createDebugApkListingFileRedirect UP-TO-DATE
+> Task :native-lab:assembleDebug
+
+BUILD SUCCESSFUL in 12s
+35 actionable tasks: 4 executed, 31 up-to-date
+
+FullName                                                                                            Length LastWriteTim
+                                                                                                           e           
+--------                                                                                            ------ ------------
+C:\Users\33864\Desktop\nuanban\apps\android\native-lab\build\outputs\apk\debug\native-lab-debug.apk 900063 2026/10/1...
+
+

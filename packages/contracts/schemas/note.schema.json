@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "NoteDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "note_id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "00000000-0000-4000-8000-000000000001"
+        },
+        "owner_id": {
+          "type": "string",
+          "format": "uuid",
+          "example": "00000000-0000-4000-8000-000000000001"
+        },
+        "asked_at": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2026-10-15T01:00:00.000Z"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 1500
+        },
+        "topic": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "answer_summary": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 10000
+        },
+        "mastery": {
+          "type": "string",
+          "enum": [
+            "unmastered",
+            "mastered"
+          ]
+        },
+        "mastery_source": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "self",
+                "authorized_family"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reviewed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "example": "2026-10-15T01:00:00.000Z"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "demo",
+            "conversation",
+            "guidance"
+          ]
+        },
+        "source_session_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "example": "00000000-0000-4000-8000-000000000001"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2026-10-15T01:00:00.000Z"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2026-10-15T01:00:00.000Z"
+        },
+        "deleted_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "example": "2026-10-15T01:00:00.000Z"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "note_id",
+        "owner_id",
+        "asked_at",
+        "question",
+        "topic",
+        "answer_summary",
+        "mastery",
+        "mastery_source",
+        "reviewed_at",
+        "source",
+        "source_session_id",
+        "version",
+        "created_at",
+        "updated_at",
+        "deleted_at"
+      ]
+    }
+  },
+  "$ref": "#/$defs/NoteDto"
+}

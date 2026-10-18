@@ -1,0 +1,35 @@
+
+[WebServer] (node:47776) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:38616) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:44740) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 2 workers
+
+
+(node:54212) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/6] [desktop-chromium] › tests\e2e\scenarios.spec.ts:60:1 › 长等待停止后无迟到回复或自动笔记
+
+(node:59004) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[2/6] [desktop-chromium] › tests\e2e\accessibility.spec.ts:3:1 › 键盘可以跳过导航、进入主内容并操作首页入口
+(node:50896) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[3/6] [mobile-chromium] › tests\e2e\accessibility.spec.ts:3:1 › 键盘可以跳过导航、进入主内容并操作首页入口
+[4/6] [desktop-chromium] › tests\e2e\scenarios.spec.ts:73:1 › 敏感文字本机拦截且不出现在消息历史
+(node:27128) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[5/6] [mobile-chromium] › tests\e2e\scenarios.spec.ts:60:1 › 长等待停止后无迟到回复或自动笔记
+[6/6] [mobile-chromium] › tests\e2e\scenarios.spec.ts:73:1 › 敏感文字本机拦截且不出现在消息历史
+  6 passed (27.3s)

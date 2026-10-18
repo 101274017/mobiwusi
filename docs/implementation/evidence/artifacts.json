@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-15",
+  "timezone": "Asia/Shanghai",
+  "generatedAt": "2026-10-15T14:21:50.329Z",
+  "node": "v24.21.0",
+  "artifacts": [
+    {
+      "path": "apps/web/dist/index.html",
+      "bytes": 581,
+      "sha256": "d6037397fd5ba5c2b97a60aacb714c21248d39b8a055698e78d24b9cacf77bed"
+    },
+    {
+      "path": "apps/android/app/build/outputs/apk/debug/app-debug.apk",
+      "bytes": 1914159,
+      "sha256": "56894baf02d77a7ec24e7fe0008430bba362ef06598a7553769d6d6c1215148a"
+    },
+    {
+      "path": "apps/desktop/out/NuanbanDemo-win32-x64/nuanban.exe",
+      "bytes": 245589504,
+      "sha256": "3e623acb3d29088e35bb593a761c170633a18b5590ff701574ea8ed9741aad8d"
+    },
+    {
+      "path": "apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar",
+      "bytes": 530843,
+      "sha256": "ad41695ede6ca24fd5ccd6a578e5f3f5efe3feba1aff304d430ec73e57c6f741"
+    }
+  ],
+  "desktop": {
+    "platform": "win32-x64",
+    "signedRelease": false,
+    "packagedUiMatchesWebBuild": true,
+    "allUiFilesCompared": true,
+    "uiFileCount": 6,
+    "developmentNodeModulesExcluded": true,
+    "deviceVerified": false
+  },
+  "android": {
+    "debugBuild": true,
+    "packagedUiMatchesWebBuild": true,
+    "contractClassesInDex": {
+      "ActiveBridgeRequest": true,
+      "ContractValidator": true,
+      "GeneratedContractDtos": true,
+      "TodoPatch": true
+    },
+    "deviceVerified": false
+  },
+  "tests": {
+    "unitPassed": 386,
+    "unitFailed": 0,
+    "e2ePassed": 92,
+    "e2eFailed": 0,
+    "e2eFlaky": 0,
+    "e2eSkipped": 0,
+    "kotlinCasesPassed": 7631,
+    "kotlinBridgeCasesPassed": 28
+  },
+  "uiFiles": {
+    "favicon.svg": "b3d5f7e1b3224b4b12503c7801964abe9d4a205d5597322801221a000ca8412c",
+    "index.html": "d6037397fd5ba5c2b97a60aacb714c21248d39b8a055698e78d24b9cacf77bed",
+    "assets/bootstrap-CVGnqZ7q.css": "3ae2f75d9909d40fff86a3e73edccd54dbf4b90d5b219f1403a8f7be0556f67b",
+    "assets/bootstrap-rc8k0hYl.js": "b96301e2614b88760758e76f9a7949a7fc2e0185a51bb46a5f5463cfb1bc5d22",
+    "assets/index-Cne_RoAQ.css": "a23d7be6d2513be59105686cdb52b3538037532c4465a5121db1690a7c5d0139",
+    "assets/index-Dbaoex5I.js": "5f5813f2250bcdc6cfc0d5601530a9b3f1a5f1539d09ae6148bec8e043d1b917"
+  },
+  "nativeSources": [
+    {
+      "path": "apps/android/app/build.gradle.kts",
+      "sha256": "44d2abe3f6a449fd3b8a1d9d8eb6b05d18a2980740b95be0243fe771fae70bd1"
+    },
+    {
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt",
+      "sha256": "48b3e6e63d608f6fe3f796ce50a84fd4536e2355e98a1a57e9fcb37db9b05794"
+    }
+  ]
+}

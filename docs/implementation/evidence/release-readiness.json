@@ -1,0 +1,1607 @@
+{
+  "schemaVersion": "release-readiness/v1",
+  "generatedBy": "nuanban/scripts/check-release-readiness.mjs",
+  "generatedAt": "2026-10-17T15:58:49.030Z",
+  "generatedTimeZone": "Asia/Shanghai",
+  "review_type": "automated",
+  "mode": "development",
+  "scope": "offline-local-readiness-not-production-acceptance",
+  "success": true,
+  "implementationPlan": {
+    "path": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
+    "sha256": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f",
+    "exists": true
+  },
+  "development": {
+    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "eligible": true,
+    "failedChecks": [],
+    "failed_checks": [],
+    "externalPending": [
+      {
+        "id": "android_device",
+        "capability": "Android 系统授权、捕获/浮层、通知与生命周期",
+        "reason": "目标设备/系统版本、本人系统授权、捕获与停止计数、通知/后台/浮层及生命周期真实回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+          "packages/privacy/src/index.ts"
+        ]
+      },
+      {
+        "id": "windows_device",
+        "capability": "Windows 捕获、多屏 DPI、浮层与通知",
+        "reason": "目标 Windows 设备、混合 DPI/负坐标、多屏移动、真实权限/通知和停止回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "apps/desktop/native-runtime.cjs",
+          "apps/desktop/main.cjs",
+          "packages/privacy/src/index.ts"
+        ]
+      },
+      {
+        "id": "local_detector_top20",
+        "capability": "真实检测/脱敏模型与目标应用 Top20",
+        "reason": "真实模型、目标应用版本、20 项设备适配和儿童指向实测；开发候选不是已适配证明",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt",
+          "packages/privacy/src/index.ts",
+          "docs/implementation/evidence/c16-decision-readiness-results.json"
+        ]
+      },
+      {
+        "id": "generated_assets",
+        "capability": "真实生成 2D/3D 资产及许可",
+        "reason": "真实生成资产、授权许可、完整动作/格式/骨骼兼容和目标设备质量验证",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "carrier_auth",
+        "capability": "真实供应：carrier_auth",
+        "reason": "受管供应凭据引用、供应条款、本人同意、服务端证明/防重放及无 SIM/拒绝/撤销实测",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "face_auth",
+        "capability": "真实供应：face_auth",
+        "reason": "受管供应凭据引用、供应条款、本人同意、服务端证明/防重放及无 SIM/拒绝/撤销实测",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "multimodal",
+        "capability": "真实供应：multimodal",
+        "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "asr",
+        "capability": "真实供应：asr",
+        "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "tts",
+        "capability": "真实供应：tts",
+        "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "pet_generation",
+        "capability": "真实供应：pet_generation",
+        "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "media_relay",
+        "capability": "真实编码、信令与 TURN 中继",
+        "reason": "授权信令/TURN、实际编码/中继、动态同意/撤权、断连和清理计数",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/privacy/src/index.ts",
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+          "apps/desktop/native-runtime.cjs",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "consent_pilot",
+        "capability": "真实参与者/监护同意与 F09/F10 试点",
+        "reason": "有效真实参与者/监护同意、撤回/到期记录、真实试点及效果记录；无可接受的真人证明验证器",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/privacy/src/index.ts",
+          "docs/implementation/evidence/c16-decision-readiness-results.json",
+          "docs/implementation/evidence/f-execution-results.json"
+        ]
+      },
+      {
+        "id": "production_handover",
+        "capability": "正式部署、签名、恢复/回滚与对外交付",
+        "reason": "目标环境、生产运维/保留策略、签名与安装升级、备份恢复/回滚、真实对外交付证据；本地演练不是签收",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "apps/server/src/main.ts",
+          "docs/implementation/evidence/f-execution-results.json"
+        ]
+      }
+    ],
+    "external_pending": [
+      {
+        "id": "android_device",
+        "capability": "Android 系统授权、捕获/浮层、通知与生命周期",
+        "reason": "目标设备/系统版本、本人系统授权、捕获与停止计数、通知/后台/浮层及生命周期真实回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+          "packages/privacy/src/index.ts"
+        ]
+      },
+      {
+        "id": "windows_device",
+        "capability": "Windows 捕获、多屏 DPI、浮层与通知",
+        "reason": "目标 Windows 设备、混合 DPI/负坐标、多屏移动、真实权限/通知和停止回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "apps/desktop/native-runtime.cjs",
+          "apps/desktop/main.cjs",
+          "packages/privacy/src/index.ts"
+        ]
+      },
+      {
+        "id": "local_detector_top20",
+        "capability": "真实检测/脱敏模型与目标应用 Top20",
+        "reason": "真实模型、目标应用版本、20 项设备适配和儿童指向实测；开发候选不是已适配证明",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt",
+          "packages/privacy/src/index.ts",
+          "docs/implementation/evidence/c16-decision-readiness-results.json"
+        ]
+      },
+      {
+        "id": "generated_assets",
+        "capability": "真实生成 2D/3D 资产及许可",
+        "reason": "真实生成资产、授权许可、完整动作/格式/骨骼兼容和目标设备质量验证",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "carrier_auth",
+        "capability": "真实供应：carrier_auth",
+        "reason": "受管供应凭据引用、供应条款、本人同意、服务端证明/防重放及无 SIM/拒绝/撤销实测",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "face_auth",
+        "capability": "真实供应：face_auth",
+        "reason": "受管供应凭据引用、供应条款、本人同意、服务端证明/防重放及无 SIM/拒绝/撤销实测",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "multimodal",
+        "capability": "真实供应：multimodal",
+        "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "asr",
+        "capability": "真实供应：asr",
+        "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "tts",
+        "capability": "真实供应：tts",
+        "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "pet_generation",
+        "capability": "真实供应：pet_generation",
+        "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "media_relay",
+        "capability": "真实编码、信令与 TURN 中继",
+        "reason": "授权信令/TURN、实际编码/中继、动态同意/撤权、断连和清理计数",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/privacy/src/index.ts",
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+          "apps/desktop/native-runtime.cjs",
+          "apps/server/src/main.ts"
+        ]
+      },
+      {
+        "id": "consent_pilot",
+        "capability": "真实参与者/监护同意与 F09/F10 试点",
+        "reason": "有效真实参与者/监护同意、撤回/到期记录、真实试点及效果记录；无可接受的真人证明验证器",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "packages/privacy/src/index.ts",
+          "docs/implementation/evidence/c16-decision-readiness-results.json",
+          "docs/implementation/evidence/f-execution-results.json"
+        ]
+      },
+      {
+        "id": "production_handover",
+        "capability": "正式部署、签名、恢复/回滚与对外交付",
+        "reason": "目标环境、生产运维/保留策略、签名与安装升级、备份恢复/回滚、真实对外交付证据；本地演练不是签收",
+        "production_enabled": false,
+        "evidence_refs": [
+          "docs/implementation/evidence/c15-nv-readiness-results.json",
+          "apps/server/src/main.ts",
+          "docs/implementation/evidence/f-execution-results.json"
+        ]
+      }
+    ]
+  },
+  "release": {
+    "verdict": "EXTERNAL_PENDING",
+    "ready": false,
+    "blockers": [
+      {
+        "id": "D07_RELEASE_EVIDENCE",
+        "reason": "D07 的开发 go 不等于正式发布；当前只读发布判定未就绪。",
+        "kind": "release"
+      },
+      {
+        "id": "PRODUCTION_CONFIGURATION",
+        "reason": "尚未提供可验证的生产 real 配置；Mock 不能作为正式证明。",
+        "kind": "release"
+      }
+    ],
+    "reasonRefs": [
+      "android_device",
+      "windows_device",
+      "local_detector_top20",
+      "generated_assets",
+      "carrier_auth",
+      "face_auth",
+      "multimodal",
+      "asr",
+      "tts",
+      "pet_generation",
+      "media_relay",
+      "consent_pilot",
+      "production_handover"
+    ],
+    "reason_refs": [
+      "android_device",
+      "windows_device",
+      "local_detector_top20",
+      "generated_assets",
+      "carrier_auth",
+      "face_auth",
+      "multimodal",
+      "asr",
+      "tts",
+      "pet_generation",
+      "media_relay",
+      "consent_pilot",
+      "production_handover"
+    ]
+  },
+  "checks": [
+    {
+      "id": "PLAN_V12",
+      "description": "按正文发现 root/docs 的一致 V1.2 计划并检查开发/发布边界",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md"
+      ]
+    },
+    {
+      "id": "D07_CURRENT_INPUTS",
+      "description": "只读复用 D07 当前源码指纹、Schema 和共享门禁判定",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "scripts/project-gate.mjs",
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "docs/implementation/evidence/c16-decision-readiness-results.json",
+        "docs/implementation/evidence/d07-decision.json"
+      ]
+    },
+    {
+      "id": "REPORTS_PARSEABLE",
+      "description": "必要的本地证据均存在且可解析",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "docs/implementation/evidence/c16-decision-readiness-results.json",
+        "docs/implementation/evidence/d07-decision.json",
+        "docs/implementation/evidence/f-execution-results.json"
+      ]
+    },
+    {
+      "id": "CONFIGURATION_SAFETY",
+      "description": "实际开发配置可解析；未知模式和生产 Mock 被拒绝",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "packages/config/src/index.ts",
+        "packages/config/src/scenarios.ts",
+        "apps/web/vite.config.ts"
+      ]
+    },
+    {
+      "id": "WINDOWS_CLOSED",
+      "description": "执行当前 Windows 能力策略及 IPC 返回，采集/远端媒体/原生浮层均关闭",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "apps/desktop/native-runtime.cjs",
+        "apps/desktop/main.cjs"
+      ]
+    },
+    {
+      "id": "ANDROID_CLOSED",
+      "description": "静态核对 Android 本地隔离捕获、未验证检测器和帧关闭路径；不宣称真机执行",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt"
+      ]
+    },
+    {
+      "id": "PRIVACY_DENIALS",
+      "description": "执行无同意/无系统授权/未知风险/检测失败/停止后发送拒绝路径",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "packages/privacy/src/index.ts"
+      ]
+    },
+    {
+      "id": "SERVER_EXTERNAL_MODULES_UNMOUNTED",
+      "description": "静态核对默认本地服务未装配供应、资产或媒体真实模块",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "apps/server/src/main.ts",
+        "apps/server/src/http.ts",
+        "apps/server/src/service-modules.ts"
+      ]
+    },
+    {
+      "id": "PROVIDER_CARRIER_AUTH_CLOSED",
+      "description": "执行缺凭据与 network 适配器拒绝；仅合成准入材料，无供应调用",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "packages/provider-sandbox/src/index.ts"
+      ]
+    },
+    {
+      "id": "PROVIDER_FACE_AUTH_CLOSED",
+      "description": "执行缺凭据与 network 适配器拒绝；仅合成准入材料，无供应调用",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "packages/provider-sandbox/src/index.ts"
+      ]
+    },
+    {
+      "id": "PROVIDER_MULTIMODAL_CLOSED",
+      "description": "执行缺凭据与 network 适配器拒绝；仅合成准入材料，无供应调用",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "packages/provider-sandbox/src/index.ts"
+      ]
+    },
+    {
+      "id": "PROVIDER_ASR_CLOSED",
+      "description": "执行缺凭据与 network 适配器拒绝；仅合成准入材料，无供应调用",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "packages/provider-sandbox/src/index.ts"
+      ]
+    },
+    {
+      "id": "PROVIDER_TTS_CLOSED",
+      "description": "执行缺凭据与 network 适配器拒绝；仅合成准入材料，无供应调用",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "packages/provider-sandbox/src/index.ts"
+      ]
+    },
+    {
+      "id": "PROVIDER_PET_GENERATION_CLOSED",
+      "description": "执行缺凭据与 network 适配器拒绝；仅合成准入材料，无供应调用",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "packages/provider-sandbox/src/index.ts"
+      ]
+    },
+    {
+      "id": "F_DEVELOPMENT_ONLY",
+      "description": "已有 F 开发证据不被升级为真实网络、数据、设备或正式执行",
+      "passed": true,
+      "kind": "code",
+      "evidence_refs": [
+        "docs/implementation/evidence/f-execution-results.json"
+      ]
+    }
+  ],
+  "configuration": [
+    {
+      "profile": "development",
+      "apiMode": "mock",
+      "platformMode": "browser",
+      "deployment": "development",
+      "apiEndpoint": "unset",
+      "origins": {},
+      "searchedFiles": [
+        "apps/web/.env",
+        "apps/web/.env.local",
+        "apps/web/.env.development",
+        "apps/web/.env.development.local"
+      ],
+      "exampleIsNotActiveConfiguration": true
+    },
+    {
+      "profile": "production",
+      "apiMode": "mock",
+      "platformMode": "browser",
+      "deployment": "development",
+      "apiEndpoint": "unset",
+      "origins": {},
+      "searchedFiles": [
+        "apps/web/.env",
+        "apps/web/.env.local",
+        "apps/web/.env.production",
+        "apps/web/.env.production.local"
+      ],
+      "exampleIsNotActiveConfiguration": true
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "android_device",
+      "capability": "Android 系统授权、捕获/浮层、通知与生命周期",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+          "packages/privacy/src/index.ts"
+        ],
+        "strategy": "仅本地隔离捕获或应用内教学；外部帧与远端媒体关闭；系统通知仍须系统权限"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+        "packages/privacy/src/index.ts"
+      ],
+      "nv_checks": [
+        "NV-01",
+        "NV-02",
+        "NV-04",
+        "NV-05"
+      ],
+      "missing_conditions": [
+        "目标设备/系统版本、本人系统授权、捕获与停止计数、通知/后台/浮层及生命周期真实回执"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "windows_device",
+      "capability": "Windows 捕获、多屏 DPI、浮层与通知",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "apps/desktop/native-runtime.cjs",
+          "apps/desktop/main.cjs",
+          "packages/privacy/src/index.ts"
+        ],
+        "strategy": "外部采集/原生浮层/远端媒体关闭；本地存储与应用内界面可继续"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "apps/desktop/native-runtime.cjs",
+        "apps/desktop/main.cjs",
+        "packages/privacy/src/index.ts"
+      ],
+      "nv_checks": [
+        "NV-03",
+        "NV-04",
+        "NV-05"
+      ],
+      "missing_conditions": [
+        "目标 Windows 设备、混合 DPI/负坐标、多屏移动、真实权限/通知和停止回执"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "local_detector_top20",
+      "capability": "真实检测/脱敏模型与目标应用 Top20",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt",
+          "packages/privacy/src/index.ts",
+          "docs/implementation/evidence/c16-decision-readiness-results.json"
+        ],
+        "strategy": "检测未知、页面未知或敏感时拒绝发送，不做输入注入"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt",
+        "packages/privacy/src/index.ts",
+        "docs/implementation/evidence/c16-decision-readiness-results.json"
+      ],
+      "nv_checks": [
+        "NV-06",
+        "NV-08",
+        "NV-09"
+      ],
+      "missing_conditions": [
+        "真实模型、目标应用版本、20 项设备适配和儿童指向实测；开发候选不是已适配证明"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "generated_assets",
+      "capability": "真实生成 2D/3D 资产及许可",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ],
+        "strategy": "保留画布、草稿和既有 2D；无真实生成模块自动挂载"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ],
+      "nv_checks": [
+        "NV-10"
+      ],
+      "missing_conditions": [
+        "真实生成资产、授权许可、完整动作/格式/骨骼兼容和目标设备质量验证"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "carrier_auth",
+      "capability": "真实供应：carrier_auth",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ],
+        "strategy": "使用明确标注的本地适配/文字或亲情兜底，不调用网络供应"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ],
+      "nv_checks": [
+        "NV-12"
+      ],
+      "missing_conditions": [
+        "受管供应凭据引用、供应条款、本人同意、服务端证明/防重放及无 SIM/拒绝/撤销实测"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "face_auth",
+      "capability": "真实供应：face_auth",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ],
+        "strategy": "使用明确标注的本地适配/文字或亲情兜底，不调用网络供应"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ],
+      "nv_checks": [
+        "NV-12"
+      ],
+      "missing_conditions": [
+        "受管供应凭据引用、供应条款、本人同意、服务端证明/防重放及无 SIM/拒绝/撤销实测"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "multimodal",
+      "capability": "真实供应：multimodal",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ],
+        "strategy": "使用明确标注的本地适配/文字或亲情兜底，不调用网络供应"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ],
+      "nv_checks": [
+        "NV-11"
+      ],
+      "missing_conditions": [
+        "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "asr",
+      "capability": "真实供应：asr",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ],
+        "strategy": "使用明确标注的本地适配/文字或亲情兜底，不调用网络供应"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ],
+      "nv_checks": [
+        "NV-11"
+      ],
+      "missing_conditions": [
+        "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "tts",
+      "capability": "真实供应：tts",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ],
+        "strategy": "保留字幕，不调用网络供应"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ],
+      "nv_checks": [
+        "NV-11"
+      ],
+      "missing_conditions": [
+        "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "pet_generation",
+      "capability": "真实供应：pet_generation",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "packages/provider-sandbox/src/index.ts",
+          "apps/server/src/main.ts"
+        ],
+        "strategy": "保留草稿与既有 2D，不调用网络供应"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ],
+      "nv_checks": [
+        "NV-11"
+      ],
+      "missing_conditions": [
+        "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "media_relay",
+      "capability": "真实编码、信令与 TURN 中继",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "packages/privacy/src/index.ts",
+          "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+          "apps/desktop/native-runtime.cjs",
+          "apps/server/src/main.ts"
+        ],
+        "strategy": "默认服务不挂载媒体模块；外部采集和远端媒体关闭；不输出 TURN 凭据"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/privacy/src/index.ts",
+        "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+        "apps/desktop/native-runtime.cjs",
+        "apps/server/src/main.ts"
+      ],
+      "nv_checks": [
+        "NV-07"
+      ],
+      "missing_conditions": [
+        "授权信令/TURN、实际编码/中继、动态同意/撤权、断连和清理计数"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "consent_pilot",
+      "capability": "真实参与者/监护同意与 F09/F10 试点",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "packages/privacy/src/index.ts",
+          "docs/implementation/evidence/c16-decision-readiness-results.json",
+          "docs/implementation/evidence/f-execution-results.json"
+        ],
+        "strategy": "仅合成账户和本地验证；真实采集/分享须独立系统授权和有效同意"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/privacy/src/index.ts",
+        "docs/implementation/evidence/c16-decision-readiness-results.json",
+        "docs/implementation/evidence/f-execution-results.json"
+      ],
+      "nv_checks": [],
+      "missing_conditions": [
+        "有效真实参与者/监护同意、撤回/到期记录、真实试点及效果记录；无可接受的真人证明验证器"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    },
+    {
+      "id": "production_handover",
+      "capability": "正式部署、签名、恢复/回滚与对外交付",
+      "verification": "EXTERNAL_PENDING",
+      "production_enabled": false,
+      "closure": {
+        "verified": true,
+        "evidence_refs": [
+          "apps/server/src/main.ts",
+          "docs/implementation/evidence/f-execution-results.json"
+        ],
+        "strategy": "保持本地服务/开发模式，不开启真实供应、生产数据或正式 F 执行"
+      },
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "apps/server/src/main.ts",
+        "docs/implementation/evidence/f-execution-results.json"
+      ],
+      "nv_checks": [],
+      "missing_conditions": [
+        "目标环境、生产运维/保留策略、签名与安装升级、备份恢复/回滚、真实对外交付证据；本地演练不是签收"
+      ],
+      "future_validation": {
+        "offline_recheck": "node scripts/check-release-readiness.mjs --mode release --no-write",
+        "evidence_audit": "node scripts/check-c15-nv-readiness.mjs --no-write",
+        "real_execution_entry": null,
+        "note": "现有入口只重算本地证据，不取得设备/供应/同意，也不执行真实试点；真实条件到位后须补对应实测证据和验证器。"
+      }
+    }
+  ],
+  "external_pending": [
+    {
+      "id": "android_device",
+      "capability": "Android 系统授权、捕获/浮层、通知与生命周期",
+      "reason": "目标设备/系统版本、本人系统授权、捕获与停止计数、通知/后台/浮层及生命周期真实回执",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+        "packages/privacy/src/index.ts"
+      ]
+    },
+    {
+      "id": "windows_device",
+      "capability": "Windows 捕获、多屏 DPI、浮层与通知",
+      "reason": "目标 Windows 设备、混合 DPI/负坐标、多屏移动、真实权限/通知和停止回执",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "apps/desktop/native-runtime.cjs",
+        "apps/desktop/main.cjs",
+        "packages/privacy/src/index.ts"
+      ]
+    },
+    {
+      "id": "local_detector_top20",
+      "capability": "真实检测/脱敏模型与目标应用 Top20",
+      "reason": "真实模型、目标应用版本、20 项设备适配和儿童指向实测；开发候选不是已适配证明",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt",
+        "packages/privacy/src/index.ts",
+        "docs/implementation/evidence/c16-decision-readiness-results.json"
+      ]
+    },
+    {
+      "id": "generated_assets",
+      "capability": "真实生成 2D/3D 资产及许可",
+      "reason": "真实生成资产、授权许可、完整动作/格式/骨骼兼容和目标设备质量验证",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ]
+    },
+    {
+      "id": "carrier_auth",
+      "capability": "真实供应：carrier_auth",
+      "reason": "受管供应凭据引用、供应条款、本人同意、服务端证明/防重放及无 SIM/拒绝/撤销实测",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ]
+    },
+    {
+      "id": "face_auth",
+      "capability": "真实供应：face_auth",
+      "reason": "受管供应凭据引用、供应条款、本人同意、服务端证明/防重放及无 SIM/拒绝/撤销实测",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ]
+    },
+    {
+      "id": "multimodal",
+      "capability": "真实供应：multimodal",
+      "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ]
+    },
+    {
+      "id": "asr",
+      "capability": "真实供应：asr",
+      "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ]
+    },
+    {
+      "id": "tts",
+      "capability": "真实供应：tts",
+      "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ]
+    },
+    {
+      "id": "pet_generation",
+      "capability": "真实供应：pet_generation",
+      "reason": "受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/provider-sandbox/src/index.ts",
+        "apps/server/src/main.ts"
+      ]
+    },
+    {
+      "id": "media_relay",
+      "capability": "真实编码、信令与 TURN 中继",
+      "reason": "授权信令/TURN、实际编码/中继、动态同意/撤权、断连和清理计数",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/privacy/src/index.ts",
+        "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+        "apps/desktop/native-runtime.cjs",
+        "apps/server/src/main.ts"
+      ]
+    },
+    {
+      "id": "consent_pilot",
+      "capability": "真实参与者/监护同意与 F09/F10 试点",
+      "reason": "有效真实参与者/监护同意、撤回/到期记录、真实试点及效果记录；无可接受的真人证明验证器",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "packages/privacy/src/index.ts",
+        "docs/implementation/evidence/c16-decision-readiness-results.json",
+        "docs/implementation/evidence/f-execution-results.json"
+      ]
+    },
+    {
+      "id": "production_handover",
+      "capability": "正式部署、签名、恢复/回滚与对外交付",
+      "reason": "目标环境、生产运维/保留策略、签名与安装升级、备份恢复/回滚、真实对外交付证据；本地演练不是签收",
+      "production_enabled": false,
+      "evidence_refs": [
+        "docs/implementation/evidence/c15-nv-readiness-results.json",
+        "apps/server/src/main.ts",
+        "docs/implementation/evidence/f-execution-results.json"
+      ]
+    }
+  ],
+  "sourceInventory": [
+    {
+      "path": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
+      "exists": true,
+      "sha256": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
+    },
+    {
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt",
+      "exists": true,
+      "sha256": "099eb3e77446a397479aeae926d4fa5b70f59ff0f23ad551b27e36fca12a8c48"
+    },
+    {
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+      "exists": true,
+      "sha256": "3553439145e41a375e98c6ffd019e45db1b986fc3e3a8f64520e7f865d54ed1e"
+    },
+    {
+      "path": "apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+      "exists": true,
+      "sha256": "888a52134a1e6dd947bf9f20cb900c1d90d7c097e499c4a5bddf5a8435da036a"
+    },
+    {
+      "path": "apps/desktop/main.cjs",
+      "exists": true,
+      "sha256": "69816da0287322a492af0413df126508b03478ce83e509d7d41ee1ffba752983"
+    },
+    {
+      "path": "apps/desktop/native-runtime.cjs",
+      "exists": true,
+      "sha256": "2d2b0b7a3ceeaa61cbae4a69c6642fdb71f86a8ef4d6ee8dc11febae404827ab"
+    },
+    {
+      "path": "apps/server/src/http.ts",
+      "exists": true,
+      "sha256": "e0245ebe0ff7295a52bd70001f0983a3594d3d5e4ee4747d629d1f3eaa110018"
+    },
+    {
+      "path": "apps/server/src/main.ts",
+      "exists": true,
+      "sha256": "2bfe498df3ec4083856c54e93181872fac23293269caec76cfa1108e76014704"
+    },
+    {
+      "path": "apps/server/src/service-modules.ts",
+      "exists": true,
+      "sha256": "2b17a594a99058ea2dd99ca565590b971e2a40627c6db1dd8b094b955d2b01f0"
+    },
+    {
+      "path": "apps/web/vite.config.ts",
+      "exists": true,
+      "sha256": "ef1b35132a7b25d6b4491fcdc18ac29be3665f1fee9be7809510b87ea139f9fa"
+    },
+    {
+      "path": "docs/implementation/evidence/c15-nv-readiness-results.json",
+      "exists": true,
+      "sha256": "285a5c57bc414802a00b385f8f80f8c8d664e6639ed78c38090167b297fdf980"
+    },
+    {
+      "path": "docs/implementation/evidence/c16-decision-readiness-results.json",
+      "exists": true,
+      "sha256": "00c72b16d7f1817f84120ac6794076163de1728472cae5fe3dc96818668b124a"
+    },
+    {
+      "path": "docs/implementation/evidence/d07-decision.json",
+      "exists": true,
+      "sha256": "3410313c259ce77112489b42621e0f902f7aacf2570633e508ae3d3063c60e02"
+    },
+    {
+      "path": "docs/implementation/evidence/f-execution-results.json",
+      "exists": true,
+      "sha256": "46b60d0c746c824cd38361c5426cecbf664e9f7fa357a0bf80757641b39546bd"
+    },
+    {
+      "path": "packages/config/src/index.ts",
+      "exists": true,
+      "sha256": "3219ab186389562352a9b3d687536d87a834a64fe3fbf9cc3fea8bd9f6bfcec4"
+    },
+    {
+      "path": "packages/config/src/scenarios.ts",
+      "exists": true,
+      "sha256": "8186404c755f8ce32e146d03554f29a7534527648e83cfc2e737b3c083bb2cb0"
+    },
+    {
+      "path": "packages/privacy/src/index.ts",
+      "exists": true,
+      "sha256": "a4184e26ed1d54fcb3affc42260f114d56edf5bcb424e325fe0afb3a8b8ef7df"
+    },
+    {
+      "path": "packages/provider-sandbox/src/index.ts",
+      "exists": true,
+      "sha256": "abf698957a1ad4396efef4d778e9ca42d91723adb3988649b4ef77d4020472b6"
+    },
+    {
+      "path": "scripts/check-d07-decision.mjs",
+      "exists": true,
+      "sha256": "6918d42ac706b626d71adbe558d9fde9df510cff17d90a5093e46a188735d8bc"
+    },
+    {
+      "path": "scripts/check-release-readiness.mjs",
+      "exists": true,
+      "sha256": "c56919b0275c5963185bd76d1446a080bba66ffd7fe9ea4ecfc77b36351200a6"
+    },
+    {
+      "path": "scripts/implementation-plan.mjs",
+      "exists": true,
+      "sha256": "47fb70dffc16ea655e0000b8b5266bee699633432711b87163377eb760de8019"
+    },
+    {
+      "path": "scripts/project-gate.mjs",
+      "exists": true,
+      "sha256": "900ad2a4c2d835166d57133113af820f2d2e84db6f65962f7d07867580c18053"
+    }
+  ],
+  "inputFingerprint": "03001913c16151a562fece8bb96f40f16a1521c8d6219405172f0c0837ab5176",
+  "d07": {
+    "inputFingerprint": "cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
+    "developmentEligible": true,
+    "releaseReady": false,
+    "inputs": [
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/android-lab.json",
+        "sha256": "88c0ca81485aa213a79f63dc070dfd5e271bfd1b5e99f90730288ee5a65ac373"
+      },
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/reminder-c07-c08-scope.json",
+        "sha256": "e7c6bda2b3df415578e541038e15917e142c2d80f909d2f4d411d8656c22422b"
+      },
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/desktop-lab-smoke.json",
+        "sha256": "bbc388e8626a948d005058aa89d5ebdbc20b51e098e5f9bed94c486274cba73b"
+      },
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/desktop-lab-package.json",
+        "sha256": "a69c4e0dd6819ce6b3762ed24c862470fe4cc3db4627c157f3281ee2a94f45e3"
+      },
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/lifecycle-c09-c10-scope.json",
+        "sha256": "7e1e2cc23652697d5b8639592d3d9cf46cafd647dd72c66946539c161fd4daf4"
+      },
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/privacy-c03-results.json",
+        "sha256": "a2005f6ef1ab498677446476d9685ac6b30188fb0960d30d2ee66c85e666a69d"
+      },
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/media-c04-results.json",
+        "sha256": "950879db6eda2575bdc54646c2f3e803e9574200698070830323cad3cb5585a4"
+      },
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/guidance-c05-c06-scope.json",
+        "sha256": "5fdb147781c4ec742f0162bea72f3b32da6d2799c3bba52e7b3cd127f3dd37de"
+      },
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/pet-c13-scope.json",
+        "sha256": "1af752a328e80e0734097cda346a25165b77dae03f3bcc964070c4f4b2a79dbf"
+      },
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/c11-3d-scope.json",
+        "sha256": "c65a5fed1720bb004f2de2cc25d6f1b17cb6dd29f1bd3036e00d93d0bfc441a9"
+      },
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/c12-sandbox-scope.json",
+        "sha256": "e328fb05951d3a311fd91283ddbb3f311355de1fd64bfbd6c7924040b7bfba47"
+      },
+      {
+        "report": "c15",
+        "path": "docs/implementation/evidence/c14-handoff-results.json",
+        "sha256": "75be0c961ee520621e5b07570d7d2096c0b2ecdb93658e1d36a98d3356c32fee"
+      },
+      {
+        "report": "c16",
+        "path": "docs/implementation/baseline.md",
+        "sha256": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32"
+      },
+      {
+        "report": "c16",
+        "path": "docs/implementation/evidence/c16-decision-input.json",
+        "sha256": null
+      },
+      {
+        "report": "c16",
+        "path": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
+        "sha256": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
+      },
+      {
+        "report": "c17",
+        "path": "scripts/check-c17-assembly.mjs",
+        "sha256": "90ac33a29fe3641f90b8eea1315e8f0458aa626ba763c3848598be87b0c8bec3"
+      },
+      {
+        "report": "c17",
+        "path": "vitest.config.ts",
+        "sha256": "89d8070c219134e32755073124b91c2875afcad830a30d3b2e32fe3dbd5ec0c4"
+      },
+      {
+        "report": "c17",
+        "path": "tests/setup.ts",
+        "sha256": "b49fd5d5843c0fc5362222331c9848c9bc0f56fbe08dccadc27b9c227b9875d9"
+      },
+      {
+        "report": "c17",
+        "path": "packages/privacy/src/index.ts",
+        "sha256": "a4184e26ed1d54fcb3affc42260f114d56edf5bcb424e325fe0afb3a8b8ef7df"
+      },
+      {
+        "report": "c17",
+        "path": "packages/media-relay/src/index.ts",
+        "sha256": "23f69db8176c6fd59d670c70cabc4c3fb468798d0516d11f551f29757941b52c"
+      },
+      {
+        "report": "c17",
+        "path": "packages/guidance-engine/src/index.ts",
+        "sha256": "592d8c762dba8a3a43e7ec82192d0baf76366b034afe350c2809c05cf3fd1119"
+      },
+      {
+        "report": "c17",
+        "path": "packages/provider-sandbox/src/index.ts",
+        "sha256": "abf698957a1ad4396efef4d778e9ca42d91723adb3988649b4ef77d4020472b6"
+      },
+      {
+        "report": "c17",
+        "path": "packages/config/src/index.ts",
+        "sha256": "3219ab186389562352a9b3d687536d87a834a64fe3fbf9cc3fea8bd9f6bfcec4"
+      },
+      {
+        "report": "c17",
+        "path": "packages/config/src/scenarios.ts",
+        "sha256": "8186404c755f8ce32e146d03554f29a7534527648e83cfc2e737b3c083bb2cb0"
+      },
+      {
+        "report": "c17",
+        "path": "tests/privacy/c03-gate.test.ts",
+        "sha256": "ccb2789350964ebe3fef6460aed1f1352c4c53910f90e4133ba981c96468913c"
+      },
+      {
+        "report": "c17",
+        "path": "tests/privacy/c04-media-relay.test.ts",
+        "sha256": "21fc43478dab1d49304be4daa235a8e40ae7dc848113703b36d99e45b4ad8531"
+      },
+      {
+        "report": "c17",
+        "path": "tests/domain/guidance-platform.test.ts",
+        "sha256": "ea06e60f07dd2798250a92f6c63a1ee2aa318acae1a0bc216997041125dfad97"
+      },
+      {
+        "report": "c17",
+        "path": "tests/provider/provider-sandbox.test.ts",
+        "sha256": "60deb8b5921746486db8ace6b310c820e452f3e2845db4a9e880f018fef6c6c8"
+      },
+      {
+        "report": "c17",
+        "path": "apps/web/src/composition.ts",
+        "sha256": "c868fd05bd1e1c8a99fce287707395fef872b59df8cc2b55d2a31b01c42c08eb"
+      },
+      {
+        "report": "c17",
+        "path": "apps/web/src/bootstrap.tsx",
+        "sha256": "c660abad05ecbc6cc0189d2a0e1c0fa74d2f225ede422f9a610461d6b1094dd9"
+      },
+      {
+        "report": "c17",
+        "path": "packages/local-data/src/index.ts",
+        "sha256": "1f490b5f90b6266b18d552995fb062945d373f8a17a2b208b8fa9c04e931f141"
+      },
+      {
+        "report": "c17",
+        "path": "packages/platform-ports/src/index.ts",
+        "sha256": "349cc844c8685308b7b166481e7eb77738e57305d0d645bb2d22ce2ea8f6bc91"
+      },
+      {
+        "report": "c17",
+        "path": "packages/platform-ports/src/android-message-host.ts",
+        "sha256": "75f3b58154ce0b5087adf3a8a67971cbbec06e5aefa7279bc2e63f52fa765c79"
+      },
+      {
+        "report": "c17",
+        "path": "apps/desktop/reminder-store.cjs",
+        "sha256": "954961f94b89e3942126e7ccb247790f8b1bea71313db640f3fd781bc70f1dbb"
+      },
+      {
+        "report": "c17",
+        "path": "apps/desktop/notification-adapter.cjs",
+        "sha256": "6df78cc82557e772a326e1cc6a720d4f29c86f0aed56aca81a7d3b3412875a4c"
+      },
+      {
+        "report": "c17",
+        "path": "apps/desktop/reminder-notification-bridge.cjs",
+        "sha256": "0a9445a09452d683617a3cd289ed8085dc1dd86555c97d958419dd8d95bbe4ce"
+      },
+      {
+        "report": "c17",
+        "path": "apps/desktop/main.cjs",
+        "sha256": "69816da0287322a492af0413df126508b03478ce83e509d7d41ee1ffba752983"
+      },
+      {
+        "report": "c17",
+        "path": "apps/desktop/preload.cjs",
+        "sha256": "21a2175fcddf98292f08c34cd86e031830b1041e6ed71cc0bed3112d9618b122"
+      },
+      {
+        "report": "c17",
+        "path": "apps/android/app/build.gradle.kts",
+        "sha256": "fd521e1d3035e52c0b86d984d6e249e2636c922718ddfec8b207fcf119f3b062"
+      },
+      {
+        "report": "c17",
+        "path": "apps/android/app/src/main/AndroidManifest.xml",
+        "sha256": "a8440ed3b5b76ab01f8340a2c27c22f972584bf55d22b20e01dcb311aa21e334"
+      },
+      {
+        "report": "c17",
+        "path": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderEntity.kt",
+        "sha256": "64706d16dc30abf1fde24852a8ffcd754132296e62eeead9002d59ff479e30bb"
+      },
+      {
+        "report": "c17",
+        "path": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDao.kt",
+        "sha256": "a7d29c3e82fea1735eaa805cef14ca8ac1bf27af262bb086d85e51fa4276d86c"
+      },
+      {
+        "report": "c17",
+        "path": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDatabase.kt",
+        "sha256": "a7cfb3182fdb4ac4751b1d597773ea8dbcc8f56a76aaf5cf021d3d54fb0a1b72"
+      },
+      {
+        "report": "c17",
+        "path": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderStore.kt",
+        "sha256": "9b0056ed71f62f660fff946ea4ac3674219b0dbe96768118a6a3da1dd99137c6"
+      },
+      {
+        "report": "c17",
+        "path": "apps/android/app/src/main/java/org/nuanban/assistant/ReminderNotificationScheduler.kt",
+        "sha256": "b91a7d10b9c46db79ff7bbbf5c0588e77c4d04c4e771ce76e8a829ea77a5bca0"
+      },
+      {
+        "report": "c17",
+        "path": "apps/android/app/src/main/java/org/nuanban/assistant/ReminderAlarmReceiver.kt",
+        "sha256": "b5c0be623f015d7a4198c07e4b3e80aa295fefca6cf85ca2df1ade84cdaefc96"
+      },
+      {
+        "report": "c17",
+        "path": "apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt",
+        "sha256": "009ad52bcc1f422787761b17a54a0a0a0cdab7a56d6f1e3916a3162bca151718"
+      },
+      {
+        "report": "c17",
+        "path": "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ActiveBridgeProtocol.kt",
+        "sha256": "2953e86f1664f68a45afbecaaf620362179e9f9ec900775779f6a964f52f29b0"
+      },
+      {
+        "report": "c17",
+        "path": "tests/integration/local-data.test.ts",
+        "sha256": "6784d7c6db0bb3c05a729345865d0c0d2a45d296acb458a74f32194452bc43b2"
+      },
+      {
+        "report": "c17",
+        "path": "tests/platform/android-message-host.test.ts",
+        "sha256": "e5e931d2ec90b3e1f255c2732b53de6836e5b2b0886725fd012aaee61694d032"
+      },
+      {
+        "report": "c17",
+        "path": "tests/platform/native-host.test.ts",
+        "sha256": "3943661bf6909b4d6d06872f6c74b532c510fe5923a2a5ffd8d0e7c9362bce53"
+      },
+      {
+        "report": "c17",
+        "path": "tests/contract/active-bridge.test.ts",
+        "sha256": "cffd58245b259c355f809afea58c2d58d725655c8edbdfa04087d2d85c7ffe84"
+      },
+      {
+        "report": "c17",
+        "path": "tests/platform/desktop-notification-adapter.test.ts",
+        "sha256": "b5ea452cb957e9dda7bd4512f90d62aec779f5305b6b1eb4919750626df3d223"
+      },
+      {
+        "report": "c17",
+        "path": "tests/platform/desktop-reminder-bridge.test.ts",
+        "sha256": "45810b509f9514882351c78cf747687338fa66e5c8b67f04784b3cf3aad6b385"
+      },
+      {
+        "report": "c14",
+        "path": "packages/contracts/openapi.json",
+        "sha256": "8054d8be16705bc6902e86494c53ca9bff2c3ade4903d698b4367a5957c92e41"
+      },
+      {
+        "report": "c14",
+        "path": "packages/contracts/src/spec/operations.ts",
+        "sha256": "95118a211b11dc9230a98e785ae678b1eca8779f6c08ee40956a8d643c3380ee"
+      },
+      {
+        "report": "c14",
+        "path": "packages/contracts/src/spec/events.ts",
+        "sha256": "2288c2440c03260de512d0a946d84e1f460113bb0a7a0320266f396f8ec3579b"
+      },
+      {
+        "report": "c14",
+        "path": "packages/contracts/src/spec/catalog.ts",
+        "sha256": "75d4df906ca406819dcd42febd07cc07f207a8a9c356006f8475af2280fe46db"
+      },
+      {
+        "report": "c14",
+        "path": "packages/contracts/src/spec/primitives.ts",
+        "sha256": "9cc4ae693033f19498b69cee74d1610d0e97dd10d525b09c28e8f5af67be77cb"
+      },
+      {
+        "report": "c14",
+        "path": "packages/contracts/src/spec/errors.ts",
+        "sha256": "27124d0ddb3bcffcd7f65177caedb00191dfa8f892d8f234dd73aecfe0f71b66"
+      },
+      {
+        "report": "gate",
+        "path": "scripts/project-gate.mjs",
+        "sha256": "900ad2a4c2d835166d57133113af820f2d2e84db6f65962f7d07867580c18053"
+      },
+      {
+        "report": "gate",
+        "path": "scripts/check-d07-decision.mjs",
+        "sha256": "6918d42ac706b626d71adbe558d9fde9df510cff17d90a5093e46a188735d8bc"
+      },
+      {
+        "report": "gate",
+        "path": "scripts/check-d-gate-readiness.mjs",
+        "sha256": "e40bc128bd119022956f61a77cb8d784f0ebb58feb7c11ee64d2bbf89b812f8a"
+      },
+      {
+        "report": "gate",
+        "path": "scripts/check-acceptance-bundle.mjs",
+        "sha256": "241447da15c3147c1594c7b44780f09feae7f7a35550ce014ce5dd1e3a53fe03"
+      },
+      {
+        "report": "gate",
+        "path": "scripts/implementation-plan.mjs",
+        "sha256": "47fb70dffc16ea655e0000b8b5266bee699633432711b87163377eb760de8019"
+      },
+      {
+        "report": "gate",
+        "path": "docs/execution/d07-development-decision.schema.json",
+        "sha256": "c113b6da0f4bad3384c3880c790a6c6d02d143eb95d3d226e24a05b600ed5cf0"
+      },
+      {
+        "report": "plan",
+        "path": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
+        "sha256": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
+      }
+    ],
+    "stateUpdated": false
+  },
+  "fEvidence": {
+    "recordedDevelopmentSuccess": true,
+    "taskCount": 24,
+    "formalComplete": false,
+    "fStarted": false,
+    "evidence_ref": "docs/implementation/evidence/f-execution-results.json"
+  },
+  "boundaries": {
+    "networkAttempted": false,
+    "secretValuesCollected": false,
+    "credentialFilesInspected": false,
+    "mockCountsAsFormalEvidence": false,
+    "realDeviceExecuted": false,
+    "liveProviderExecuted": false,
+    "externalConditionsCreated": false
+  },
+  "validation": {
+    "localTest": "node node_modules/vitest/vitest.mjs run tests/acceptance/release-readiness.test.ts",
+    "developmentGate": "node scripts/check-d07-decision.mjs --mode development --no-write",
+    "releaseGate": "node scripts/check-d07-decision.mjs --mode release --no-write",
+    "recheck": "node scripts/check-release-readiness.mjs --mode release --no-write"
+  },
+  "limitations": [
+    "检查范围仅为当前本地来源、公开配置、隔离的拒绝路径探针和既有证据；不代表全项目构建/启动或真实验收。",
+    "只读取允许的 VITE 配置键；不读取 token/key/secret 环境变量，不输出原始端点、凭据、供应载荷或未经脱敏的错误。",
+    "Android 关闭证据为源码静态核对，不是真机结果；本地隔离捕获可能须本人系统授权，系统通知也不是全局关闭。",
+    "供应探针使用明确合成的准入材料验证 NETWORK_DISABLED，仅属本地拒绝测试，不是真实凭据或供应证明。",
+    "未知/缺失外部条件标 EXTERNAL_PENDING；关闭证据缺失或本地门禁失败则 DEV_BLOCKED，不以 external_pending 掩盖代码错误。"
+  ]
+}

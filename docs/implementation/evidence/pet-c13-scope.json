@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-10-16",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "C13 shared animated 2D pet asset manifest and quality gate",
+  "testReport": "pet-c13-results.json",
+  "tests": 6,
+  "testsPassed": 6,
+  "status": "preparatory_not_accepted",
+  "previewRequires": [
+    "generated_2d identity",
+    "2048px single-side canvas limit",
+    "64MiB decoded memory limit",
+    "body/eyes/mouth layer completeness",
+    "controlled local asset paths",
+    "in-bounds layer rectangles",
+    "eight supported actions with valid keyframes",
+    "bounded palette"
+  ],
+  "publishEligible": false,
+  "manualReviewRequired": true,
+  "limitations": [
+    "The gate validates manifest structure, budgets, paths and keyframe references only; it does not prove real AI generation.",
+    "No generated sample, visual design review, similarity review, motion naturalness review, occlusion review or child comprehension acceptance was performed.",
+    "The existing drawing flow remains a simulation and does not produce or publish this asset type."
+  ]
+}

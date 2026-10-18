@@ -1,0 +1,143 @@
+{
+  "generatedAt": "2026-10-17T10:01:21.499Z",
+  "scope": "Android C07 Room and notification adapter preflight",
+  "success": true,
+  "status": "preparatory_not_accepted",
+  "roomCompileVerified": true,
+  "roomMigrationPreflightVerified": true,
+  "deviceVerified": false,
+  "systemSchedulerVerified": false,
+  "adbDeviceCount": 0,
+  "apk": {
+    "path": "apps\\android\\app\\build\\outputs\\apk\\debug\\app-debug.apk",
+    "bytes": 4293825,
+    "sourceFresh": true
+  },
+  "checks": [
+    {
+      "id": "C07-ROOM-01",
+      "title": "Android app uses Room with generated DAO implementation",
+      "status": "passed",
+      "files": [
+        "apps/android/app/build.gradle.kts",
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDatabase.kt"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C07-ROOM-02",
+      "title": "Reminder schema is account-partitioned and due-time indexed",
+      "status": "passed",
+      "files": [
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderEntity.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDao.kt"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C07-ROOM-03",
+      "title": "Schedule writes and status transitions are transactional",
+      "status": "passed",
+      "files": [
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderStore.kt"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C07-ROOM-04",
+      "title": "Migration and notification refusal paths are explicit",
+      "status": "passed",
+      "files": [
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDatabase.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/ReminderNotificationScheduler.kt"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C07-ROOM-06",
+      "title": "WebView bridge uses strict reminder methods and background Room executor",
+      "status": "passed",
+      "files": [
+        "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ActiveBridgeProtocol.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/ReminderAlarmReceiver.kt"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C07-ROOM-07",
+      "title": "到期提交、闹钟回执和 Activity 销毁保持可补偿与有序关闭",
+      "status": "passed",
+      "files": [
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDao.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderStore.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/ReminderAlarmReceiver.kt"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C07-ROOM-08",
+      "title": "通知点击使用一次性令牌并绑定已投递提醒",
+      "status": "passed",
+      "files": [
+        "apps/android/app/src/main/java/org/nuanban/assistant/ReminderNotificationScheduler.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/ReminderAlarmReceiver.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderStore.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C07-ROOM-05",
+      "title": "Room 1→3 migrations preserve legacy rows and add receipt/click-token columns",
+      "status": "passed",
+      "files": [
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDatabase.kt"
+      ],
+      "missing": [],
+      "details": {
+        "migratedColumns": [
+          "submitted_at",
+          "delivered_at",
+          "opened_at",
+          "failed_at",
+          "missed_at",
+          "unknown_at",
+          "completed_at",
+          "cancelled_at",
+          "click_token"
+        ],
+        "preservedIndexes": [
+          "index_reminders_account_id_status_due_at_epoch_ms",
+          "index_reminders_account_id_todo_id_schedule_version"
+        ],
+        "indexColumns": {
+          "index_reminders_account_id_todo_id_schedule_version": [
+            "account_id",
+            "todo_id",
+            "schedule_version"
+          ],
+          "index_reminders_account_id_status_due_at_epoch_ms": [
+            "account_id",
+            "status",
+            "due_at_epoch_ms"
+          ]
+        },
+        "primaryKey": [
+          "account_id",
+          "instance_id"
+        ],
+        "defaultNonNullColumns": [],
+        "accountIsolationRows": 2,
+        "legacyRowPreserved": true
+      }
+    }
+  ],
+  "limitations": [
+    "本检查只审计源码、依赖、已生成 Debug APK 和本机设备枚举；不安装、不请求权限、不触发提醒。",
+    "Room 数据库尚未接入真实账号认证、整库加密、同步 outbox 或生产数据迁移演练。",
+    "通知适配器尚未完成设备上的通知权限、渠道关闭、精确闹钟、锁屏、睡眠、强停、重启和用户看到回执验证。",
+    "没有 ADB 设备时仍保留 deviceVerified=false；代码编译不能替代 NV-02 或 D 关口。"
+  ]
+}

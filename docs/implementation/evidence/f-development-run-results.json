@@ -1,0 +1,87 @@
+{
+  "generatedAt": "2026-10-17T15:18:06.491Z",
+  "scope": "F01-F24 development-only local execution under the V1.2 automated gate",
+  "mode": "development_only",
+  "status": "development_checks_passed",
+  "success": true,
+  "d07Bypassed": false,
+  "formalD07Go": false,
+  "developmentOverride": true,
+  "developmentAuthorization": "automated_d07",
+  "automatedDecisionEligible": true,
+  "developmentBlockers": [],
+  "realNetworkEnabled": false,
+  "productionDataEnabled": false,
+  "fStarted": false,
+  "formalFExecutionStarted": false,
+  "development": {
+    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "eligible": true,
+    "gateEligible": true
+  },
+  "release": {
+    "verdict": "EXTERNAL_PENDING",
+    "ready": false,
+    "formalD07Go": false
+  },
+  "formalStatus": "blocked",
+  "dGate": {
+    "status": "blocked",
+    "developmentVerdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "releaseVerdict": "EXTERNAL_PENDING"
+  },
+  "matrix": {
+    "total": 24,
+    "early": 12,
+    "delivery": 12,
+    "complete": true
+  },
+  "jobs": [
+    {
+      "id": "f-matrix",
+      "command": "E:\\7\\新建文件夹\\node.exe scripts/check-f-development.mjs --no-write",
+      "exitCode": 0,
+      "durationMs": 289,
+      "stdout": "  ],\n      \"stage\": \"delivery\",\n      \"taskCardPresent\": true,\n      \"prepCheckPresent\": true,\n      \"localEvidencePresent\": true,\n      \"localTestsPresent\": true,\n      \"statePreserved\": true,\n      \"safetyFlagsClosed\": true\n    },\n    {\n      \"id\": \"F23\",\n      \"title\": \"供应/模型/媒体运维交接\",\n      \"dependency\": \"AI/HELP/SAFE；前置 F18：FS\",\n      \"owner\": \"I\",\n      \"status\": \"blocked\",\n      \"acceptance\": \"preparatory_not_accepted\",\n      \"execution_started\": false,\n      \"fStarted\": false,\n      \"realNetworkEnabled\": false,\n      \"productionDataEnabled\": false,\n      \"localEvidence\": [\n        \"docs/execution/tasks/F23.md\",\n        \"docs/execution/checks/F23-prep.md\"\n      ],\n      \"localTests\": [\n        \"tests/acceptance/f-development-delivery.test.ts\"\n      ],\n      \"stage\": \"delivery\",\n      \"taskCardPresent\": true,\n      \"prepCheckPresent\": true,\n      \"localEvidencePresent\": true,\n      \"localTestsPresent\": true,\n      \"statePreserved\": true,\n      \"safetyFlagsClosed\": true\n    },\n    {\n      \"id\": \"F24\",\n      \"title\": \"最终自动回归与工程证据审查\",\n      \"dependency\": \"AT-01～24/NV双状态；前置 F09开发结果：FS，F19～F23开发结果：SS/FF\",\n      \"owner\": \"Q\",\n      \"status\": \"blocked\",\n      \"acceptance\": \"preparatory_not_accepted\",\n      \"execution_started\": false,\n      \"fStarted\": false,\n      \"realNetworkEnabled\": false,\n      \"productionDataEnabled\": false,\n      \"localEvidence\": [\n        \"docs/execution/tasks/F24.md\",\n        \"docs/execution/checks/F24-prep.md\"\n      ],\n      \"localTests\": [\n        \"tests/acceptance/f-development-delivery.test.ts\"\n      ],\n      \"stage\": \"delivery\",\n      \"taskCardPresent\": true,\n      \"prepCheckPresent\": true,\n      \"localEvidencePresent\": true,\n      \"localTestsPresent\": true,\n      \"statePreserved\": true,\n      \"safetyFlagsClosed\": true\n    }\n  ],\n  \"limitations\": [\n    \"只验证任务卡、前置检查、开发级测试入口和门禁状态，不启动 F 业务实现。\",\n    \"不连接真实生产网络、真实账号、儿童/家庭数据、供应商、凭证或设备。\",\n    \"本机静态、合成、Mock、JVM、打包或测试证据不能升级为真实联调、试点、发布或正式验收。\",\n    \"D07 正式 Go/No-Go 仍由正式决策记录和授权流程决定；本报告不替代该决策。\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "gate-protection",
+      "command": "E:\\7\\新建文件夹\\node.exe C:\\Users\\33864\\Desktop\\nuanban\\node_modules\\vitest\\vitest.mjs run tests/acceptance/f-development-early.test.ts tests/acceptance/f-development-delivery.test.ts tests/acceptance/d-gate-readiness.test.ts tests/acceptance/d07-decision.test.ts --reporter=dot --no-cache --no-fsModuleCache --configLoader=runner --maxWorkers=1 --no-file-parallelism",
+      "exitCode": 0,
+      "durationMs": 4432,
+      "stdout": "\n RUN  v5.0.4 C:/Users/33864/Desktop/nuanban\n\n·············\n\n Test Files  4 passed (4)\n      Tests  13 passed (13)\n   Start at  23:17:58\n   Duration  3.55s (tests 74%, import 12%, setup 8%, transform 4%, worker 1%)\n\n    Isolate  4 workers spawned · ~287ms startup each (spawn + environment, per file)\n             at least ~861ms faster with isolate: false — reuses workers across files instead of one per file\n\n",
+      "stderr": ""
+    },
+    {
+      "id": "f-dependencies",
+      "command": "E:\\7\\新建文件夹\\node.exe scripts/f-development/dependency-matrix.mjs --no-write",
+      "exitCode": 0,
+      "durationMs": 517,
+      "stdout": " \"status\": \"blocked\",\n          \"acceptance\": \"preparatory_not_accepted\",\n          \"developmentStatus\": \"verified\",\n          \"executionStarted\": false,\n          \"ready\": true\n        },\n        {\n          \"id\": \"F22\",\n          \"relation\": \"SS/FF\",\n          \"path\": \"docs/execution/tasks/F22.md\",\n          \"present\": true,\n          \"status\": \"blocked\",\n          \"acceptance\": \"preparatory_not_accepted\",\n          \"developmentStatus\": \"verified\",\n          \"executionStarted\": false,\n          \"ready\": true\n        },\n        {\n          \"id\": \"F23\",\n          \"relation\": \"SS/FF\",\n          \"path\": \"docs/execution/tasks/F23.md\",\n          \"present\": true,\n          \"status\": \"blocked\",\n          \"acceptance\": \"preparatory_not_accepted\",\n          \"developmentStatus\": \"verified\",\n          \"executionStarted\": false,\n          \"ready\": true\n        }\n      ],\n      \"inputIds\": [],\n      \"card\": {\n        \"id\": \"F24\",\n        \"path\": \"docs/execution/tasks/F24.md\",\n        \"present\": true,\n        \"status\": \"blocked\",\n        \"acceptance\": \"preparatory_not_accepted\",\n        \"developmentStatus\": \"verified\",\n        \"executionStarted\": false\n      },\n      \"blockers\": [\n        \"D07 release gate remains external_pending; development gate is eligible\",\n        \"F task card remains blocked / preparatory_not_accepted\",\n        \"Real account, device, supplier, authorization, independent review, and human acceptance remain required for formal F execution\"\n      ],\n      \"status\": \"development_ready\",\n      \"formalStatus\": \"blocked\",\n      \"developmentStatus\": \"ready_for_local_checks\",\n      \"developmentOnly\": true,\n      \"developmentExecutionAllowed\": true,\n      \"realExecutionAllowed\": false,\n      \"realNetworkEnabled\": false,\n      \"productionDataEnabled\": false\n    }\n  ],\n  \"limitations\": [\n    \"本报告按 V1.2 自动开发门禁计算，不创建、不修改或伪造正式 Go/No-Go 决策。\",\n    \"developmentExecutionAllowed 只覆盖本机代码、夹具、静态检查和受限测试；不等于真实 F 执行授权。\",\n    \"真实网络、真实账号、儿童/家庭数据、供应商、凭证、设备系统权限、试点和发布均保持关闭或未验收。\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "local-platform",
+      "command": "E:\\7\\新建文件夹\\node.exe C:\\Users\\33864\\Desktop\\nuanban\\node_modules\\vitest\\vitest.mjs run tests/native/android-lab.test.ts tests/native/desktop-lab.test.ts tests/platform/android-message-host.test.ts tests/platform/desktop-native-runtime.test.ts tests/platform/desktop-reminder-bridge.test.ts --reporter=dot --no-cache --no-fsModuleCache --configLoader=runner --maxWorkers=1 --no-file-parallelism",
+      "exitCode": 0,
+      "durationMs": 3983,
+      "stdout": "\n RUN  v5.0.4 C:/Users/33864/Desktop/nuanban\n\n·············································································································\n\n Test Files  5 passed (5)\n      Tests  109 passed (109)\n   Start at  23:17:58\n   Duration  3.00s (tests 39%, import 31%, transform 16%, setup 13%, worker 2%)\n\n    Isolate  5 workers spawned · ~272ms startup each (spawn + environment, per file)\n             at least ~1.09s faster with isolate: false — reuses workers across files instead of one per file\n\n",
+      "stderr": ""
+    },
+    {
+      "id": "local-domain-safety",
+      "command": "E:\\7\\新建文件夹\\node.exe C:\\Users\\33864\\Desktop\\nuanban\\node_modules\\vitest\\vitest.mjs run tests/domain/guidance-platform.test.ts tests/domain/reminder-engine.test.ts tests/domain/reminder-dispatch.test.ts tests/provider/provider-sandbox.test.ts tests/privacy/c03-gate.test.ts tests/privacy/c04-media-relay.test.ts --reporter=dot --no-cache --no-fsModuleCache --configLoader=runner --maxWorkers=1 --no-file-parallelism",
+      "exitCode": 0,
+      "durationMs": 4698,
+      "stdout": "\n RUN  v5.0.4 C:/Users/33864/Desktop/nuanban\n\n········································································································\n\n Test Files  6 passed (6)\n      Tests  104 passed (104)\n   Start at  23:18:02\n   Duration  3.85s (import 32%, setup 25%, transform 25%, tests 15%, worker 3%)\n\n    Isolate  6 workers spawned · ~358ms startup each (spawn + environment, per file)\n             at least ~1.79s faster with isolate: false — reuses workers across files instead of one per file\n\n",
+      "stderr": ""
+    }
+  ],
+  "unknownJobIds": [],
+  "limitations": [
+    "所有子命令仅使用本机离线依赖和合成/静态测试；运行器不会启动生产服务、真实网络、设备或供应商。",
+    "V1.2 自动开发决定允许本机工程执行；--bypass-d07 仅保留为兼容参数，不绕过实际开发失败或正式发布门禁。",
+    "子测试通过只证明本机开发层可重复，不证明真实双端联调、试点、发布或正式验收。"
+  ]
+}

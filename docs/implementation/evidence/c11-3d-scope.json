@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-10-16",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "C11 local VRM/FBX/GLB container, inspection and resource-budget preflight",
+  "testReport": "c11-3d-results.json",
+  "tests": 10,
+  "testsPassed": 10,
+  "status": "preparatory_not_accepted",
+  "candidateMatrix": {
+    "vrm": ["0.x", "1.0"],
+    "fbx": ["7.4", "7.5"],
+    "glb": ["2.0"]
+  },
+  "budgets": {
+    "maxFileBytes": 52428800,
+    "maxTextureDimension": 2048,
+    "maxTriangles": 100000,
+    "maxParserPeakBytes": 536870912,
+    "maxDecodedBytes": 314572800,
+    "maxExpansionRatio": 100
+  },
+  "safetyBoundaries": [
+    "content sniffing instead of extension trust",
+    "local filename only",
+    "external URI rejection",
+    "script and shader reference rejection",
+    "malformed container rejection",
+    "2D fallback on compatibility or budget failure",
+    "display-only result when a standard action skeleton is absent",
+    "Android 3D route remains disabled"
+  ],
+  "limitations": [
+    "Samples are synthetic bytes and isolated-parser summaries; no supplier assets were used.",
+    "No Three.js, three-vrm, GLTFLoader, FBXLoader or real renderer was started.",
+    "FBX semantic compatibility remains dependent on a future isolated parser and human review.",
+    "No device frame-rate, memory, DPI, multi-monitor or visual-quality evidence was collected.",
+    "This does not complete PET-03, NV-10, E20 or F03 acceptance."
+  ]
+}

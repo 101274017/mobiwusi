@@ -1,0 +1,496 @@
+{
+  "schemaVersion": 1,
+  "task": "D03",
+  "generatedAt": "2026-10-17T03:16:09.874Z",
+  "generatedAtLocal": "2026-10-17T11:16:09.874+08:00",
+  "timezone": "Asia/Shanghai",
+  "scope": "Local read-only candidate/reset preparation; not a rebuilt, signed or accepted package",
+  "status": "blocked",
+  "acceptance": "preparatory_not_accepted",
+  "ownerSignoff": false,
+  "independentReview": false,
+  "deviceVerified": false,
+  "goNoGoEligible": false,
+  "eStarted": false,
+  "fStarted": false,
+  "plan": {
+    "path": "暖伴AI公益助手-项目实施计划-Codex高效续作版.md",
+    "line": 330,
+    "originalRow": "| D03 前端候选包与重置说明 | 全基线/AT前端层/NV；前置 B07/B10/C15/C16：FS | W9～9 / 1周 | F / 1 | 复核交付、缺口与可复现证据；交付：D交接包/能力账本 | 无真实业务后端可跑；核心原生有结论 | 未过关不进入E |",
+    "sha256Utf8WithoutNewline": "2e6112bfcdeb839f8a8f5a07f5454a081cdf3e8d618ce4c5a00a2a8b74608a6a"
+  },
+  "web": {
+    "directory": "apps/web/dist",
+    "files": [
+      {
+        "path": "apps/web/dist/assets/bootstrap-CVGnqZ7q.css",
+        "exists": true,
+        "bytes": 4275,
+        "sha256": "3ae2f75d9909d40fff86a3e73edccd54dbf4b90d5b219f1403a8f7be0556f67b"
+      },
+      {
+        "path": "apps/web/dist/assets/bootstrap-hAlCZebq.js",
+        "exists": true,
+        "bytes": 275303,
+        "sha256": "13ef81f5963bc2e0aa2ba4e1ef57da7d0a69aa06a69d45355abe8cd7eeffbfa5"
+      },
+      {
+        "path": "apps/web/dist/assets/index-CUiXrJUr.js",
+        "exists": true,
+        "bytes": 222229,
+        "sha256": "bbc0bab2589791f7cc60e6ee0f2f18c3f63cecc65a495071d733891e0512231f"
+      },
+      {
+        "path": "apps/web/dist/assets/index-Cne_RoAQ.css",
+        "exists": true,
+        "bytes": 40988,
+        "sha256": "a23d7be6d2513be59105686cdb52b3538037532c4465a5121db1690a7c5d0139"
+      },
+      {
+        "path": "apps/web/dist/favicon.svg",
+        "exists": true,
+        "bytes": 382,
+        "sha256": "b3d5f7e1b3224b4b12503c7801964abe9d4a205d5597322801221a000ca8412c"
+      },
+      {
+        "path": "apps/web/dist/index.html",
+        "exists": true,
+        "bytes": 581,
+        "sha256": "e48a36ddf55d4a7ff687de94a79ffa1158b8b2e1e2ad84a6ad9751c6ff8106f8"
+      }
+    ],
+    "documentedWebComparisons": [
+      {
+        "path": "apps/web/dist/assets/bootstrap-CVGnqZ7q.css",
+        "documentationLine": 60,
+        "matchesDocumentedSha256": true
+      },
+      {
+        "path": "apps/web/dist/assets/bootstrap-hAlCZebq.js",
+        "documentationLine": 61,
+        "matchesDocumentedSha256": true
+      },
+      {
+        "path": "apps/web/dist/assets/index-CUiXrJUr.js",
+        "documentationLine": 63,
+        "matchesDocumentedSha256": true
+      },
+      {
+        "path": "apps/web/dist/assets/index-Cne_RoAQ.css",
+        "documentationLine": 62,
+        "matchesDocumentedSha256": true
+      },
+      {
+        "path": "apps/web/dist/favicon.svg",
+        "documentationLine": 59,
+        "matchesDocumentedSha256": true
+      },
+      {
+        "path": "apps/web/dist/index.html",
+        "documentationLine": 58,
+        "matchesDocumentedSha256": true
+      }
+    ],
+    "allDocumentedHashesMatch": true
+  },
+  "desktop": {
+    "directory": "apps/desktop/out/NuanbanDemo-win32-x64",
+    "directoryFileCount": 73,
+    "fileHashCoverage": "Executable and ASAR only; remaining Electron runtime files counted, not individually hashed",
+    "keyFiles": [
+      {
+        "path": "apps/desktop/out/NuanbanDemo-win32-x64/nuanban.exe",
+        "exists": true,
+        "bytes": 245589504,
+        "sha256": "db555f44e4719fdbda100902796a8ce5427a76533444ed0bfccee10332f7a229"
+      },
+      {
+        "path": "apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar",
+        "exists": true,
+        "bytes": 582666,
+        "sha256": "b3022aed666dd2bfa2b0d6096732d7368df824357219da4867923eb553d6ce9c"
+      }
+    ],
+    "asarEntries": [
+      "README.md",
+      "forge.config.cjs",
+      "lifecycle.cjs",
+      "main.cjs",
+      "notification-adapter.cjs",
+      "package.json",
+      "preload.cjs",
+      "reminder-notification-bridge.cjs",
+      "reminder-store.cjs",
+      "ui",
+      "ui/assets",
+      "ui/assets/bootstrap-CVGnqZ7q.css",
+      "ui/assets/bootstrap-DM2hlXN_.js",
+      "ui/assets/index-C239dCop.js",
+      "ui/assets/index-Cne_RoAQ.css",
+      "ui/favicon.svg",
+      "ui/index.html"
+    ],
+    "uiComparisons": [
+      {
+        "source": {
+          "path": "apps/web/dist/index.html",
+          "exists": true,
+          "bytes": 581,
+          "sha256": "e48a36ddf55d4a7ff687de94a79ffa1158b8b2e1e2ad84a6ad9751c6ff8106f8"
+        },
+        "target": {
+          "archive": "apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar",
+          "entry": "ui/index.html",
+          "bytes": 581,
+          "sha256": "72ba4186453e2b29775e8320d6ee024e7762bcbf129ed828cc4d7dd6717a2b5f"
+        },
+        "sameRelativePath": true,
+        "contentMatches": false
+      },
+      {
+        "source": {
+          "path": "apps/web/dist/favicon.svg",
+          "exists": true,
+          "bytes": 382,
+          "sha256": "b3d5f7e1b3224b4b12503c7801964abe9d4a205d5597322801221a000ca8412c"
+        },
+        "target": {
+          "archive": "apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar",
+          "entry": "ui/favicon.svg",
+          "bytes": 382,
+          "sha256": "b3d5f7e1b3224b4b12503c7801964abe9d4a205d5597322801221a000ca8412c"
+        },
+        "sameRelativePath": true,
+        "contentMatches": true
+      },
+      {
+        "source": {
+          "path": "apps/web/dist/assets/bootstrap-CVGnqZ7q.css",
+          "exists": true,
+          "bytes": 4275,
+          "sha256": "3ae2f75d9909d40fff86a3e73edccd54dbf4b90d5b219f1403a8f7be0556f67b"
+        },
+        "target": {
+          "archive": "apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar",
+          "entry": "ui/assets/bootstrap-CVGnqZ7q.css",
+          "bytes": 4275,
+          "sha256": "3ae2f75d9909d40fff86a3e73edccd54dbf4b90d5b219f1403a8f7be0556f67b"
+        },
+        "sameRelativePath": true,
+        "contentMatches": true
+      },
+      {
+        "source": {
+          "path": "apps/web/dist/assets/bootstrap-hAlCZebq.js",
+          "exists": true,
+          "bytes": 275303,
+          "sha256": "13ef81f5963bc2e0aa2ba4e1ef57da7d0a69aa06a69d45355abe8cd7eeffbfa5"
+        },
+        "target": {
+          "archive": "apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar",
+          "entry": "ui/assets/bootstrap-DM2hlXN_.js",
+          "bytes": 269228,
+          "sha256": "a3a22ffe1b01a0760512b407096143d0168419d8011a6454e9f89fa2b1f61f02"
+        },
+        "sameRelativePath": false,
+        "contentMatches": false
+      },
+      {
+        "source": {
+          "path": "apps/web/dist/assets/index-Cne_RoAQ.css",
+          "exists": true,
+          "bytes": 40988,
+          "sha256": "a23d7be6d2513be59105686cdb52b3538037532c4465a5121db1690a7c5d0139"
+        },
+        "target": {
+          "archive": "apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar",
+          "entry": "ui/assets/index-Cne_RoAQ.css",
+          "bytes": 40988,
+          "sha256": "a23d7be6d2513be59105686cdb52b3538037532c4465a5121db1690a7c5d0139"
+        },
+        "sameRelativePath": true,
+        "contentMatches": true
+      },
+      {
+        "source": {
+          "path": "apps/web/dist/assets/index-CUiXrJUr.js",
+          "exists": true,
+          "bytes": 222229,
+          "sha256": "bbc0bab2589791f7cc60e6ee0f2f18c3f63cecc65a495071d733891e0512231f"
+        },
+        "target": {
+          "archive": "apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar",
+          "entry": "ui/assets/index-C239dCop.js",
+          "bytes": 222229,
+          "sha256": "694bb041412433742d7903ae4dd6eca9f3f53f92ed1faa110c39fcd31d43cdfc"
+        },
+        "sameRelativePath": false,
+        "contentMatches": false
+      }
+    ],
+    "uiFileCount": 6,
+    "contentMatched": 3,
+    "contentMismatched": 3,
+    "packagedUiMatchesCurrentWebBuild": false,
+    "currentWebUiPathsAbsentFromAsar": [
+      "ui/assets/bootstrap-hAlCZebq.js",
+      "ui/assets/index-CUiXrJUr.js"
+    ],
+    "rebuiltThisRun": false,
+    "packageExecutedThisRun": false
+  },
+  "evidenceIndex": {
+    "path": "docs/implementation/evidence/artifacts.json",
+    "date": "2026-10-15",
+    "generatedAt": "2026-10-15T14:21:50.329Z",
+    "indexedPackagedUiMatchesWebBuild": true,
+    "indexedClaimAppliesToCurrentFiles": false,
+    "artifactComparisons": [
+      {
+        "path": "apps/web/dist/index.html",
+        "indexedBytes": 581,
+        "indexedSha256": "d6037397fd5ba5c2b97a60aacb714c21248d39b8a055698e78d24b9cacf77bed",
+        "actualBytes": 581,
+        "actualSha256": "e48a36ddf55d4a7ff687de94a79ffa1158b8b2e1e2ad84a6ad9751c6ff8106f8",
+        "matches": false
+      },
+      {
+        "path": "apps/desktop/out/NuanbanDemo-win32-x64/nuanban.exe",
+        "indexedBytes": 245589504,
+        "indexedSha256": "3e623acb3d29088e35bb593a761c170633a18b5590ff701574ea8ed9741aad8d",
+        "actualBytes": 245589504,
+        "actualSha256": "db555f44e4719fdbda100902796a8ce5427a76533444ed0bfccee10332f7a229",
+        "matches": false
+      },
+      {
+        "path": "apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar",
+        "indexedBytes": 530843,
+        "indexedSha256": "ad41695ede6ca24fd5ccd6a578e5f3f5efe3feba1aff304d430ec73e57c6f741",
+        "actualBytes": 582666,
+        "actualSha256": "b3022aed666dd2bfa2b0d6096732d7368df824357219da4867923eb553d6ce9c",
+        "matches": false
+      }
+    ],
+    "uiComparisons": [
+      {
+        "path": "apps/web/dist/favicon.svg",
+        "indexedSha256": "b3d5f7e1b3224b4b12503c7801964abe9d4a205d5597322801221a000ca8412c",
+        "actualExists": true,
+        "actualSha256": "b3d5f7e1b3224b4b12503c7801964abe9d4a205d5597322801221a000ca8412c",
+        "matches": true
+      },
+      {
+        "path": "apps/web/dist/index.html",
+        "indexedSha256": "d6037397fd5ba5c2b97a60aacb714c21248d39b8a055698e78d24b9cacf77bed",
+        "actualExists": true,
+        "actualSha256": "e48a36ddf55d4a7ff687de94a79ffa1158b8b2e1e2ad84a6ad9751c6ff8106f8",
+        "matches": false
+      },
+      {
+        "path": "apps/web/dist/assets/bootstrap-CVGnqZ7q.css",
+        "indexedSha256": "3ae2f75d9909d40fff86a3e73edccd54dbf4b90d5b219f1403a8f7be0556f67b",
+        "actualExists": true,
+        "actualSha256": "3ae2f75d9909d40fff86a3e73edccd54dbf4b90d5b219f1403a8f7be0556f67b",
+        "matches": true
+      },
+      {
+        "path": "apps/web/dist/assets/bootstrap-rc8k0hYl.js",
+        "indexedSha256": "b96301e2614b88760758e76f9a7949a7fc2e0185a51bb46a5f5463cfb1bc5d22",
+        "actualExists": false,
+        "actualSha256": null,
+        "matches": false
+      },
+      {
+        "path": "apps/web/dist/assets/index-Cne_RoAQ.css",
+        "indexedSha256": "a23d7be6d2513be59105686cdb52b3538037532c4465a5121db1690a7c5d0139",
+        "actualExists": true,
+        "actualSha256": "a23d7be6d2513be59105686cdb52b3538037532c4465a5121db1690a7c5d0139",
+        "matches": true
+      },
+      {
+        "path": "apps/web/dist/assets/index-Dbaoex5I.js",
+        "indexedSha256": "5f5813f2250bcdc6cfc0d5601530a9b3f1a5f1539d09ae6148bec8e043d1b917",
+        "actualExists": false,
+        "actualSha256": null,
+        "matches": false
+      }
+    ],
+    "currentWebUiPathsAbsentFromIndex": [
+      "apps/web/dist/assets/bootstrap-hAlCZebq.js",
+      "apps/web/dist/assets/index-CUiXrJUr.js"
+    ],
+    "excludedFromArtifactComparison": [
+      "apps/android/app/build/outputs/apk/debug/app-debug.apk"
+    ],
+    "originalIndexModified": false
+  },
+  "resetReview": {
+    "source": "docs/implementation/d03-frontend-candidate-package.md",
+    "lines": {
+      "scenarioReset": 175,
+      "localDataReset": 184,
+      "nativeResetBoundaries": 193,
+      "rollback": 247
+    },
+    "documentReadOnlyReviewed": true,
+    "browserExecutedThisRun": false,
+    "nativeExecutedThisRun": false,
+    "ownerSignoff": false,
+    "requiredObservations": [
+      "nuanban:stop before reset",
+      "only the confirmed synthetic scenario is reset",
+      "other scenario data remains intact",
+      "settings reset versus clear boundaries",
+      "no claim of cloud deletion or database downgrade"
+    ]
+  },
+  "references": [
+    {
+      "path": "暖伴AI公益助手-项目实施计划-Codex高效续作版.md",
+      "exists": true,
+      "bytes": 47245,
+      "sha256": "ed9b078814a71fd26686d3b8d8870efb0ef5051e80525798ab4a1fbb12d0b353"
+    },
+    {
+      "path": "docs/implementation/d03-frontend-candidate-package.md",
+      "exists": true,
+      "bytes": 21220,
+      "sha256": "353fbef107915c03a36117c79b44807c67293b1cd3d20c05b935f5bc6d3149f0"
+    },
+    {
+      "path": "docs/implementation/demo-scenarios.md",
+      "exists": true,
+      "bytes": 5416,
+      "sha256": "5a0b3c5877b0c82b521fee1a78cf6b84acfed221ecf8e165138048aee5a7cc99"
+    },
+    {
+      "path": "docs/implementation/evidence/artifacts.json",
+      "exists": true,
+      "bytes": 2563,
+      "sha256": "98e668ac20b72a619043fe4901d48ad5a3537b5ee544e9b7a4ebe8ac6259ffb6"
+    },
+    {
+      "path": "docs/implementation/evidence/desktop-package.txt",
+      "exists": true,
+      "bytes": 1846,
+      "sha256": "89c574ecfeed9ca1c4aacc51f83986206a39b8e6ffc6de42dacfd938f84cb401"
+    },
+    {
+      "path": "docs/implementation/evidence/desktop-package-contents.txt",
+      "exists": true,
+      "bytes": 539,
+      "sha256": "72f7d89167d4252569dfcf0e5592292e4a8212ae5e8f71048ee5e6ae97700b13"
+    },
+    {
+      "path": "docs/implementation/evidence/e2e-results.json",
+      "exists": true,
+      "bytes": 109093,
+      "sha256": "3e42ce85a5a25ca040f9607e279b5f927cfd3be5da0a436c5305b8f8d24120b7"
+    },
+    {
+      "path": "docs/implementation/evidence/acceptance-bundle-results.json",
+      "exists": true,
+      "bytes": 10581,
+      "sha256": "a462828d3dadd675b5d6984578b130c851a6c81103aec01a58b17b68a8f39d82"
+    },
+    {
+      "path": "docs/implementation/evidence/d-gate-readiness-results.json",
+      "exists": true,
+      "bytes": 5623,
+      "sha256": "0c83098874c358abe1f58d7107698b721d833931f1448a8cd95f178dd545486b"
+    },
+    {
+      "path": "docs/implementation/evidence/c15-nv-readiness-results.json",
+      "exists": true,
+      "bytes": 56993,
+      "sha256": "3b03fcda669d48c0c69858ab27911d282ce625223152d5d74fc7ef86568709e5"
+    },
+    {
+      "path": "docs/implementation/evidence/c16-decision-readiness-results.json",
+      "exists": true,
+      "bytes": 12119,
+      "sha256": "c8706021658771bbce25c18919f34ad3eae43acdeea1eae9b3f9da3bf9b17954"
+    },
+    {
+      "path": "package.json",
+      "exists": true,
+      "bytes": 5863,
+      "sha256": "0ef39b59eab6f2c2eac78ecda736b08f10efb8c18dd40f7a6619696bedcca8e5"
+    },
+    {
+      "path": "scripts/check-acceptance-bundle.mjs",
+      "exists": true,
+      "bytes": 10128,
+      "sha256": "c72d17f728995e2f44f63136fd3205a8bc48ab89cd465bdf8b938a6050379eb5"
+    },
+    {
+      "path": "scripts/check-d-gate-readiness.mjs",
+      "exists": true,
+      "bytes": 11158,
+      "sha256": "f75781db13d5dc29b9597e73590330aa31ef4b42dd51413f19993e43127b7aa0"
+    }
+  ],
+  "audits": [
+    {
+      "command": "node scripts/check-acceptance-bundle.mjs --no-write",
+      "startedAt": "2026-10-17T03:16:09.512Z",
+      "endedAt": "2026-10-17T03:16:09.766Z",
+      "exitCode": 0,
+      "status": "preparatory_ready",
+      "acceptance": "preparatory_not_accepted",
+      "auditPassed": null,
+      "success": true,
+      "goNoGoEligible": false,
+      "eStarted": null,
+      "fStarted": null,
+      "d03": null,
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-d-gate-readiness.mjs --no-write",
+      "startedAt": "2026-10-17T03:16:09.609Z",
+      "endedAt": "2026-10-17T03:16:09.874Z",
+      "exitCode": 0,
+      "status": "blocked",
+      "acceptance": "preparatory_not_accepted",
+      "auditPassed": true,
+      "success": null,
+      "goNoGoEligible": false,
+      "eStarted": false,
+      "fStarted": false,
+      "d03": {
+        "id": "D03",
+        "title": "前端候选包与重置说明",
+        "status": "blocked",
+        "details": {
+          "localPackageReady": true,
+          "desktopPackagePresent": true,
+          "resetScenariosPresent": true
+        },
+        "missing": [
+          "缺少候选包负责人签收和发布范围批准",
+          "自动化 E2E 证据不能替代候选包负责人签收和人工复核"
+        ]
+      },
+      "stderr": ""
+    }
+  ],
+  "preservation": {
+    "existingEvidenceFileCountBefore": 76,
+    "existingEvidenceSha256ManifestBefore": "9bec212a056c8dcf3184aaa7e55017c8f42af7db2d155bd714aa73ac5e3bc27b",
+    "manifestRule": "sorted relative path TAB byte length TAB lowercase sha256 LF, UTF-8; excludes this new D03 snapshot",
+    "inputHashesStableBeforeWrite": true,
+    "onlyAllowedWrites": [
+      "docs/execution/tasks/D03.md",
+      "docs/execution/checks/D03-prep.md",
+      "docs/implementation/evidence/d03-candidate-snapshot.json"
+    ]
+  },
+  "limitations": [
+    "Historical reports are referenced, not rerun human acceptance",
+    "No browser E2E, build, desktop packaging, app launch or reset performed",
+    "No candidate-owner signature or independent human review",
+    "C15 real device/supplier evidence and C16 decision/Top20/pilot inputs remain external prerequisites",
+    "No new signed release, installer, approved rollback baseline or E/F permission"
+  ]
+}

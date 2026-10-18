@@ -1,0 +1,411 @@
+
+> nuanban@0.1.0 c16:decision:check C:\Users\33864\Desktop\nuanban
+> node scripts/check-c16-decision-readiness.mjs --evidence docs/implementation/evidence/c16-decision-readiness-results.json
+
+{
+  "generatedAt": "2026-10-16T15:21:38.300Z",
+  "generatedDate": "2026-10-16",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "C16 Top20, guardian, retention, mastery and family-scope decision readiness",
+  "status": "blocked",
+  "decisionState": "unconfirmed",
+  "auditPassed": true,
+  "decisionReady": false,
+  "top20Approved": false,
+  "pilotEligible": false,
+  "source": "docs/implementation/baseline.md",
+  "sourceInventory": [
+    {
+      "path": "docs/implementation/baseline.md",
+      "exists": true,
+      "bytes": 6581,
+      "contentSha256": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "declaredUpdatedAt": "2026-10-15",
+      "declaredTimeZone": "Asia/Shanghai"
+    },
+    {
+      "path": "docs/implementation/evidence/c16-decision-input.json",
+      "exists": false,
+      "bytes": 0,
+      "contentSha256": null
+    }
+  ],
+  "decisionInputProvided": false,
+  "decisionInputParseable": false,
+  "decisionInputValid": false,
+  "decisionInputErrors": [
+    "c16 decision input file is missing"
+  ],
+  "sourceAuditPassed": true,
+  "decisionInputQualityPassed": false,
+  "decisions": [
+    {
+      "id": "Q-02",
+      "title": "Top20 内容、应用版本与风险断点",
+      "status": "unconfirmed",
+      "sourcePresent": true,
+      "sourceReference": "docs/implementation/baseline.md#Q-02",
+      "sourceHash": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "requiredFields": [
+        "approvedTop20List",
+        "applicationVersions",
+        "riskBreakpoints",
+        "owner",
+        "decisionDate"
+      ],
+      "confirmedFields": [],
+      "missingFields": [
+        "approvedTop20List",
+        "applicationVersions",
+        "riskBreakpoints",
+        "owner",
+        "decisionDate"
+      ],
+      "blockerCode": "Q_02_UNCONFIRMED",
+      "blocker": "没有负责人确认的 Top20 场景、应用版本、风险断点和签名更新/回退边界。"
+    },
+    {
+      "id": "Q-05",
+      "title": "监护、认领与授权流程",
+      "status": "unconfirmed",
+      "sourcePresent": true,
+      "sourceReference": "docs/implementation/baseline.md#Q-05",
+      "sourceHash": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "requiredFields": [
+        "guardianVerification",
+        "consentScopes",
+        "childDataBoundary",
+        "owner",
+        "decisionDate"
+      ],
+      "confirmedFields": [],
+      "missingFields": [
+        "guardianVerification",
+        "consentScopes",
+        "childDataBoundary",
+        "owner",
+        "decisionDate"
+      ],
+      "blockerCode": "Q_05_UNCONFIRMED",
+      "blocker": "没有确认关系、监护核验、档案 scope、当次共享和系统权限的实际同意人及流程。"
+    },
+    {
+      "id": "Q-10",
+      "title": "原始媒体、资产、审计与备份期限",
+      "status": "unconfirmed",
+      "sourcePresent": true,
+      "sourceReference": "docs/implementation/baseline.md#Q-10",
+      "sourceHash": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "requiredFields": [
+        "retentionByDataKind",
+        "deletionAndBackupPurge",
+        "supplierRetentionTerms",
+        "owner",
+        "decisionDate"
+      ],
+      "confirmedFields": [],
+      "missingFields": [
+        "retentionByDataKind",
+        "deletionAndBackupPurge",
+        "supplierRetentionTerms",
+        "owner",
+        "decisionDate"
+      ],
+      "blockerCode": "Q_10_UNCONFIRMED",
+      "blocker": "只有原始实时媒体不持久化的候选边界，没有其余数据类别 TTL、备份清除和供应保留批准。"
+    },
+    {
+      "id": "Q-11",
+      "title": "掌握状态与北极星指标",
+      "status": "unconfirmed",
+      "sourcePresent": true,
+      "sourceReference": "docs/implementation/baseline.md#Q-11",
+      "sourceHash": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "requiredFields": [
+        "masteryConfirmation",
+        "unpromptedReproductionMetric",
+        "assistanceExclusion",
+        "owner",
+        "decisionDate"
+      ],
+      "confirmedFields": [],
+      "missingFields": [
+        "masteryConfirmation",
+        "unpromptedReproductionMetric",
+        "assistanceExclusion",
+        "owner",
+        "decisionDate"
+      ],
+      "blockerCode": "Q_11_UNCONFIRMED",
+      "blocker": "没有冻结本人/授权家属确认、无 AI 复现单列和协助排除的统计口径，不能发布转化结论。"
+    },
+    {
+      "id": "Q-14",
+      "title": "基础亲情能力交付范围",
+      "status": "unconfirmed",
+      "sourcePresent": true,
+      "sourceReference": "docs/implementation/baseline.md#Q-14",
+      "sourceHash": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "requiredFields": [
+        "binding",
+        "archiveAccess",
+        "delegatedTodo",
+        "currentSessionMedia",
+        "deferredFamilyScope",
+        "owner",
+        "decisionDate"
+      ],
+      "confirmedFields": [],
+      "missingFields": [
+        "binding",
+        "archiveAccess",
+        "delegatedTodo",
+        "currentSessionMedia",
+        "deferredFamilyScope",
+        "owner",
+        "decisionDate"
+      ],
+      "blockerCode": "Q_14_UNCONFIRMED",
+      "blocker": "没有签收绑定、档案查看、代设待办、当次屏幕/语音和后续复杂家庭范围的交付边界。"
+    }
+  ],
+  "top20Slots": [
+    {
+      "slot": 1,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 2,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 3,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 4,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 5,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 6,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 7,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 8,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 9,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 10,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 11,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 12,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 13,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 14,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 15,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 16,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 17,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 18,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 19,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    },
+    {
+      "slot": 20,
+      "status": "unconfirmed",
+      "name": null,
+      "applicationVersion": null,
+      "riskBoundary": null
+    }
+  ],
+  "blockers": [
+    "没有真实负责人/试点方提交并签收 C16 决策输入。",
+    "Top20 的应用名称、版本、风险断点和更新回退规则仍未确认。",
+    "监护/授权、数据留存删除、掌握指标和亲情范围仍只有候选假设。",
+    "没有试点合作、设备矩阵、对象同意和支持流程，因此不能宣称 C16 或 M07 通过。"
+  ],
+  "blockerRefs": [
+    {
+      "code": "Q_02_UNCONFIRMED",
+      "decisionId": "Q-02",
+      "sourceReference": "docs/implementation/baseline.md#Q-02",
+      "sourceHash": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "missingFields": [
+        "approvedTop20List",
+        "applicationVersions",
+        "riskBreakpoints",
+        "owner",
+        "decisionDate"
+      ],
+      "reason": "没有负责人确认的 Top20 场景、应用版本、风险断点和签名更新/回退边界。"
+    },
+    {
+      "code": "Q_05_UNCONFIRMED",
+      "decisionId": "Q-05",
+      "sourceReference": "docs/implementation/baseline.md#Q-05",
+      "sourceHash": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "missingFields": [
+        "guardianVerification",
+        "consentScopes",
+        "childDataBoundary",
+        "owner",
+        "decisionDate"
+      ],
+      "reason": "没有确认关系、监护核验、档案 scope、当次共享和系统权限的实际同意人及流程。"
+    },
+    {
+      "code": "Q_10_UNCONFIRMED",
+      "decisionId": "Q-10",
+      "sourceReference": "docs/implementation/baseline.md#Q-10",
+      "sourceHash": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "missingFields": [
+        "retentionByDataKind",
+        "deletionAndBackupPurge",
+        "supplierRetentionTerms",
+        "owner",
+        "decisionDate"
+      ],
+      "reason": "只有原始实时媒体不持久化的候选边界，没有其余数据类别 TTL、备份清除和供应保留批准。"
+    },
+    {
+      "code": "Q_11_UNCONFIRMED",
+      "decisionId": "Q-11",
+      "sourceReference": "docs/implementation/baseline.md#Q-11",
+      "sourceHash": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "missingFields": [
+        "masteryConfirmation",
+        "unpromptedReproductionMetric",
+        "assistanceExclusion",
+        "owner",
+        "decisionDate"
+      ],
+      "reason": "没有冻结本人/授权家属确认、无 AI 复现单列和协助排除的统计口径，不能发布转化结论。"
+    },
+    {
+      "code": "Q_14_UNCONFIRMED",
+      "decisionId": "Q-14",
+      "sourceReference": "docs/implementation/baseline.md#Q-14",
+      "sourceHash": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32",
+      "missingFields": [
+        "binding",
+        "archiveAccess",
+        "delegatedTodo",
+        "currentSessionMedia",
+        "deferredFamilyScope",
+        "owner",
+        "decisionDate"
+      ],
+      "reason": "没有签收绑定、档案查看、代设待办、当次屏幕/语音和后续复杂家庭范围的交付边界。"
+    },
+    {
+      "code": "C16_DECISION_INPUT_MISSING",
+      "sourceReference": "docs/implementation/evidence/c16-decision-input.json",
+      "sourceHash": null,
+      "reason": "c16 decision input file is missing"
+    },
+    {
+      "code": "C16_INDEPENDENT_SIGNOFF_REQUIRED",
+      "sourceReference": "docs/implementation/evidence/c16-decision-input.json",
+      "sourceHash": null,
+      "reason": "负责人、独立复核者和试点方签收仍未形成可核验的独立决策证据。"
+    }
+  ],
+  "allowedUntilDecision": [
+    "继续维护 Schema、流程模拟和合成风险样例。",
+    "继续运行本地 UI/E2E 与安全边界测试。",
+    "不发布 Top20 已适配清单、不处理真实儿童/家庭数据、不启动真实试点。"
+  ]
+}

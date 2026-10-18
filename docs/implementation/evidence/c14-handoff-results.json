@@ -1,0 +1,337 @@
+{
+  "reportSchemaVersion": "c14-handoff/v2",
+  "generatedBy": "nuanban/scripts/check-c14-handoff.mjs",
+  "generatedAt": "2026-10-17T15:14:27.030Z",
+  "generatedDate": "2026-10-17",
+  "generatedTimeZone": "Asia/Shanghai",
+  "mode": "development",
+  "scope": "C14 backend contract handoff preparation",
+  "sourceInventory": [
+    {
+      "role": "generated_openapi",
+      "path": "packages/contracts/openapi.json",
+      "exists": true,
+      "bytes": 485835,
+      "contentSha256": "8054d8be16705bc6902e86494c53ca9bff2c3ade4903d698b4367a5957c92e41"
+    },
+    {
+      "role": "operations",
+      "path": "packages/contracts/src/spec/operations.ts",
+      "exists": true,
+      "bytes": 12071,
+      "contentSha256": "95118a211b11dc9230a98e785ae678b1eca8779f6c08ee40956a8d643c3380ee"
+    },
+    {
+      "role": "events",
+      "path": "packages/contracts/src/spec/events.ts",
+      "exists": true,
+      "bytes": 5442,
+      "contentSha256": "2288c2440c03260de512d0a946d84e1f460113bb0a7a0320266f396f8ec3579b"
+    },
+    {
+      "role": "catalog",
+      "path": "packages/contracts/src/spec/catalog.ts",
+      "exists": true,
+      "bytes": 1079,
+      "contentSha256": "75d4df906ca406819dcd42febd07cc07f207a8a9c356006f8475af2280fe46db"
+    },
+    {
+      "role": "primitives",
+      "path": "packages/contracts/src/spec/primitives.ts",
+      "exists": true,
+      "bytes": 2367,
+      "contentSha256": "9cc4ae693033f19498b69cee74d1610d0e97dd10d525b09c28e8f5af67be77cb"
+    },
+    {
+      "role": "errors",
+      "path": "packages/contracts/src/spec/errors.ts",
+      "exists": true,
+      "bytes": 388,
+      "contentSha256": "27124d0ddb3bcffcd7f65177caedb00191dfa8f892d8f234dd73aecfe0f71b66"
+    }
+  ],
+  "sourceRevision": "c13774ef0990d7eecce08650662a4e12372eecaa07f9a67d9020dba3d0b276a3",
+  "schemaVersion": "0.2.0",
+  "operations": 60,
+  "definitions": 118,
+  "status": "frozen",
+  "success": true,
+  "checks": [
+    {
+      "name": "contract counts and generated version",
+      "passed": true,
+      "detail": "0.2.0, 60 operations, 118 definitions and 60 generated paths are aligned"
+    },
+    {
+      "name": "authentication and object authorization metadata",
+      "passed": true,
+      "detail": "public challenges stay in auth paths and critical relation/consent operations retain explicit object authorization"
+    },
+    {
+      "name": "mutation idempotency and optimistic version guards",
+      "passed": true,
+      "detail": "all mutations carry idempotency metadata and all versioned writes carry If-Match/ETag"
+    },
+    {
+      "name": "error envelope and safety statuses",
+      "passed": true,
+      "detail": "all operations expose the shared safe error envelope and required refusal categories"
+    },
+    {
+      "name": "capture and upload consent boundary",
+      "passed": true,
+      "detail": "screen/media analysis and binary upload require current consent, with a 10MiB generated limit"
+    },
+    {
+      "name": "assist lease and stop boundary",
+      "passed": true,
+      "detail": "assist join is device/grant scoped and assist end requires local stop before server lease fallback"
+    },
+    {
+      "name": "stream and event termination coverage",
+      "passed": true,
+      "detail": "stream operations and explicit cancel/stop operations are represented separately"
+    },
+    {
+      "name": "pet and reminder safety boundaries",
+      "passed": true,
+      "detail": "pet application remains preview-confirmed/versioned and reminder receipts do not equate send with seen"
+    },
+    {
+      "name": "all operations await D before implementation",
+      "passed": true,
+      "detail": "generated operations are marked E-after-D-approval and cannot be read as deployed backend behavior"
+    }
+  ],
+  "passed": 9,
+  "failed": 0,
+  "commandResults": [
+    {
+      "command": "pnpm contracts:check",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "stdout": "> nuanban@0.1.0 contracts:check C:\\Users\\33864\\Desktop\\nuanban\n> node scripts/generate-contracts.mjs --check && node scripts/validate-contracts.mjs\n\n契约 0.2.0: 60 个操作，118 个定义，0 个文件更新\nandroid-bridge-reply.schema.json: JSON Schema 2020-12 校验通过\nbridge.schema.json: JSON Schema 2020-12 校验通过\nconversation-event.schema.json: JSON Schema 2020-12 校验通过\nnote.schema.json: JSON Schema 2020-12 校验通过\nservice-error.schema.json: JSON Schema 2020-12 校验通过\n118 个服务定义逐项编译通过\nservices.schema.json: JSON Schema 2020-12 校验通过",
+      "stderr": ""
+    }
+  ],
+  "technicalFreeze": {
+    "status": "frozen",
+    "freezeType": "automated_technical",
+    "independentReviewPresent": false,
+    "independentReviewRequired": true,
+    "sourceRevision": "c13774ef0990d7eecce08650662a4e12372eecaa07f9a67d9020dba3d0b276a3"
+  },
+  "backendStarted": false,
+  "development": {
+    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "eligible": true,
+    "failedChecks": [],
+    "failed_checks": [],
+    "externalPending": [
+      {
+        "id": "A02_INDEPENDENT_REVIEW",
+        "capability": "contract_independent_review",
+        "reason": "A02/C14 independent review and human protocol freeze are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C12_REAL_SUPPLIER_EVIDENCE",
+        "capability": "supplier_contract_and_credentials",
+        "reason": "Real supplier credentials, terms and quality evidence are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "BACKEND_NOT_CONNECTED",
+        "capability": "backend_service_connection",
+        "reason": "No real HTTP, SSE, WS, authentication, media relay or production database service is connected.",
+        "production_enabled": false
+      }
+    ],
+    "external_pending": [
+      {
+        "id": "A02_INDEPENDENT_REVIEW",
+        "capability": "contract_independent_review",
+        "reason": "A02/C14 independent review and human protocol freeze are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C12_REAL_SUPPLIER_EVIDENCE",
+        "capability": "supplier_contract_and_credentials",
+        "reason": "Real supplier credentials, terms and quality evidence are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "BACKEND_NOT_CONNECTED",
+        "capability": "backend_service_connection",
+        "reason": "No real HTTP, SSE, WS, authentication, media relay or production database service is connected.",
+        "production_enabled": false
+      }
+    ]
+  },
+  "default": {
+    "mode": "development",
+    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
+    "eligible": true,
+    "externalPending": [
+      {
+        "id": "A02_INDEPENDENT_REVIEW",
+        "capability": "contract_independent_review",
+        "reason": "A02/C14 independent review and human protocol freeze are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C12_REAL_SUPPLIER_EVIDENCE",
+        "capability": "supplier_contract_and_credentials",
+        "reason": "Real supplier credentials, terms and quality evidence are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "BACKEND_NOT_CONNECTED",
+        "capability": "backend_service_connection",
+        "reason": "No real HTTP, SSE, WS, authentication, media relay or production database service is connected.",
+        "production_enabled": false
+      }
+    ],
+    "external_pending": [
+      {
+        "id": "A02_INDEPENDENT_REVIEW",
+        "capability": "contract_independent_review",
+        "reason": "A02/C14 independent review and human protocol freeze are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C12_REAL_SUPPLIER_EVIDENCE",
+        "capability": "supplier_contract_and_credentials",
+        "reason": "Real supplier credentials, terms and quality evidence are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "BACKEND_NOT_CONNECTED",
+        "capability": "backend_service_connection",
+        "reason": "No real HTTP, SSE, WS, authentication, media relay or production database service is connected.",
+        "production_enabled": false
+      }
+    ]
+  },
+  "external": {
+    "verdict": "EXTERNAL_PENDING",
+    "ready": false,
+    "status": "external_pending",
+    "pending": [
+      {
+        "id": "A02_INDEPENDENT_REVIEW",
+        "capability": "contract_independent_review",
+        "reason": "A02/C14 independent review and human protocol freeze are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C12_REAL_SUPPLIER_EVIDENCE",
+        "capability": "supplier_contract_and_credentials",
+        "reason": "Real supplier credentials, terms and quality evidence are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "BACKEND_NOT_CONNECTED",
+        "capability": "backend_service_connection",
+        "reason": "No real HTTP, SSE, WS, authentication, media relay or production database service is connected.",
+        "production_enabled": false
+      }
+    ],
+    "externalPending": [
+      {
+        "id": "A02_INDEPENDENT_REVIEW",
+        "capability": "contract_independent_review",
+        "reason": "A02/C14 independent review and human protocol freeze are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C12_REAL_SUPPLIER_EVIDENCE",
+        "capability": "supplier_contract_and_credentials",
+        "reason": "Real supplier credentials, terms and quality evidence are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "BACKEND_NOT_CONNECTED",
+        "capability": "backend_service_connection",
+        "reason": "No real HTTP, SSE, WS, authentication, media relay or production database service is connected.",
+        "production_enabled": false
+      }
+    ],
+    "external_pending": [
+      {
+        "id": "A02_INDEPENDENT_REVIEW",
+        "capability": "contract_independent_review",
+        "reason": "A02/C14 independent review and human protocol freeze are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "C12_REAL_SUPPLIER_EVIDENCE",
+        "capability": "supplier_contract_and_credentials",
+        "reason": "Real supplier credentials, terms and quality evidence are not present.",
+        "production_enabled": false
+      },
+      {
+        "id": "BACKEND_NOT_CONNECTED",
+        "capability": "backend_service_connection",
+        "reason": "No real HTTP, SSE, WS, authentication, media relay or production database service is connected.",
+        "production_enabled": false
+      }
+    ]
+  },
+  "release": {
+    "verdict": "EXTERNAL_PENDING",
+    "ready": false,
+    "blockers": [
+      {
+        "id": "A02_INDEPENDENT_REVIEW",
+        "reason": "A02/C14 independent review and human protocol freeze are not present.",
+        "kind": "release"
+      },
+      {
+        "id": "C12_REAL_SUPPLIER_EVIDENCE",
+        "reason": "Real supplier credentials, terms and quality evidence are not present.",
+        "kind": "release"
+      },
+      {
+        "id": "BACKEND_NOT_CONNECTED",
+        "reason": "No real HTTP, SSE, WS, authentication, media relay or production database service is connected.",
+        "kind": "release"
+      }
+    ],
+    "reasonRefs": [
+      "A02_INDEPENDENT_REVIEW",
+      "C12_REAL_SUPPLIER_EVIDENCE",
+      "BACKEND_NOT_CONNECTED"
+    ],
+    "reason_refs": [
+      "A02_INDEPENDENT_REVIEW",
+      "C12_REAL_SUPPLIER_EVIDENCE",
+      "BACKEND_NOT_CONNECTED"
+    ]
+  },
+  "limitations": [
+    "仅覆盖本机源契约、生成物和静态安全边界审查，不连接真实后端或供应商。",
+    "没有真实 HTTP、SSE、WS、认证、媒体中继、生产数据库或独立协议签收记录。",
+    "frozen 仅表示自动技术冻结，不表示人类独立评审或正式发布批准。"
+  ],
+  "blockers": [
+    "A02/C14 independent review and human protocol freeze are not present.",
+    "Real supplier credentials, terms and quality evidence are not present.",
+    "No real HTTP, SSE, WS, authentication, media relay or production database service is connected."
+  ],
+  "blockerRefs": [
+    {
+      "code": "A02_INDEPENDENT_REVIEW",
+      "reason": "A02/C14 independent review and human protocol freeze are not present."
+    },
+    {
+      "code": "C12_REAL_SUPPLIER_EVIDENCE",
+      "reason": "Real supplier credentials, terms and quality evidence are not present."
+    },
+    {
+      "code": "BACKEND_NOT_CONNECTED",
+      "reason": "No real HTTP, SSE, WS, authentication, media relay or production database service is connected."
+    }
+  ]
+}

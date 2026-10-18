@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-10-16",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "C07/C08 shared reminder rules, dispatch gate and native capability boundary",
+  "testReport": "reminder-c07-c08-results.json",
+  "sharedRuleTests": 14,
+  "platformBoundaryTests": 4,
+  "dispatchGateTests": 6,
+  "sqlitePreflightReport": "sqlite-c07-c08-results.json",
+  "sqlitePreflightChecks": 8,
+  "sqlitePreflightStatus": "passed_as_independent_node_lab_only",
+  "desktopReminderStoreSchema": "v2_with_v1_migration",
+  "desktopReminderStoreTests": 9,
+  "desktopReceiptTimestamps": "persisted_with_monotonic_guard",
+  "status": "preparatory_not_accepted",
+  "androidRoom": "compile_only",
+  "androidNotificationPermission": "not requested",
+  "androidSystemScheduler": "not integrated",
+  "windowsSqlite": "electron_static_and_tested",
+  "windowsEncryption": "payload_only_safeStorage",
+  "desktopNotificationAdapter": "synthetic_only",
+  "windowsSystemScheduler": "not integrated",
+  "browserAdapter": "page_only",
+  "nativeAdapter": "unsupported",
+  "limitations": [
+    "No Android device, Room database, notification permission, AlarmManager/WorkManager, reboot or force-stop verification was performed.",
+    "Electron SQLite and a dependency-injected desktop notification adapter have local static/synthetic evidence only; no encryption key storage, toast/planned-task, sleep, exit or restart verification was performed.",
+    "The shared ledger and DST tests do not prove background delivery, system delivery, user-visible receipt, or cross-device exactly-once behavior.",
+    "The Node 24 SQLite preflight is independent of Electron and does not prove production storage compatibility or native scheduling.",
+    "The existing web timer remains process/page-only and is not represented as native scheduling.",
+    "ReminderDispatchGate uses an injected scheduler port, and the desktop notification adapter uses an injected Electron Notification object; neither is Android or Windows system delivery evidence."
+  ]
+}

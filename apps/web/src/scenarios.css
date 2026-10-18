@@ -1,0 +1,30 @@
+.scenario-current { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: center; margin-bottom: 24px; }
+.scenario-current h2 { margin: 12px 0; }
+.scenario-current p { line-height: 1.9; }
+.scenario-current .stack { min-width: 220px; }
+.scenario-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.scenario-card { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.scenario-card-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.scenario-card code { font-size: 14px; overflow-wrap: anywhere; }
+.scenario-card h2 { font-size: 23px; }
+.scenario-card p { line-height: 1.9; flex: 1; }
+.scenario-card .button { justify-content: space-between; }
+.conversation-failure { margin: 14px 20px; border: 1px solid #b56546; border-radius: 14px; padding: 20px; background: #fff3e7; color: #743b24; }
+.conversation-failure p { margin: 12px 0; line-height: 1.9; overflow-wrap: anywhere; }
+.conversation-failure .button-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.message-state { display: block; margin-top: 10px; font-weight: 700; }
+.scenario-ribbon-link { white-space: nowrap; }
+.drawing-job-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, 1fr); gap: 24px; }
+.drawing-job-preview { margin: 0; }
+.drawing-job-preview canvas { width: 100%; height: auto; border: 1px solid #dccdba; border-radius: 14px; }
+.drawing-job-preview figcaption { margin-top: 16px; line-height: 1.8; }
+.drawing-job-controls { display: flex; flex-direction: column; gap: 20px; }
+.drawing-job-controls h2, .drawing-job-controls p { line-height: 1.9; }
+.drawing-job-controls select { width: 100%; min-height: 56px; font-size: 16px; }
+@media (max-width: 760px) {
+  .scenario-current, .scenario-grid { grid-template-columns: minmax(0, 1fr); }
+  .scenario-current .stack { min-width: 0; }
+  .conversation-failure { margin: 12px; padding: 16px; }
+  .conversation-failure .button-row { flex-direction: column; }
+  .drawing-job-layout { grid-template-columns: minmax(0, 1fr); }
+}

@@ -1,0 +1,3 @@
+import { cp,mkdir,access,rm } from 'node:fs/promises';
+import { resolve,relative,isAbsolute } from 'node:path';
+const root=resolve(import.meta.dirname,'..');const source=resolve(root,'apps/web/dist');await access(source);const destination=resolve(root,'apps/android/app/src/main/assets/ui');const target=relative(root,destination);if(target.startsWith('..')||isAbsolute(target))throw new Error('UI staging must stay inside the workspace');await rm(destination,{recursive:true,force:true});await mkdir(destination,{recursive:true});await cp(source,destination,{recursive:true});console.log('共享 UI 已复制到 Android 本地 assets/ui');

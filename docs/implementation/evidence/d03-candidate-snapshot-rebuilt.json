@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "d03-candidate-check/v1",
+  "generatedAt": "2026-10-17T03:46:28.857Z",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "D03 current Web build versus packaged desktop ASAR UI byte comparison",
+  "success": true,
+  "status": "matched",
+  "acceptance": "preparatory_not_accepted",
+  "webDirectory": "C:\\Users\\33864\\Desktop\\nuanban\\apps\\web\\dist",
+  "archivePath": "C:\\Users\\33864\\Desktop\\nuanban\\apps\\desktop\\out\\NuanbanDemo-win32-x64\\resources\\app.asar",
+  "archiveSha256": "a4206de7e955b2ebdcf72397f177aa027817939dfabd09efd6659857ee1a725e",
+  "files": [
+    {
+      "path": "assets/bootstrap-BIi0-HtA.js",
+      "bytes": 275366,
+      "sourceSha256": "4e058dc99880039049b08a7d1e7b708a8d62aeac90c88d1cb8f0f998c2c9c2e5",
+      "packagedSha256": "4e058dc99880039049b08a7d1e7b708a8d62aeac90c88d1cb8f0f998c2c9c2e5",
+      "matches": true
+    },
+    {
+      "path": "assets/bootstrap-CVGnqZ7q.css",
+      "bytes": 4275,
+      "sourceSha256": "3ae2f75d9909d40fff86a3e73edccd54dbf4b90d5b219f1403a8f7be0556f67b",
+      "packagedSha256": "3ae2f75d9909d40fff86a3e73edccd54dbf4b90d5b219f1403a8f7be0556f67b",
+      "matches": true
+    },
+    {
+      "path": "assets/index-Cne_RoAQ.css",
+      "bytes": 40988,
+      "sourceSha256": "a23d7be6d2513be59105686cdb52b3538037532c4465a5121db1690a7c5d0139",
+      "packagedSha256": "a23d7be6d2513be59105686cdb52b3538037532c4465a5121db1690a7c5d0139",
+      "matches": true
+    },
+    {
+      "path": "assets/index-piQD4I18.js",
+      "bytes": 222229,
+      "sourceSha256": "77e75fd1fa4fdb5977110b3b11d8d3cb384719fa6698b66793b7825ac32742db",
+      "packagedSha256": "77e75fd1fa4fdb5977110b3b11d8d3cb384719fa6698b66793b7825ac32742db",
+      "matches": true
+    },
+    {
+      "path": "favicon.svg",
+      "bytes": 382,
+      "sourceSha256": "b3d5f7e1b3224b4b12503c7801964abe9d4a205d5597322801221a000ca8412c",
+      "packagedSha256": "b3d5f7e1b3224b4b12503c7801964abe9d4a205d5597322801221a000ca8412c",
+      "matches": true
+    },
+    {
+      "path": "index.html",
+      "bytes": 581,
+      "sourceSha256": "79d50d82811dd4d72aa8ae87ca4cb723b678a2eac511b6a7b817c4d73416f0cf",
+      "packagedSha256": "79d50d82811dd4d72aa8ae87ca4cb723b678a2eac511b6a7b817c4d73416f0cf",
+      "matches": true
+    }
+  ],
+  "extraPackagedFiles": [],
+  "errors": [],
+  "limitations": [
+    "只核对当前 Web 构建与桌面 ASAR 的 UI 文件集合和原始字节；不证明源代码可重建或设备运行。",
+    "不验证 Android 包、系统权限、后台能力、人工读屏或负责人签收；不批准 D 或启动 E/F。"
+  ]
+}

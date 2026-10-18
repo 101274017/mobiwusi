@@ -1,0 +1,248 @@
+
+> nuanban@0.1.0 c17:assembly:check C:\Users\33864\Desktop\nuanban
+> node scripts/check-c17-assembly.mjs --evidence docs/implementation/evidence/c17-assembly-results.json
+
+{
+  "generatedAt": "2026-10-16",
+  "scope": "C17 shared storage and bridge assembly preflight",
+  "status": "blocked",
+  "acceptance": "preparatory_not_accepted",
+  "auditPassed": true,
+  "browserStorageVerified": "synthetic_only",
+  "nativeBridgeVerified": "synthetic_only",
+  "androidRoomVerified": "compile_only",
+  "desktopStoreVerified": "static_only",
+  "desktopNotificationVerified": "synthetic_only",
+  "accountIsolationAudited": true,
+  "highRiskCapabilitiesEnabled": false,
+  "goNoGoEligible": false,
+  "checks": [
+    {
+      "id": "C17-01",
+      "title": "组合根同时装配本地仓储与平台端口",
+      "status": "passed",
+      "files": [
+        "apps/web/src/composition.ts",
+        "apps/web/src/bootstrap.tsx"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-02",
+      "title": "本地仓储使用账号命名空间和事务冲突保护",
+      "status": "passed",
+      "files": [
+        "packages/local-data/src/index.ts"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-03",
+      "title": "Android 本地桥接限制来源、主框架、代际和迟到响应",
+      "status": "passed",
+      "files": [
+        "packages/platform-ports/src/android-message-host.ts"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-04",
+      "title": "未验证的高风险原生能力保持关闭",
+      "status": "passed",
+      "files": [
+        "packages/platform-ports/src/index.ts"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-05",
+      "title": "C17 关键边界已有本机合成测试入口",
+      "status": "passed",
+      "files": [
+        "tests/integration/local-data.test.ts",
+        "tests/platform/android-message-host.test.ts",
+        "tests/platform/native-host.test.ts",
+        "tests/contract/active-bridge.test.ts"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-06",
+      "title": "组合根不把真实服务或系统权限伪装成已接入",
+      "status": "passed",
+      "files": [
+        "packages/config/src/index.ts",
+        "apps/web/src/composition.ts",
+        "packages/platform-ports/README.md",
+        "packages/contracts/README.md"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-07",
+      "title": "Electron 桌面本地提醒仓储通过受限主进程桥接",
+      "status": "passed",
+      "files": [
+        "apps/desktop/reminder-store.cjs",
+        "apps/desktop/main.cjs",
+        "apps/desktop/preload.cjs"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-08",
+      "title": "Android Room 本地提醒预备层存在且保持系统能力保守回退",
+      "status": "passed",
+      "files": [
+        "apps/android/app/build.gradle.kts",
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderEntity.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDatabase.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderStore.kt",
+        "apps/android/app/src/main/java/org/nuanban/assistant/ReminderNotificationScheduler.kt"
+      ],
+      "missing": []
+    },
+    {
+      "id": "C17-09",
+      "title": "Electron 桌面通知适配器仅在显式能力与权限通过后提交",
+      "status": "passed",
+      "files": [
+        "apps/desktop/notification-adapter.cjs",
+        "tests/platform/desktop-notification-adapter.test.ts",
+        "apps/desktop/reminder-notification-bridge.cjs",
+        "apps/desktop/main.cjs",
+        "apps/desktop/preload.cjs",
+        "tests/platform/desktop-reminder-bridge.test.ts"
+      ],
+      "missing": []
+    }
+  ],
+  "blockers": [
+    "IndexedDB、Chrome 同源消息通道和静态组合根只证明本机预备层，不证明真实 WebView 或 Electron 生产运行时。",
+    "Android Room 已有源码、代码生成、Debug APK 编译和本机 SQLite 1→2 迁移预演证据，但尚未完成真实 Room 旧库升级/备份恢复、整库加密、真实设备权限、系统投递或应用生命周期回执验证；Electron SQLite 与注入式桌面通知适配器同样尚未完成安装包/升级迁移、加密密钥、系统权限、系统 Toast 和真实设备验证。",
+    "系统权限不得由 Mock 伪造；真实平台端口、设备矩阵和独立复核仍属于 C15/D 前置条件。",
+    "C15 NV 和 C16 决策均未准入，C17 不能推动 D，也不能启动 E/F。"
+  ],
+  "evidenceInventory": [
+    {
+      "file": "apps/web/src/composition.ts",
+      "exists": true,
+      "bytes": 2192
+    },
+    {
+      "file": "apps/web/src/bootstrap.tsx",
+      "exists": true,
+      "bytes": 465
+    },
+    {
+      "file": "packages/local-data/src/index.ts",
+      "exists": true,
+      "bytes": 14411
+    },
+    {
+      "file": "packages/platform-ports/src/index.ts",
+      "exists": true,
+      "bytes": 11631
+    },
+    {
+      "file": "packages/platform-ports/src/android-message-host.ts",
+      "exists": true,
+      "bytes": 5143
+    },
+    {
+      "file": "apps/desktop/reminder-store.cjs",
+      "exists": true,
+      "bytes": 17706
+    },
+    {
+      "file": "apps/desktop/notification-adapter.cjs",
+      "exists": true,
+      "bytes": 6413
+    },
+    {
+      "file": "apps/desktop/reminder-notification-bridge.cjs",
+      "exists": true,
+      "bytes": 3440
+    },
+    {
+      "file": "apps/desktop/main.cjs",
+      "exists": true,
+      "bytes": 6533
+    },
+    {
+      "file": "apps/desktop/preload.cjs",
+      "exists": true,
+      "bytes": 1479
+    },
+    {
+      "file": "apps/android/app/build.gradle.kts",
+      "exists": true,
+      "bytes": 781
+    },
+    {
+      "file": "apps/android/app/src/main/AndroidManifest.xml",
+      "exists": true,
+      "bytes": 767
+    },
+    {
+      "file": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderEntity.kt",
+      "exists": true,
+      "bytes": 2398
+    },
+    {
+      "file": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderDatabase.kt",
+      "exists": true,
+      "bytes": 1645
+    },
+    {
+      "file": "apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderStore.kt",
+      "exists": true,
+      "bytes": 16389
+    },
+    {
+      "file": "apps/android/app/src/main/java/org/nuanban/assistant/ReminderNotificationScheduler.kt",
+      "exists": true,
+      "bytes": 6972
+    },
+    {
+      "file": "tests/integration/local-data.test.ts",
+      "exists": true,
+      "bytes": 4065
+    },
+    {
+      "file": "tests/platform/android-message-host.test.ts",
+      "exists": true,
+      "bytes": 9016
+    },
+    {
+      "file": "tests/platform/native-host.test.ts",
+      "exists": true,
+      "bytes": 3481
+    },
+    {
+      "file": "tests/contract/active-bridge.test.ts",
+      "exists": true,
+      "bytes": 2372
+    },
+    {
+      "file": "tests/platform/desktop-notification-adapter.test.ts",
+      "exists": true,
+      "bytes": 4904
+    },
+    {
+      "file": "tests/platform/desktop-reminder-bridge.test.ts",
+      "exists": true,
+      "bytes": 5573
+    }
+  ],
+  "recordSchema": [
+    "date_and_timezone",
+    "source_files_and_hashes",
+    "owner_namespace_and_transaction_boundary",
+    "bridge_origin_main_frame_correlation_timeout",
+    "capability_flags_and_disabled_paths",
+    "synthetic_test_commands",
+    "device_webview_room_sqlite_evidence",
+    "limitations_executor_independent_reviewer"
+  ]
+}

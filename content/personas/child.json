@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "mode": "child",
+  "fontSize": 20,
+  "captionSize": 32,
+  "speechRate": 0.9,
+  "automaticClick": false,
+  "guardianRequiredForSensitivePermissions": true
+}

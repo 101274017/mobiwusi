@@ -1,0 +1,163 @@
+{
+  "schemaVersion": "d08-browser-accessibility/v1",
+  "generatedAt": "2026-10-17T03:27:16.191Z",
+  "generatedTimeZone": "Asia/Shanghai",
+  "scope": "D08 fresh Playwright accessibility regression on desktop and Pixel 7 browser viewports; not human or device acceptance",
+  "command": "PLAYWRIGHT_CHANNEL=chrome pnpm exec playwright test tests/e2e/accessibility.spec.ts --workers=1 --reporter=json --output=.cache/d08-accessibility-20261017",
+  "exitCode": 0,
+  "success": true,
+  "acceptance": "preparatory_not_accepted",
+  "stats": {
+    "startTime": "2026-10-17T03:17:22.783Z",
+    "duration": 23108.21,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "checks": [
+    {
+      "title": "键盘可以跳过导航、进入主内容并操作首页入口",
+      "project": "desktop-chromium",
+      "outcome": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1837
+        }
+      ]
+    },
+    {
+      "title": "最大字号、减少动画与移动视口不产生横向溢出",
+      "project": "desktop-chromium",
+      "outcome": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1210
+        }
+      ]
+    },
+    {
+      "title": "静音只关闭声音，文字字幕和重读入口仍可用",
+      "project": "desktop-chromium",
+      "outcome": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2800
+        }
+      ]
+    },
+    {
+      "title": "语音不可用时明确降级到字幕，不阻塞讲解完成",
+      "project": "desktop-chromium",
+      "outcome": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1819
+        }
+      ]
+    },
+    {
+      "title": "模态框具备可访问名称、Escape 关闭与焦点回收",
+      "project": "desktop-chromium",
+      "outcome": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1169
+        }
+      ]
+    },
+    {
+      "title": "键盘可以跳过导航、进入主内容并操作首页入口",
+      "project": "mobile-chromium",
+      "outcome": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1247
+        }
+      ]
+    },
+    {
+      "title": "最大字号、减少动画与移动视口不产生横向溢出",
+      "project": "mobile-chromium",
+      "outcome": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1061
+        }
+      ]
+    },
+    {
+      "title": "静音只关闭声音，文字字幕和重读入口仍可用",
+      "project": "mobile-chromium",
+      "outcome": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 2581
+        }
+      ]
+    },
+    {
+      "title": "语音不可用时明确降级到字幕，不阻塞讲解完成",
+      "project": "mobile-chromium",
+      "outcome": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 1833
+        }
+      ]
+    },
+    {
+      "title": "模态框具备可访问名称、Escape 关闭与焦点回收",
+      "project": "mobile-chromium",
+      "outcome": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "duration": 953
+        }
+      ]
+    }
+  ],
+  "sourceInventory": [
+    {
+      "path": ".cache/d08-accessibility-20261017-results.json",
+      "bytes": 16418,
+      "sha256": "ed5af9c24cd5b4cec7735d4accbfb60725d41318f4365c0509b6b50b27f540bd"
+    },
+    {
+      "path": "tests/e2e/accessibility.spec.ts",
+      "bytes": 3772,
+      "sha256": "9d57a0880cf025a581edbae31633b2c174fb157144e5d0a142ba10b6e795a38e"
+    },
+    {
+      "path": "playwright.config.ts",
+      "bytes": 517,
+      "sha256": "81b10b8a199c83df0cae4c9fbd1c1a1287ace2f18906dfac588cbef66b49265d"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "bytes": 87694,
+      "sha256": "2a3b4466b04ea84baee2bdad1a75e6a174437744c2dcf915de8a5196e006d990"
+    }
+  ],
+  "deviceVerified": false,
+  "manualSignoff": false,
+  "independentAcceptance": false,
+  "goNoGoEligible": false,
+  "eStarted": false,
+  "fStarted": false,
+  "limitations": [
+    "5 个用例各在桌面和移动视口运行一次；移动项目是 Pixel 7 浏览器模拟，不是 Android 真机。",
+    "只验证 DOM、键盘、焦点、字号、字幕和故障夹具；没有真实读屏器、原生字幕或人工签收。",
+    "原始完整报告保存在 .cache 并以哈希引用；历史 e2e-results.json 未覆盖。"
+  ]
+}

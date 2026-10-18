@@ -1,0 +1,52 @@
+
+> nuanban@0.1.0 contracts:kotlin:check C:\Users\33864\Desktop\nuanban
+> powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-kotlin-contracts.ps1
+
+
+> nuanban@0.1.0 contracts:check C:\Users\33864\Desktop\nuanban
+> node scripts/generate-contracts.mjs --check && node scripts/validate-contracts.mjs
+
+契约 0.2.0: 60 个操作，118 个定义，0 个文件更新
+android-bridge-reply.schema.json: JSON Schema 2020-12 校验通过
+bridge.schema.json: JSON Schema 2020-12 校验通过
+conversation-event.schema.json: JSON Schema 2020-12 校验通过
+note.schema.json: JSON Schema 2020-12 校验通过
+service-error.schema.json: JSON Schema 2020-12 校验通过
+118 个服务定义逐项编译通过
+services.schema.json: JSON Schema 2020-12 校验通过
+Kotlin/Ajv fixtures: 7631 cases, 118 definitions
+{
+    "schemaVersion":  "0.2.0",
+    "definitions":  118,
+    "casesPassed":  7631,
+    "validRoundtrips":  1247,
+    "invalidRejected":  6384,
+    "typedBoundaryChecks":  3,
+    "activeBridgeCasesPassed":  28,
+    "deviceVerified":  false,
+    "passed":  true,
+    "testedAt":  "2026-10-16T06:53:24.8520114+08:00",
+    "compilerVersion":  "2.2.20",
+    "sources":  [
+                    {
+                        "sha256":  "75fd9dbd992025d804262cd7590060054bb20aeade0de01d0270e9fde3d2e707",
+                        "path":  "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ActiveBridgeProtocol.kt"
+                    },
+                    {
+                        "sha256":  "81bf50d03587f8e017498c47715789d44b251f05f2f7712d1afa1af98afdc482",
+                        "path":  "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ContractRules.generated.kt"
+                    },
+                    {
+                        "sha256":  "133cd910746a82f618cae2f979730eab2c37a931740c96d2f43b54e59c70a0c3",
+                        "path":  "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ContractRuntime.kt"
+                    },
+                    {
+                        "sha256":  "4a9b4d40c22e081bc7f46f6ef79acbe0936604f83dce18444f77ef04fe8a1fc3",
+                        "path":  "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ServiceDtos.generated.kt"
+                    },
+                    {
+                        "sha256":  "9cbc123be8b0d349ae7cbace26ccc3f8f4adc11f7e6cc5d71c3cd17f9217bea0",
+                        "path":  ".cache/kotlin-contracts/ContractFixtures.generated.kt"
+                    }
+                ]
+}

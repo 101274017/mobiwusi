@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-10-15T22:18:14.754779+08:00",
+  "artifact": "apps/web/dist",
+  "webIndexSha256": "d6037397fd5ba5c2b97a60aacb714c21248d39b8a055698e78d24b9cacf77bed",
+  "playwrightPython": "1.63.0",
+  "channel": "chrome",
+  "deviceVerified": false,
+  "source": "Chrome-simulated-Android-message-channel",
+  "realWebViewVerified": false,
+  "cases": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "messages": [
+        {
+          "version": 1,
+          "request_id": "96238d8b-02e7-4a10-85ca-a913a45a012f",
+          "generation": 0,
+          "method": "capabilities"
+        },
+        {
+          "version": 1,
+          "request_id": "b3852f1d-c3f9-463a-8a2a-c4379e0949bc",
+          "generation": 1,
+          "method": "stop_all"
+        },
+        {
+          "version": 1,
+          "request_id": "da47a680-1b4d-4f85-a3d4-04f2375711f0",
+          "generation": 2,
+          "method": "stop_all"
+        }
+      ],
+      "screenshot": "docs/implementation/evidence/screenshots/android-bridge-simulated-desktop.png",
+      "transportSimulated": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "messages": [
+        {
+          "version": 1,
+          "request_id": "82044479-7830-41dd-bef5-d05c89171cd6",
+          "generation": 0,
+          "method": "capabilities"
+        },
+        {
+          "version": 1,
+          "request_id": "fcedc771-d2d9-49e1-82d2-5d2f7b3b5802",
+          "generation": 1,
+          "method": "stop_all"
+        },
+        {
+          "version": 1,
+          "request_id": "2e25ee0b-c17c-47ac-97ef-fc204260057d",
+          "generation": 2,
+          "method": "stop_all"
+        }
+      ],
+      "screenshot": "docs/implementation/evidence/screenshots/android-bridge-simulated-mobile.png",
+      "transportSimulated": true
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,137 @@
+
+ RUN  v5.0.4 C:/Users/33864/Desktop/nuanban
+
+ ✓ tests/acceptance/f-development-delivery-execution.test.ts (3 tests) 31982ms
+   ✓ F13-F24 本机开发级交付/证据执行器 (3)
+     ✓ 输出离线、合成、development_only 报告并保留正式阻塞 10302ms
+     ✓ 覆盖 F13-F24、契约审计、候选包边界和备份恢复回滚夹具 10772ms
+     ✓ 只读运行，不修改 D07、F13/F24 任务卡或既有 F 运行器 10904ms
+ ✓ tests/acceptance/c17-assembly.test.ts (3 tests) 22125ms
+   ✓ C17 共享仓储与桥接装配预备审计 (3)
+     ✓ 静态组合根、仓储隔离和桥接安全边界全部可追踪 7264ms
+     ✓ 只报告合成预备层，不把 IndexedDB 或消息模拟当作真实平台验收 7392ms
+     ✓ 明确不能正式发布并保留设备外部待项，不能全局阻断开发 7465ms
+ ✓ tests/acceptance/ef-execution-card-generator.test.ts (19 tests) 11772ms
+   ✓ E/F V1.2 双状态任务卡生成器 (19)
+     ✓ 从当前根计划生成 50 张卡和索引，引用既有开发证据但不改变正式状态 450ms
+     ✓ 默认拒绝覆盖，--check-only 和 --refresh --check-only 均不写入 1583ms
+     ✓ --refresh 重新读取计划并完整备份旧生成物，不覆盖追加执行记录 2585ms
+     ✓ 安全迁移仓库旧生成卡、预备检查和索引，保留历史原字节 369ms
+     ✓ 拒绝刷新被人工改动的 docs/execution/tasks/E01.md，预检失败无部分覆盖 1701ms
+     ✓ 拒绝刷新被人工改动的 docs/execution/checks/F24-prep.md，预检失败无部分覆盖 1646ms
+     ✓ 拒绝刷新被人工改动的 docs/execution/tasks/EF-index.md，预检失败无部分覆盖 1577ms
+     ✓ CLI --root 在临时目录运行，未知参数失败且不回退工作区 630ms
+ ✓ tests/acceptance/f-development-runner.test.ts (2 tests) 7307ms
+   ✓ F 自动开发门禁本机运行器 (2)
+     ✓ 兼容旧 bypass 参数但仍需实际自动开发门禁通过 6460ms
+     ✓ V1.2 无需额外 bypass 即可执行本地开发检查 843ms
+ ✓ tests/acceptance/d03-candidate.test.ts (4 tests) 4018ms
+   ✓ D03 候选包一致性 (4)
+     ✓ 同一套 UI 字节通过检查，并保存可复核结果但不代表验收 1287ms
+     ✓ 包中缺少当前 UI 文件时拒绝通过 909ms
+     ✓ 当前文件内容不同时拒绝通过 932ms
+     ✓ 包中残留额外旧 UI 文件时拒绝通过 885ms
+ ✓ tests/acceptance/release-readiness.test.ts (23 tests) 5062ms
+   ✓ 一次性外部能力清单与发布就绪（全部变更仅在临时目录） (23)
+     ✓ 缺设备/供应/同意仍可开发，但正式发布必须 EXTERNAL_PENDING 520ms
+     ✓ 按正文识别任意文件名 V1.2 并记录实际来源路径与 hash 315ms
+     ✓ 同样输入有相同指纹，真实本地源变更必须改变指纹 612ms
+     ✓ CLI 默认仅写清单/报告，release --no-write 退出 1 且不修改任何输入 442ms
+ ✓ tests/acceptance/c14-handoff.test.ts (1 test) 3105ms
+   ✓ C14 契约交接证据审计 (1)
+     ✓ 自动技术冻结允许本地开发，独立评审和真实供应另记发布待项 3102ms
+ ✓ tests/acceptance/c16-decision-readiness.test.ts (32 tests) 2280ms
+   ✓ C16 V1.2 自动开发与正式决策分离 (32)
+     ✓ 自动覆盖五个 Q 项但不代替正式确认 307ms
+     ✓ 开发专用命令只写入两个候选产物，不刷新正式结果文件 305ms
+     ✓ --no-write 对已有证据和候选文件均无写入，即使同时传入写入参数 562ms
+ ✓ tests/contract/kotlin-generation.test.ts (9 tests) 1986ms
+ ✓ tests/acceptance/f-development-recovery.test.ts (8 tests) 2002ms
+   ✓ F19 真实模块 SQLite 恢复边界，严格 offline/synthetic/development_only (8)
+     ✓ 最新关闭快照可按实际字节恢复，并在 NoteService/AuthService 中保留 tombstone 和撤权 319ms
+     ✓ 使用保留安全检查点合并旧备份，保留删除/撤权并停止待执行副作用 303ms
+     ✓ 拒绝坏 schema、跨环境和活动文件路径，保持目标库未变 307ms
+ ✓ tests/acceptance/acceptance-bundle.test.ts (3 tests) 1109ms
+   ✓ FE-13 前端验收交接包预检 (3)
+     ✓ release 和未知模式不能静默返回开发通过 571ms
+ ✓ tests/acceptance/d-gate-readiness.test.ts (4 tests) 1131ms
+   ✓ D 关口预备审计 (4)
+     ✓ 覆盖 D01-D08 并保持未准入状态 304ms
+ ✓ tests/acceptance/c15-nv-readiness.test.ts (4 tests) 1140ms
+   ✓ C15 NV 证据准入审计 (4)
+     ✓ 覆盖 NV-01 到 NV-12，并将当前真实准入保持为阻塞 302ms
+ ✓ tests/contract/services.test.ts (186 tests) 950ms
+   ✓ 全量服务契约与可重放合成夹具 (186)
+     ✓ 操作 ID 与路由无重复，生成物没有漂移 377ms
+ ✓ tests/acceptance/f-development-dependencies.test.ts (2 tests) 1025ms
+   ✓ F01-F24 自动开发依赖矩阵 (2)
+     ✓ 按自动开发决定保留 24 项依赖与 D07 正式阻断 506ms
+     ✓ 每项仍有可追踪 blocker，并关闭真实能力 516ms
+ ✓ tests/platform/desktop-reminder-store.test.ts (10 tests) 684ms
+ ✓ tests/acceptance/f-development-early.test.ts (2 tests) 561ms
+ ✓ tests/platform/desktop-reminder-bridge.test.ts (5 tests) 444ms
+ ✓ tests/acceptance/d07-decision.test.ts (9 tests) 335ms
+ ✓ tests/server/f17-client-contract.test.ts (6 tests) 300ms
+ ✓ tests/acceptance/f-development-delivery.test.ts (1 test) 266ms
+ ✓ tests/server/http.test.ts (6 tests) 165ms
+ ✓ tests/contract/remote-api-client.test.ts (7 tests) 147ms
+ ✓ tests/contract/remote-adapters.test.ts (2 tests) 125ms
+ ✓ tests/sync/sqlite-store.test.ts (3 tests) 141ms
+ ✓ tests/server/sqlite.test.ts (2 tests) 167ms
+ ✓ tests/contract/mappers.test.ts (11 tests) 149ms
+ ✓ tests/integration/scenarios.test.ts (16 tests) 69ms
+ ✓ tests/integration/c07-c08-reminder-store.test.ts (4 tests) 68ms
+ ✓ tests/acceptance/implementation-plan.test.ts (4 tests) 49ms
+ ✓ tests/domain/reminder-engine.test.ts (8 tests) 42ms
+ ✓ tests/sync/sync-engine.test.ts (12 tests) 41ms
+ ✓ tests/integration/conflicts.test.ts (7 tests) 50ms
+ ✓ tests/domain/pet-job.test.ts (8 tests) 41ms
+ ✓ tests/provider/e08-e12.test.ts (10 tests) 50ms
+ ✓ tests/domain/reminder-dispatch.test.ts (6 tests) 72ms
+ ✓ tests/integration/pet-appearance.test.ts (4 tests) 40ms
+ ✓ tests/platform/android-message-host.test.ts (21 tests) 56ms
+ ✓ tests/assets/asset-service.test.ts (6 tests) 30ms
+ ✓ tests/integration/local-data.test.ts (14 tests) 23ms
+ ✓ tests/platform/reminder-runtime.test.ts (4 tests) 18ms
+ ✓ tests/native/desktop-lab.test.ts (74 tests) 17ms
+ ✓ tests/domain/guidance.test.ts (19 tests) 33ms
+ ✓ tests/acceptance/project-gate.test.ts (8 tests) 15ms
+ ✓ tests/media-session/f18-lifecycle.test.ts (5 tests) 14ms
+ ✓ tests/platform/native-host.test.ts (6 tests) 12ms
+ ✓ tests/media-session/media-session.test.ts (5 tests) 18ms
+ ✓ tests/platform/lifecycle-engine.test.ts (15 tests) 15ms
+ ✓ tests/privacy/c04-media-relay.test.ts (15 tests) 15ms
+ ✓ tests/domain/three-d-asset-preflight.test.ts (10 tests) 12ms
+ ✓ tests/server/auth.test.ts (5 tests) 9ms
+ ✓ tests/domain/account-demo.test.ts (9 tests) 12ms
+ ✓ tests/security/provider/provider-safety.test.ts (6 tests) 10ms
+ ✓ tests/domain/conversation.test.ts (14 tests) 13ms
+ ✓ tests/contract/conversation.test.ts (33 tests) 8ms
+ ✓ tests/server/family.test.ts (6 tests) 10ms
+ ✓ tests/platform/desktop-lifecycle.test.ts (4 tests) 6ms
+ ✓ tests/platform/desktop-notification-adapter.test.ts (5 tests) 8ms
+ ✓ tests/flows/e24-e26.test.ts (3 tests) 10ms
+ ✓ tests/privacy/c03-gate.test.ts (52 tests) 11ms
+ ✓ tests/domain/pet-asset-quality.test.ts (6 tests) 8ms
+ ✓ tests/contract/active-bridge.test.ts (20 tests) 13ms
+ ✓ tests/contract/schema.test.ts (5 tests) 7ms
+ ✓ tests/native/android-lab.test.ts (5 tests) 9ms
+ ✓ tests/accessibility/e21.test.ts (3 tests) 10ms
+ ✓ tests/domain/guidance-platform.test.ts (9 tests) 15ms
+ ✓ tests/privacy/gates.test.ts (19 tests) 7ms
+ ✓ tests/provider/provider-sandbox.test.ts (14 tests) 11ms
+ ✓ tests/platform/desktop-native-runtime.test.ts (4 tests) 6ms
+ ✓ tests/native/android-reminder-receiver.test.ts (3 tests) 8ms
+ ✓ tests/quality/e22-e23.test.ts (3 tests) 6ms
+ ✓ tests/domain/speech.test.ts (1 test) 3ms
+ ✓ tests/integration/assist-fixture.test.ts (3 tests) 5ms
+
+ Test Files  73 passed (73)
+      Tests  880 passed (880)
+   Start at  23:53:19
+   Duration  137.79s (tests 89%, import 6%, setup 3%, transform 2%)
+
+    Isolate  73 workers spawned · ~311ms startup each (spawn + environment, per file)
+             at least ~22.41s faster with isolate: false — reuses workers across files instead of one per file
+
+JSON report written to C:/Users/33864/Desktop/nuanban/docs/implementation/evidence/unit-results.json
