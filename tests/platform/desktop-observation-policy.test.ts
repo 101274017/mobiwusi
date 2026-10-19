@@ -20,6 +20,54 @@ describe('独立桌宠本地帧门控（合成单测，不是真实外部软件�
     }
   });
 
+  it('完整检测的大幅画面超出发送上限时只输出独立控件布局，不误判检测失败', () => {
+    const png = syntheticPng(255, 1200, 1000, true);
+    const frame = { ...syntheticFrame(), width: 1200, height: 1000, geometry: null, png, frameHash: createHash('sha256').update(png).digest('hex') };
+    const detection = syntheticDetection(frame);
+    detection.sanitizedPng = syntheticPng(0, frame.width, frame.height, true);
+    expect(detection.sanitizedPng.length).toBeGreaterThan(2_000_000);
+    const projected = evaluateLocalFrame(frame, detection);
+    expect(projected).toMatchObject({ decision: 'allow', scene: 'controls_only', reason: 'locally_projected_controls' });
+    if (projected.decision !== 'allow') throw new Error('missing safe control layout');
+    expect(projected.sanitizedPng).toEqual(createControlLayout(detection.words, frame.width, frame.height));
+    expect(projected.sanitizedPng.length).toBeLessThan(2_000_000);
+    expect(projected.sanitizedPng).not.toEqual(detection.sanitizedPng);
+    detection.words.push({ text: '验证码', rect: { x: 200, y: 20, width: 80, height: 30 } });
+    expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'pause', reason: 'sensitive_screen' });
+    detection.words = [{ text: '未经识别的正文', rect: { x: 20, y: 20, width: 120, height: 30 } }];
+    expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'pause', reason: 'unclassified_screen' });
+  });
+
+  it('屏幕分词超过旧的 1024 阈值仍扫描全部内容，不能遗漏末尾敏感文字', () => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['文件', '编辑', '查看']);
+    detection.words.push(...Array.from({ length: 1200 }, (_, index) => ({ text: 'a', rect: { x: 20 + index % 40 * 18, y: 160 + Math.floor(index / 40) * 10, width: 12, height: 8 } })));
+    expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'allow', scene: 'controls_only' });
+    detection.words.push({ text: '私人聊天', rect: { x: 20, y: 500, width: 100, height: 30 } });
+    expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'pause', reason: 'sensitive_screen' });
+  });
+
+  it('完整检测但没有可读文字时明确暂停原因，不能冒充检测器损坏', () => {
+    const frame = syntheticFrame();
+    expect(evaluateLocalFrame(frame, syntheticDetection(frame, []))).toMatchObject({ decision: 'pause', reason: 'no_readable_text' });
+  });
+
+  it('本地完整性与处理量上限仍保守拒绝，不因控件布局回退而绕过', () => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame);
+    const region = { x: 20, y: 20, width: 100, height: 30 };
+    expect(evaluateLocalFrame(frame, { ...detection, words: Array.from({ length: 8193 }, () => ({ text: 'a', rect: region })) }))
+      .toMatchObject({ decision: 'pause', reason: 'local_detection_limit' });
+    expect(evaluateLocalFrame(frame, { ...detection, faces: Array.from({ length: 513 }, () => ({ rect: region })) }))
+      .toMatchObject({ decision: 'pause', reason: 'local_detection_limit' });
+    expect(evaluateLocalFrame(frame, { ...detection, words: Array.from({ length: 1025 }, () => ({ text: '设置', rect: region })) }))
+      .toMatchObject({ decision: 'pause', reason: 'control_layout_limit' });
+    expect(evaluateLocalFrame(frame, { ...detection, redaction: { text: false, faces: true } }))
+      .toMatchObject({ decision: 'pause', reason: 'incomplete_local_detection' });
+    expect(evaluateLocalFrame(frame, { ...detection, sanitizedPng: Buffer.from(frame.png) }))
+      .toMatchObject({ decision: 'pause', reason: 'unredacted_frame' });
+  });
+
   it('未知软件名称不等于风险未知，但未经识别的页面必须暂停', () => {
     const frame = syntheticFrame();
     expect(evaluateLocalFrame(frame, syntheticDetection(frame, ['任意新软件', '设置', '显示', '字体大小', '返回'])).decision).toBe('allow');
@@ -124,7 +172,10 @@ describe('独立桌宠本地帧门控（合成单测，不是真实外部软件�
     detection.words.splice(0, 1, ...['文件', '资源', '管理器'].map((text, index) => ({ text, rect: { ...title.rect, x: 20 + index * 32, width: 30 } })));
     expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'allow', scene: 'file_manager_controls' });
     detection.words[1].rect.y += 40;
-    expect(evaluateLocalFrame(frame, detection).decision).toBe('pause');
+    const unmerged = evaluateLocalFrame(frame, detection);
+    expect(unmerged).toMatchObject({ decision: 'allow', scene: 'controls_only' });
+    if (unmerged.decision !== 'allow') throw new Error('missing safe control layout');
+    expect(unmerged.elements.some(element => element.label === '文件资源管理器')).toBe(false);
   });
 
   it.each(['密码', '验证码', '私人聊天', '付款确认', 'api_key sk-abcdefghijklmnopq', '13812345678', 'private@example.com'])('敏感文字本地拒绝：%s', text => {

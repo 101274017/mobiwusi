@@ -1,9 +1,13 @@
 {
-  "id": "xingyun-monkey",
-  "name": "小猴子",
+  "id": "xingyun-floral-otter",
+  "name": "花环水獭",
   "provider": "xingyun",
   "runtime": "@xmov/avatar/agent",
-  "offlinePreview": "./assets/xingyun-monkey-preview.png",
+  "offlinePreview": "./assets/xingyun-floral-otter-preview.png",
+  "application": {
+    "editorId": "188337",
+    "appIdPrefix": "031ce3cd"
+  },
   "requiresNetworkFor3D": true,
   "autoConnect": false
 }

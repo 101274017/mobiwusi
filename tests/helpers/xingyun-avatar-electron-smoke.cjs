@@ -20,7 +20,7 @@ ipcMain.handle = (channel, listener) => handle(channel, (event, ...parameters) =
   return listener(event, ...parameters);
 });
 const synthetic = process.env.NUANBAN_AVATAR_SMOKE_SYNTHETIC === '1';
-if (synthetic) require('../../apps/desktop/xingyun-credentials.cjs').loadXingyunCredentials = async () => ({ appId: 'synthetic-application-id', appSecret: 'synthetic-secret-00000000' });
+if (synthetic) require('../../apps/desktop/xingyun-credentials.cjs').loadXingyunCredentials = async () => ({ appId: '031ce3cd-synthetic-application-id', appSecret: 'synthetic-secret-00000000' });
 desktopCapturer.getSources = async () => { global.__avatarSmoke.screenRequests++; throw new Error('Screen capture is disabled for avatar verification'); };
 const nativeFetch = globalThis.fetch;
 globalThis.fetch = async (url, options) => {

@@ -3,7 +3,7 @@ const defaultPet = require('./default-pet.json');
 
 const GATEWAY = 'https://nebula-agent.xingyun3d.com/user/v1/ttsa_v2/session';
 const MARKER_GATEWAY = 'https://nuanban-xingyun.invalid/session';
-const PET_AVATAR_CSP = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.xingyun3d.com; connect-src blob: data: https://*.xingyun3d.com wss://*.xingyun3d.com; worker-src 'self' blob:; media-src blob: data: https://*.xingyun3d.com; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'";
+const PET_AVATAR_CSP = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.xingyun3d.com https://public-xmov.oss-cn-hangzhou.aliyuncs.com; connect-src blob: data: https://*.xingyun3d.com wss://*.xingyun3d.com https://public-xmov.oss-cn-hangzhou.aliyuncs.com; worker-src 'self' blob:; media-src blob: data: https://*.xingyun3d.com https://public-xmov.oss-cn-hangzhou.aliyuncs.com; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'";
 
 function compareCodePoints(left, right) {
   const leftPoints = Array.from(left, character => character.codePointAt(0));
@@ -29,11 +29,15 @@ function signSession(credentials, method, data, timestamp = Math.floor(Date.now(
 }
 
 function createXingyunAvatarService({ credentials, fetch: fetchRequest = globalThis.fetch, onState = () => {}, timeoutMs = 25000 }) {
-  let phase = credentials ? 'idle' : 'unconfigured';
-  let message = credentials ? '默认桌宠为小猴子，当前显示本地静态预览；本人启用后连接实时 3D。' : '默认小猴子正在以本地静态预览显示；连接实时 3D 需要先在本机加密配置星云应用。';
+  const configured = Boolean(credentials?.appId?.startsWith(defaultPet.application.appIdPrefix));
+  const configurationMismatch = Boolean(credentials) && !configured;
+  let phase = configured ? 'idle' : 'unconfigured';
+  let message = configured ? '默认桌宠为' + defaultPet.name + '，当前显示本地静态预览；本人启用后连接实时 3D。'
+    : configurationMismatch ? '默认桌宠已更换为' + defaultPet.name + '；本机仍配置其他星云应用。请更新为应用 ' + defaultPet.application.editorId + ' 的完整凭证，当前不会连接旧形象。'
+      : '默认' + defaultPet.name + '正在以本地静态预览显示；连接实时 3D 需要先在本机加密配置星云应用。';
   let active;
   let disposed = false;
-  const status = () => ({ configured: Boolean(credentials), phase, message, appId: credentials?.appId ?? '', defaultAvatarId: defaultPet.id, defaultAvatarName: defaultPet.name, autoReconnect: false, microphoneActive: false });
+  const status = () => ({ configured, configurationMismatch, phase, message, appId: credentials?.appId ?? '', defaultAvatarId: defaultPet.id, defaultAvatarName: defaultPet.name, autoReconnect: false, microphoneActive: false });
   function publish(next, text) { phase = next; message = text; onState(status()); }
 
   async function send(method, data) {
@@ -58,11 +62,11 @@ function createXingyunAvatarService({ credentials, fetch: fetchRequest = globalT
   }
 
   function begin(consent) {
-    if (disposed || !credentials) throw new Error('星云应用尚未配置。');
+    if (disposed || !configured) throw new Error(configurationMismatch ? '本机仍是其他星云应用，请先更新为应用 ' + defaultPet.application.editorId + ' 的完整凭证。' : '星云应用尚未配置。');
     if (consent !== true) throw new Error('请本人确认联网形象服务后再启用。');
     if (active) throw new Error('已有形象会话，停止确认前不会创建第二个会话。');
     active = { lease: randomUUID(), requestId: undefined, sessionId: undefined, postStarted: false, stopRequested: false, starting: undefined, stopping: undefined };
-    publish('connecting', '正在连接小猴子；本次只尝试一个会话，不自动重连。');
+    publish('connecting', '正在连接' + defaultPet.name + '；本次只尝试一个会话，不自动重连。');
     return { lease: active.lease, appId: credentials.appId, gatewayServer: MARKER_GATEWAY };
   }
 
@@ -113,7 +117,7 @@ function createXingyunAvatarService({ credentials, fetch: fetchRequest = globalT
     });
     try {
       const body = await attempt.starting;
-      if (!body.data?.resource_pack || typeof body.data.resource_pack !== 'object') throw new Error('星云应用未返回形象资源，请在平台发布小猴子应用后重试。');
+      if (!body.data?.resource_pack || typeof body.data.resource_pack !== 'object') throw new Error('星云应用未返回形象资源，请在平台核对' + defaultPet.name + '应用配置后重试。');
       if (attempt.stopRequested) { await stop('user'); throw new Error('本次形象连接已取消。'); }
       return { status: 200, body };
     } catch (error) {
@@ -127,14 +131,14 @@ function createXingyunAvatarService({ credentials, fetch: fetchRequest = globalT
 
   function ready(lease) {
     if (!active || lease !== active.lease || active.stopRequested || !active.sessionId) return false;
-    publish('ready', '小猴子已启用。只接入形象，不向星云发送问答、屏幕或麦克风。');
+    publish('ready', defaultPet.name + '已启用。只接入形象，不向星云发送问答、屏幕或麦克风。');
     return true;
   }
 
   async function fail(lease, kind) {
     if (!active || lease !== active.lease) return status();
     const stopped = await stop(kind === 'timeout' ? 'timeout' : 'load_failed');
-    if (stopped.stopped) publish('error', kind === 'timeout' ? '小猴子加载超时，已停止会话并恢复本机桌宠；不会自动重连。' : '小猴子资源或连接加载失败，已恢复本机桌宠；请检查网络后手动重试。');
+    if (stopped.stopped) publish('error', kind === 'timeout' ? defaultPet.name + '加载超时，已停止会话并恢复本机桌宠；不会自动重连。' : defaultPet.name + '资源或连接加载失败，已恢复本机桌宠；请检查网络后手动重试。');
     return status();
   }
 

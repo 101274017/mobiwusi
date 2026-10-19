@@ -1,7 +1,8 @@
 const { createHash } = require('node:crypto');
 const { createControlLayout } = require('./observation/control-layout.cjs');
+const { LIMITS } = require('./observation/observation-common.cjs');
 
-const policyVersion = 'windows-local-ocr-v4';
+const policyVersion = 'windows-local-ocr-v5';
 const admittedFrames = new WeakSet();
 const privatePattern = /密码|口令|验证码|动态码|私聊|聊天记录|私人聊天|发送给|身份证|银行卡|支付|付款|收款|转账|交易确认|安全密钥|访问令牌|password|passcode|one[ -]?time|verification code|private (?:chat|message)|credit card|bank account|payment|transfer money|bearer\s|api[ _-]?key|secret key/i;
 const personalPattern = /(?:\b1[3-9]\d{9}\b)|(?:\b\d{17}[\dXx]\b)|(?:[\w.+-]+@[\w.-]+\.[A-Za-z]{2,})|(?:\b(?:sk|pk)[-_][A-Za-z0-9]{16,})/;
@@ -100,16 +101,18 @@ function evaluateLocalFrame(frame, detection, options = {}) {
     || digest(frame.png) !== frame.frameHash) return deny('invalid_or_stale_frame');
   if (!detection || detection.status !== 'complete') return deny(detection?.reason ?? 'local_detector_unavailable');
   if (detection.frameHash !== frame.frameHash || detection.width !== frame.width || detection.height !== frame.height) return deny('detector_frame_mismatch');
-  if (!Array.isArray(detection.words) || detection.words.length === 0 || detection.words.length > 1024
-    || !Array.isArray(detection.faces) || detection.faces.length > 128
-    || detection.redaction?.text !== true || detection.redaction?.faces !== true
-    || !validPng(detection.sanitizedPng, frame.width, frame.height) || detection.sanitizedPng.length > 2_000_000) return deny('incomplete_local_detection');
-  if (detection.words.some(word => typeof word?.text !== 'string' || word.text.length > 200 || !validRect(word.rect, frame.width, frame.height))
+  if (!Array.isArray(detection.words) || !Array.isArray(detection.faces)
+    || detection.redaction?.text !== true || detection.redaction?.faces !== true) return deny('incomplete_local_detection');
+  if (detection.words.length > 8192 || detection.faces.length > 512) return deny('local_detection_limit');
+  if (!validPng(detection.sanitizedPng, frame.width, frame.height) || detection.sanitizedPng.length > LIMITS.maxPngBytes) return deny('local_redaction_invalid');
+  if (detection.words.length === 0) return deny('no_readable_text');
+  if (detection.words.some(word => typeof word?.text !== 'string' || !word.text.length || word.text.length > 512 || !validRect(word.rect, frame.width, frame.height))
     || detection.faces.some(face => !validRect(face?.rect, frame.width, frame.height))) return deny('invalid_local_regions');
   const text = detection.words.map(word => word.text).join(' ');
   if (text.length > 20000) return deny('local_text_limit');
   if (isRestrictedText(text) || isRestrictedText(detection.words.map(word => word.text).join(''))) return deny('sensitive_screen', 'private');
   const { controls: allowedWords, matchedCount } = recognizedControls(detection.words);
+  if (allowedWords.length > 1024) return deny('control_layout_limit');
   const labels = new Set(allowedWords.map(word => normalizeLabel(word.text)));
   const positiveMarkers = [...labels].filter(label => sceneLabels.has(label));
   const unknownCount = detection.words.length - matchedCount;
@@ -122,12 +125,13 @@ function evaluateLocalFrame(frame, detection, options = {}) {
   else if (allowedWords.length >= 4 && unknownCount <= 1 && [...labels].filter(label => editorLabels.has(label)).length >= 3) scene = 'editor_controls';
   if (digest(detection.sanitizedPng) === frame.frameHash) return deny('unredacted_frame');
   let sanitizedPng;
-  if (!scene) {
+  if (!scene || detection.sanitizedPng.length > 2_000_000) {
     if (!allowedWords.length) return deny('unclassified_screen');
     try { sanitizedPng = createControlLayout(allowedWords, frame.width, frame.height); }
     catch { return deny('control_layout_unavailable'); }
     scene = 'controls_only';
   } else sanitizedPng = Buffer.from(detection.sanitizedPng);
+  if (sanitizedPng.length > 2_000_000) { sanitizedPng.fill(0); return deny('control_layout_limit'); }
   const sanitizedHash = digest(sanitizedPng);
   if (sanitizedHash === frame.frameHash) { sanitizedPng.fill(0); return deny('unredacted_frame'); }
   const elements = allowedWords.map((word, index) => ({ id: `element_${frame.frameHash.slice(0, 12)}_${index}`, label: word.text.trim(), rect: { ...word.rect } }));

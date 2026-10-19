@@ -37,9 +37,10 @@ function visibility(visible) {
 function render() {
   element('avatar-status').textContent = state.message;
   element('avatar-status').dataset.phase = state.phase;
-  element('avatar-application').textContent = state.configured ? '应用 · ' + state.appId.slice(-8) : '本机尚未配置应用';
+  element('avatar-application').textContent = state.configured ? '应用 · ' + state.appId.slice(-8)
+    : state.configurationMismatch ? '待切换至应用 · ' + defaultPet.application.editorId : '本机尚未配置应用';
   startButton.disabled = !state.configured || !consent.checked || !['idle', 'error'].includes(state.phase);
-  startButton.textContent = state.phase === 'error' ? '本人重试连接' : '启用小猴子';
+  startButton.textContent = state.phase === 'error' ? '本人重试连接' : '启用' + defaultPet.name;
   stopButton.disabled = !['connecting', 'ready', 'cleanup_failed'].includes(state.phase);
   stopButton.textContent = state.phase === 'cleanup_failed' ? '重试关闭云端会话' : '停止并恢复原桌宠';
   progress.hidden = state.phase !== 'connecting';

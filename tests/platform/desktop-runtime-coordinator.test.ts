@@ -340,6 +340,25 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     expect(setup.source.capture).toHaveBeenCalledOnce();
   });
 
+  it.each([
+    ['no_readable_text', '没有识别到文字'],
+    ['local_detection_limit', '框选目标软件'],
+    ['invalid_or_stale_frame', '已经过期'],
+    ['helper_timeout', '检测超时'],
+    ['incomplete_local_detection', '没有完整完成'],
+  ])('本地检测暂停 %s 给出具体原因和操作提示，不自动重试或出云', async (code, detail) => {
+    const setup = fixture();
+    setup.source.detect.mockImplementationOnce(async frame => ({ ...syntheticDetection(frame), status: 'unavailable', reason: code }));
+    await setup.start();
+    const current = setup.runtime.snapshot();
+    expect(current.observation).toMatchObject({ state: 'privacy_paused', captureActive: false, reason: code });
+    expect(current.analysis.message).toContain(detail);
+    expect(current.analysis.message).toContain(`（${code}）`);
+    expect(setup.source.capture).toHaveBeenCalledOnce();
+    expect(setup.source.stop).toHaveBeenCalledOnce();
+    expect(setup.analyze).not.toHaveBeenCalled();
+  });
+
   it('未知异常只显示固定通用代码，不能把异常字段带入桌宠状态', async () => {
     const setup = fixture();
     setup.source.capture.mockRejectedValueOnce(Object.assign(new Error('private-screen-content'), { code: 'private-screen-code' }));

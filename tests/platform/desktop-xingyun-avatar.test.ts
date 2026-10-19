@@ -9,7 +9,7 @@ import { describe, expect, it, vi } from 'vitest';
 const require = createRequire(import.meta.url);
 const { GATEWAY, PET_AVATAR_CSP, defaultPet, signSession, createXingyunAvatarService, registerXingyunAvatarBridge } = require('../../apps/desktop/xingyun-avatar.cjs');
 const { loadXingyunCredentials } = require('../../apps/desktop/xingyun-credentials.cjs');
-const credentials = { appId: 'synthetic-application-id', appSecret: 'synthetic-secret-00000000' };
+const credentials = { appId: '031ce3cd-synthetic-application-id', appSecret: 'synthetic-secret-00000000' };
 const sessionBody = () => ({ error_code: 0, data: { session_id: 'synthetic-session', resource_pack: {} } });
 const response = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
 const request = { method: 'POST', body: { request_id: 'synthetic-request', config: { raw_audio: false } } };
@@ -21,15 +21,18 @@ function fixture() {
 }
 
 describe('星云桌宠主进程鉴权和会话边界', () => {
-  it('产品默认形象为同款小猴子，不把截图预览伪称离线 3D，也不默认联网', () => {
-    expect(defaultPet).toMatchObject({ id: 'xingyun-monkey', name: '小猴子', requiresNetworkFor3D: true, autoConnect: false });
-    expect(fixture().service.status()).toMatchObject({ defaultAvatarId: 'xingyun-monkey', defaultAvatarName: '小猴子' });
-    const bytes = readFileSync(new URL('../../apps/desktop/assets/xingyun-monkey-preview.png', import.meta.url));
+  it('产品默认形象为新花环水獭，不把截图预览伪称离线 3D，也不默认联网', () => {
+    expect(defaultPet).toMatchObject({ id: 'xingyun-floral-otter', name: '花环水獭', application: { editorId: '188337', appIdPrefix: '031ce3cd' }, requiresNetworkFor3D: true, autoConnect: false });
+    expect(fixture().service.status()).toMatchObject({ defaultAvatarId: 'xingyun-floral-otter', defaultAvatarName: '花环水獭', configurationMismatch: false });
+    const bytes = readFileSync(new URL('../../apps/desktop/' + defaultPet.offlinePreview, import.meta.url));
     expect(bytes.subarray(1, 4).toString('ascii')).toBe('PNG');
-    expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([310, 515]);
+    expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([400, 560]);
     expect(bytes[25]).toBe(6);
     const html = readFileSync(new URL('../../apps/desktop/pet.html', import.meta.url), 'utf8');
-    expect(html).toContain('默认桌宠：小猴子（本地静态预览）');
+    expect(html).toContain('默认桌宠：花环水獭（本地静态预览）');
+    expect(html).toContain('src="' + defaultPet.offlinePreview + '"');
+    expect(html).toContain('data-avatar-id="' + defaultPet.id + '"');
+    expect(html).not.toContain('xingyun-monkey-preview.png');
     expect(html).toMatch(/id="fallback-cat-pet"[^>]+hidden/);
   });
   it('默认不连接、不重连、不启麦，状态不泄露密钥', () => {
@@ -48,6 +51,16 @@ describe('星云桌宠主进程鉴权和会话边界', () => {
     const configured = fixture().service;
     await configured.dispose();
     expect(() => configured.begin(true)).toThrow();
+  });
+
+  it.each(['other-application-id', '031ce3ce-other-application-id'])('旧应用或不匹配的应用 %s 不能误连旧形象', async appId => {
+    const fetchRequest = vi.fn<typeof fetch>();
+    const service = createXingyunAvatarService({ credentials: { ...credentials, appId }, fetch: fetchRequest });
+    expect(service.status()).toMatchObject({ configured: false, configurationMismatch: true, phase: 'unconfigured', defaultAvatarId: 'xingyun-floral-otter' });
+    expect(service.status().message).toContain('188337');
+    expect(() => service.begin(true)).toThrow('188337');
+    expect((await service.stop()).stopped).toBe(true);
+    expect(fetchRequest).not.toHaveBeenCalled();
   });
 
   it('与官方递归排序、Unicode 转义和 MD5 规范一致', () => {
@@ -210,9 +223,16 @@ describe('星云桌宠主进程鉴权和会话边界', () => {
     expect(fetchRequest).not.toHaveBeenCalled();
   });
 
-  it('CSP 只允许星云资源，不放开任意 HTTPS、脚本或麦克风', () => {
+  it('CSP 只允许星云及其指定 OSS 资源，不放开任意 HTTPS、脚本或麦克风', () => {
     expect(PET_AVATAR_CSP).toContain('wss://*.xingyun3d.com');
     expect(PET_AVATAR_CSP).not.toMatch(/unsafe-eval|connect-src\s+\*|https:;|wss:;/);
+    expect(PET_AVATAR_CSP).not.toContain('*.aliyuncs.com');
+    for (const directive of ['img-src', 'connect-src', 'media-src']) {
+      const policy = PET_AVATAR_CSP.split(';').find((value: string) => value.trim().startsWith(directive + ' '));
+      expect(policy).toContain('https://public-xmov.oss-cn-hangzhou.aliyuncs.com');
+    }
+    const html = readFileSync(new URL('../../apps/desktop/pet.html', import.meta.url), 'utf8');
+    expect(html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1]).toBe(PET_AVATAR_CSP);
     const preload = readFileSync(new URL('../../apps/desktop/preload.cjs', import.meta.url), 'utf8');
     expect(preload).not.toContain('nuanbanAvatar');
     const renderer = readFileSync(new URL('../../apps/desktop/xingyun-renderer.js', import.meta.url), 'utf8');

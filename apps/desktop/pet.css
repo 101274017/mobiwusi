@@ -168,15 +168,14 @@ textarea::placeholder { color: #8b7362; }
 .pet-stage:hover:not(:disabled) { background: transparent; }
 .pet { display: block; width: 100%; height: 100%; filter: drop-shadow(0 6px 5px #503a2320); pointer-events: none; }
 .custom-pet { object-fit: contain; }
-.pet-stage { position: relative; }
+.pet-stage { position: relative; cursor: grab; touch-action: none; user-select: none; }
+.pet-stage.is-dragging { cursor: grabbing; }
 .model-pet { position: absolute; inset: 0; }
 .model-surface { display: block; width: 100%; height: 100%; }
 .model-surface canvas { display: block; width: 100%; height: 100%; }
 .xingyun-pet { position: absolute; inset: 0; overflow: hidden; }
 .default-pet { object-fit: contain; }
-.pet-window:not(.is-expanded):not(.is-voice-chat) { padding-bottom: 30px; }
-.avatar-display-state { position: absolute; right: 0; bottom: -22px; left: 0; padding: 3px 5px; border-radius: 8px; background: #fff9eef0; color: #6b5744; font-size: 10px; line-height: 1.4; white-space: nowrap; text-align: center; }
-.is-expanded .avatar-display-state, .is-voice-chat .avatar-display-state { display: none; }
+.avatar-display-state { margin: 8px 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .xingyun-canvas { position: relative; display: block; width: 100%; height: 100%; overflow: hidden; }
 .xingyun-canvas canvas, .xingyun-canvas video { display: block; max-width: 100%; max-height: 100%; }
 .is-cloud-avatar #builtin-pet, .is-cloud-avatar #fallback-cat-pet, .is-cloud-avatar #custom-pet, .is-cloud-avatar #model-pet { display: none; }
@@ -201,6 +200,10 @@ textarea::placeholder { color: #8b7362; }
 .drag-handle { padding: 4px 8px; border-radius: 9px; background: #f3e8d7ee; color: #6b5141; font-size: 12px; cursor: move; user-select: none; -webkit-app-region: drag; }
 .dock-tools button { padding: 4px 8px; border-radius: 9px; background: #fff9eef5; font-size: 12px; }
 .pet-window:not(.is-expanded) .pet-dock { position: relative; flex-direction: column-reverse; align-items: center; }
+.pet-notification { position: absolute; top: 12px; left: calc(50% + 48px); z-index: 1; display: grid; width: 32px; height: 32px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; -webkit-app-region: no-drag; }
+.pet-notification:hover:not(:disabled) { background: transparent; }
+.pet-notification > span { width: 8px; height: 8px; border-radius: 50%; background: #b85c43; box-shadow: 0 0 0 2px #fff9ee; pointer-events: none; }
+.is-expanded .pet-notification, .is-voice-chat .pet-notification { display: none; }
 .search-card { padding: 14px 16px; border-bottom: 1px solid var(--line); background: #f4f1e5; }
 .search-card h2 { margin: 2px 0 6px; font-size: 21px; }
 .search-form { display: flex; flex-direction: column; gap: 9px; margin-top: 12px; }
@@ -217,15 +220,14 @@ textarea::placeholder { color: #8b7362; }
 .search-source::before { content: counter(search-result) ". "; color: var(--muted); }
 .search-results p { margin: 8px 0; font-size: 13px; white-space: pre-wrap; }
 .search-results small { display: block; color: var(--muted); font-size: 11px; }
-.pet-window:not(.is-expanded) .dock-copy { width: 100%; max-width: 250px; margin: 0 0 -2px; }
-.pet-window:not(.is-expanded) .dock-copy > p { text-align: center; }
+.pet-window:not(.is-expanded) .dock-copy { display: none; }
 .is-expanded .pet-stage { width: 86px; height: 94px; }
 .is-expanded .dock-copy { flex: 1; margin-bottom: 0; }
 
 .pet-window.is-voice-chat { align-items: center; gap: 12px; padding: 14px 12px 12px; }
 .is-voice-chat .pet-panel, .is-voice-chat .dock-copy { display: none; }
 .is-voice-chat .pet-dock { justify-content: center; }
-.is-voice-chat .pet-stage:disabled { opacity: 1; cursor: default; }
+.is-voice-chat .pet-stage { opacity: 1; }
 .pet-voice-bubble { position: relative; display: flex; width: 100%; min-height: 0; max-height: 224px; flex: 0 1 auto; flex-direction: column; gap: 8px; padding: 13px 15px 12px; border: 1px solid #dbc3a7; border-radius: 23px 23px 21px 9px; background: #fffaf3; box-shadow: 0 5px 16px #65432a1a; }
 .pet-voice-bubble::after { position: absolute; bottom: -7px; left: calc(50% - 7px); width: 13px; height: 13px; border-right: 1px solid #dbc3a7; border-bottom: 1px solid #dbc3a7; background: #fffaf3; content: ''; transform: rotate(45deg); }
 .voice-bubble-heading { display: flex; flex: 0 0 auto; align-items: center; gap: 6px; color: #49634d; font-size: 11px; line-height: 1.6; }

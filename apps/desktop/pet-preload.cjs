@@ -138,6 +138,10 @@ function requireIdentifier(value) {
 
 contextBridge.exposeInMainWorld('nuanbanPet', Object.freeze({
   snapshot: () => ipcRenderer.invoke('nuanban:pet:snapshot').then(projectSnapshot),
+  drag: action => {
+    if (!['start', 'move', 'end'].includes(action)) throw new TypeError('桌宠移动请求无效');
+    return ipcRenderer.invoke('nuanban:pet:drag', action);
+  },
   dictate: () => ipcRenderer.invoke('nuanban:pet:voice:dictate'),
   cancelDictation: () => ipcRenderer.invoke('nuanban:pet:voice:cancel-dictation'),
   onState: listener => {

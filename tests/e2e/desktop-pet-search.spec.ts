@@ -38,6 +38,7 @@ async function petSearchFixture(page: Page, configured = false, delayed = false,
     } });
   }, { configured, delayed, authFailure, modelAnswer, invalidAnswer });
   await page.goto('http://nuanban.test/pet.html');
+  await page.locator('#pet-toggle').click();
   await page.getByRole('button', { name: '搜索', exact: true }).click();
   await expect(page.getByRole('heading', { name: '帮你查一查' })).toBeVisible();
 }

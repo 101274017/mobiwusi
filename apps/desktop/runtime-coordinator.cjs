@@ -1,6 +1,6 @@
 const { randomUUID } = require('node:crypto');
 const { evaluateLocalFrame, isAdmittedFrame, isRestrictedText, normalizeLabel, safeSummary } = require('./observation-policy.cjs');
-const { captureFailureReason, captureFailureMessage } = require('./observation/observation-common.cjs');
+const { captureFailureReason, captureFailureMessage, localDetectionFailureMessage } = require('./observation/observation-common.cjs');
 
 function checkedLabels(value) {
   if (!Array.isArray(value) || value.length > 10 || value.some(label => typeof label !== 'string'
@@ -283,7 +283,7 @@ function createDesktopRuntime(options) {
     release(obsolete);
     state.observation.state = privacyPaused ? 'privacy_paused' : 'stopped';
     state.observation.reason = reason;
-    const failureMessage = captureFailureMessage(reason);
+    const failureMessage = captureFailureMessage(reason) ?? localDetectionFailureMessage(reason);
     const safetyMessage = ['unclassified_screen', 'unknown'].includes(reason)
       ? '本地分类器尚未识别此画面，不等于已发现敏感内容。已停止采集和发送；请在“继续共享”中选择“框选观察区域”，只保留目标软件后重新检查。'
       : reason === 'sensitive_screen' ? '本地检测发现敏感文字，已停止采集和发送。请先关闭敏感页面，再由本人重新选择观察范围。'

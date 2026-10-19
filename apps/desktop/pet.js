@@ -8,7 +8,7 @@
   const composerSections = ['guidance', 'question', 'dictation'];
   const sectionViews = {
     features: { title: '暖暖的功能小屋', target: 'feature-home', panels: ['feature-home'] },
-    avatar: { title: '星云小猴子 · 3D 形象', target: 'avatar-view', panels: ['avatar-view'] },
+    avatar: { title: '星云花环水獭 · 3D 形象', target: 'avatar-view', panels: ['avatar-view'] },
     question: { title: '桌宠提问', target: 'question', panels: ['question-view', 'conversation-view'] },
     dictation: { title: '本地语音输入', target: 'dictation-view', panels: ['dictation-view', 'conversation-view'] },
     guidance: { title: '光标指引', target: 'lesson-card', panels: ['lesson-card', 'conversation-view'] },
@@ -50,6 +50,14 @@
   let learningNavigation;
   let learningNotice = '';
   let faceVoiceShown = false;
+  const notifications = new Map();
+  const seenNotificationMessages = new Set();
+  let knownTodoNotifications = new Set();
+  let notificationsInitialized = false;
+  let privacyNotification = '';
+  let errorNotification = '';
+  let petDrag;
+  let suppressPetClick = false;
 
   function record(value) {
     return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
@@ -75,7 +83,7 @@
     element('pet-window').dataset.voiceState = active ? text(voice.state, 'connecting') : 'off';
     element('pet-voice-bubble').hidden = !active;
     element('pet-voice-controls').hidden = !active;
-    element('pet-toggle').disabled = active;
+    element('pet-toggle').disabled = false;
     if (!active) {
       for (const identifier of ['pet-voice-you', 'pet-voice-text', 'pet-voice-note']) element(identifier).textContent = '';
       faceVoiceShown = false;
@@ -159,6 +167,41 @@
     }
     element('message-list').replaceChildren(fragment);
     element('conversation').hidden = messages.length === 0;
+  }
+
+  function renderNotifications(state = flags()) {
+    if (ready) {
+      const messages = Array.isArray(runtime.messages) ? runtime.messages : [];
+      for (const message of messages) {
+        if (!message || !['assistant', 'system'].includes(message.role) || !text(message.text)) continue;
+        const key = validIdentifier(message.id) ? message.id : JSON.stringify([message.role, message.text]);
+        if (seenNotificationMessages.has(key)) continue;
+        seenNotificationMessages.add(key);
+        if (seenNotificationMessages.size > 128) seenNotificationMessages.delete(seenNotificationMessages.values().next().value);
+        if (notificationsInitialized && !faceVoiceActive()) notifications.set('messages', 'question');
+      }
+      notificationsInitialized = true;
+    }
+    const privacy = state.cleanupFailed || state.privacyPaused || state.blocked
+      ? JSON.stringify([state.cleanupFailed, state.privacyPaused, state.blocked, record(runtime.observation).reason]) : '';
+    if (privacy !== privacyNotification) {
+      privacyNotification = privacy;
+      notifications.delete('privacy');
+      if (privacy) notifications.set('privacy', 'observation');
+    }
+    const error = element('error-notice').hidden ? '' : element('error-text').textContent;
+    if (error !== errorNotification) {
+      errorNotification = error;
+      notifications.delete('error');
+      if (error) notifications.set('error', 'features');
+    }
+    if (expanded) {
+      for (const [key, section] of notifications) {
+        const conversationVisible = section === 'question' && sectionViews[activeSection].panels.includes('conversation-view');
+        if (key === 'privacy' || key === 'error' || section === activeSection || conversationVisible) notifications.delete(key);
+      }
+    }
+    element('pet-notification').hidden = notifications.size === 0 || expanded || faceVoiceActive();
   }
 
   function masteryLabel(value) {
@@ -362,7 +405,7 @@
       ? '正在本地观察（安全控件布局模式）：只保留已识别的通用控件标签和位置，不包含原画面、正文、文件名或图片。仅在本人另行授权后，才按需发送控件布局用于教学；不会自动操作。'
       : text(observation.reason) && analysis.state === 'error' ? text(analysis.message, observation.reason) : text(observation.reason);
     element('observation-detail').textContent = state.cleanupFailed ? `停止清理尚未确认，请退出桌宠并重新启动。${text(observation.reason)}` : unsafe ? '隐私或停止状态与采集 / 分析信号不一致。请立即停止观察，再检查运行核心。' : state.safetyUnclassified ? 'unclassified_screen / unknown：当前本地分类器尚未识别此画面，不等于已发现敏感内容。已支持设置、桌面、文件管理器及常见浏览器/编辑器控件；可在继续共享时选择“框选观察区域”，只保留目标软件。仍未分类时继续保持暂停，不会发送画面。' : text(reasonDetail, source ? `共享来源：${source}` : ready && observation.state === 'off' && observation.captureActive === false ? '尚未共享屏幕。提问不会由面板自动开启观察。' : ready && observation.state === 'stopped' && observation.captureActive === false ? '采集已由运行核心报告停止，重新开启仍需本人确认。' : '等待运行核心确认共享来源与采集状态。');
-    element('analysis-status').textContent = ready && state.privacyPaused && state.safetyUnclassified && !unsafe ? '本地安全检查暂停' : (ready && Object.hasOwn(analysisLabels, analysis.state) ? analysisLabels[analysis.state] : '') || '云分析待确认';
+    element('analysis-status').textContent = ready && state.privacyPaused && (state.safetyUnclassified || analysis.state === 'error') && !unsafe ? '本地安全检查暂停' : (ready && Object.hasOwn(analysisLabels, analysis.state) ? analysisLabels[analysis.state] : '') || '云分析待确认';
     element('analysis-detail').textContent = text(analysis.message);
     element('analysis-detail').hidden = !text(analysis.message);
     element('privacy-notice').hidden = !state.privacyPaused && !state.blocked;
@@ -426,6 +469,7 @@
     renderMessages();
     renderLearning();
     renderView();
+    renderNotifications(state);
   }
 
   function clearError() {
@@ -700,6 +744,7 @@
 
   function setExpanded(value, options = {}) {
     if (disposed) return;
+    endPetDrag();
     if (value && faceVoiceActive()) value = false;
     const previousExpanded = expanded;
     const previousSection = activeSection;
@@ -716,6 +761,7 @@
       window.dispatchEvent(new CustomEvent('nuanban:pet:view-changed', { detail: { section: value ? activeSection : null } }));
     }
     element('pet-window').classList.toggle('is-expanded', value);
+    renderNotifications();
     element('pet-toggle').setAttribute('aria-expanded', String(value));
     element('pet-toggle').setAttribute('aria-label', value ? '收起暖暖面板' : '展开暖暖面板');
     element('exit-confirmation').hidden = true;
@@ -737,7 +783,31 @@
     if (value && !element('question-form').hidden && (options.focusInput === true || (options.focusInput !== false && !options.section && !retryAction))) element('question').focus({ preventScroll: true });
   }
 
+  function sendPetDrag(action) {
+    try {
+      Promise.resolve(bridge.drag(action)).catch(error => {
+        if (disposed) return;
+        endPetDrag();
+        showError('桌宠移动未完成', error);
+      });
+    } catch (error) {
+      endPetDrag();
+      showError('桌宠移动未完成', error);
+    }
+  }
+
+  function endPetDrag(event) {
+    if (!petDrag || (event?.pointerId !== undefined && event.pointerId !== petDrag.pointerId)) return;
+    const current = petDrag;
+    petDrag = undefined;
+    suppressPetClick = suppressPetClick || current.moved;
+    element('pet-toggle').classList.toggle('is-dragging', false);
+    try { element('pet-toggle').releasePointerCapture?.(current.pointerId); } catch {}
+    sendPetDrag('end');
+  }
+
   function showMenu() {
+    endPetDrag();
     void perform('menu', '原生菜单未打开', () => {
       if (typeof bridge?.showMenu !== 'function') throw new Error('原生菜单接口尚未接入');
       return bridge.showMenu();
@@ -746,6 +816,7 @@
 
   function dispose() {
     if (disposed) return;
+    endPetDrag();
     if (pending.has('dictate')) void bridge?.cancelDictation?.().catch(() => {});
     dictationGeneration += 1;
     disposed = true;
@@ -760,7 +831,62 @@
     unsubscribePanel = undefined;
   }
 
-  bind(element('pet-toggle'), 'click', () => setExpanded(!expanded));
+  bind(element('pet-toggle'), 'pointerdown', event => {
+    if (event.button !== 0 || event.isPrimary === false || typeof bridge?.drag !== 'function') return;
+    endPetDrag();
+    suppressPetClick = false;
+    petDrag = { pointerId: event.pointerId, x: event.screenX, y: event.screenY, moved: false };
+    try { element('pet-toggle').setPointerCapture?.(event.pointerId); } catch { petDrag = undefined; return; }
+    sendPetDrag('start');
+  });
+  bind(element('pet-toggle'), 'pointermove', event => {
+    if (!petDrag || event.pointerId !== petDrag.pointerId) return;
+    if ((event.buttons & 1) === 0) { endPetDrag(event); return; }
+    if (!petDrag.moved && Math.hypot(event.screenX - petDrag.x, event.screenY - petDrag.y) < 6) return;
+    petDrag.moved = true;
+    suppressPetClick = true;
+    element('pet-toggle').classList.toggle('is-dragging', true);
+    event.preventDefault();
+    sendPetDrag('move');
+  });
+  bind(element('pet-toggle'), 'pointerup', event => {
+    if (petDrag?.pointerId === event.pointerId && petDrag.moved) sendPetDrag('move');
+    endPetDrag(event);
+  });
+  for (const name of ['pointercancel', 'lostpointercapture']) bind(element('pet-toggle'), name, endPetDrag);
+  bind(window, 'blur', () => endPetDrag());
+  bind(element('pet-toggle'), 'dragstart', event => event.preventDefault());
+  bind(element('pet-toggle'), 'click', event => {
+    if (suppressPetClick) {
+      suppressPetClick = false;
+      if (event.detail !== 0) { event.preventDefault(); event.stopPropagation(); return; }
+    }
+    setExpanded(!expanded);
+  });
+  bind(element('pet-notification'), 'click', () => {
+    const section = notifications.get('privacy') || notifications.get('error') || notifications.values().next().value;
+    if (!section) return;
+    setExpanded(true, { section, focusInput: false });
+    if (section === 'todos') window.dispatchEvent(new CustomEvent('nuanban:pet:show-due-todos'));
+    else if (section === 'question') {
+      element('conversation').scrollIntoView({ block: 'start' });
+      element('conversation').focus({ preventScroll: true });
+    }
+  });
+  bind(window, 'nuanban:pet:due-todos', event => {
+    const entries = record(event.detail).keys;
+    if (!Array.isArray(entries)) return;
+    const keys = new Set(entries.filter(key => typeof key === 'string' && key.length <= 256).map(key => `todo:${key}`));
+    for (const key of notifications.keys()) {
+      if (key.startsWith('todo:') && !keys.has(key)) notifications.delete(key);
+    }
+    for (const key of keys) {
+      if (knownTodoNotifications.has(key)) continue;
+      notifications.set(key, 'todos');
+    }
+    knownTodoNotifications = keys;
+    renderNotifications();
+  });
   bind(element('collapse-panel'), 'click', () => setExpanded(false));
   for (const [control, section] of Object.entries({ 'view-features': 'features', 'view-guidance': 'guidance', 'feature-guidance': 'guidance', 'view-voice': 'voice', 'feature-question': 'question', 'feature-dictation': 'dictation', 'feature-observation': 'observation', 'guidance-observation': 'observation', 'feature-learning': 'learning', 'feature-archive': 'archive', 'feature-todos': 'todos', 'archive-learning': 'learning', 'todos-archive': 'archive', 'pet-due-todos': 'todos', 'feature-captions': 'captions', 'feature-wake': 'wake', 'feature-management': 'accessibility' })) {
     bind(element(control), 'click', () => {

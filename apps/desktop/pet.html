@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.xingyun3d.com; connect-src blob: data: https://*.xingyun3d.com wss://*.xingyun3d.com; worker-src 'self' blob:; media-src blob: data: https://*.xingyun3d.com; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.xingyun3d.com https://public-xmov.oss-cn-hangzhou.aliyuncs.com; connect-src blob: data: https://*.xingyun3d.com wss://*.xingyun3d.com https://public-xmov.oss-cn-hangzhou.aliyuncs.com; worker-src 'self' blob:; media-src blob: data: https://*.xingyun3d.com https://public-xmov.oss-cn-hangzhou.aliyuncs.com; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>暖伴桌宠</title>
   <link rel="stylesheet" href="./pet.css">
   <script defer src="./pet.js"></script>
@@ -54,7 +54,7 @@
             <button class="feature-button" type="button" data-tool="/pets"><strong>我的桌宠</strong><small>选择形象、颜色与陪伴方式</small></button>
             <button class="feature-button" type="button" data-tool="/pets/draw"><strong>画一画</strong><small>亲手画，应用为桌宠原画</small></button>
             <button class="feature-button" type="button" data-tool="/pets/import-3d"><strong>本地 3D 桌宠</strong><small>导入并验证本机模型</small></button>
-            <button id="feature-avatar" class="feature-button avatar-feature" type="button" aria-controls="avatar-view"><strong>默认小猴子 · 3D</strong><small>默认形象，授权后连接实时 3D</small></button>
+            <button id="feature-avatar" class="feature-button avatar-feature" type="button" aria-controls="avatar-view"><strong>默认花环水獭 · 3D</strong><small>默认形象，授权后连接实时 3D</small></button>
             <button class="feature-button" type="button" disabled><strong>AI 生成桌宠</strong><small>生成服务未接通，不提供假结果</small></button>
           </div>
           <h3 class="feature-group-title">按你的习惯陪伴</h3>
@@ -71,15 +71,18 @@
           <p class="fine-print feature-footnote">打开功能不代表开启采集或上云。未接通的能力如实说明；右上角始终保留停止入口。</p>
         </section>
         <section id="avatar-view" class="function-page avatar-page" aria-labelledby="avatar-title" tabindex="-1" hidden>
-          <div class="section-heading"><span class="eyebrow">小猴子，默认陪在这里</span><span class="feature-tag">产品默认桌宠</span></div>
-          <h2 id="avatar-title">默认小伙伴 · 小猴子</h2>
+          <div class="section-heading"><span class="eyebrow">花环水獭，默认陪在这里</span><span class="feature-tag">产品默认桌宠</span></div>
+          <h2 id="avatar-title">默认小伙伴 · 花环水獭</h2>
           <p class="page-lead">独立悬浮、右键功能和已有语音入口都保留。仅替换桌宠形象，不需要打开客户端。</p>
-          <div class="avatar-service-card"><img class="avatar-monogram" src="./assets/xingyun-monkey-preview.png" alt=""><div><strong>小猴子 · 默认 3D 形象</strong><p id="avatar-application" class="muted">正在读取本机配置</p></div></div>
+          <div class="avatar-service-card"><img class="avatar-monogram" src="./assets/xingyun-floral-otter-preview.png" alt=""><div><strong>花环水獭 · 默认 3D 形象</strong><p id="avatar-application" class="muted">正在读取本机配置</p></div></div>
           <p id="avatar-status" class="avatar-status" role="status">正在读取本机形象配置…</p>
-          <progress id="avatar-progress" max="100" value="0" aria-label="小猴子资源加载进度" hidden></progress><p id="avatar-download" class="fine-print" aria-live="polite"></p>
+          <p id="avatar-display-state" class="avatar-display-state" aria-live="polite">默认花环水獭 · 本地静态预览</p>
+          <p id="artwork-status" class="avatar-display-state" role="status" hidden></p>
+          <p id="model-status" class="avatar-display-state" role="status" hidden></p>
+          <progress id="avatar-progress" max="100" value="0" aria-label="花环水獭资源加载进度" hidden></progress><p id="avatar-download" class="fine-print" aria-live="polite"></p>
           <label class="avatar-consent"><input id="avatar-consent" type="checkbox"><span>我同意连接星云形象服务，连接期间可能按星云平台规则计费。</span></label>
-          <div class="avatar-actions"><button id="avatar-start" class="primary-button" type="button" disabled>启用小猴子</button><button id="avatar-stop" type="button" disabled>停止并恢复原桌宠</button></div>
-          <div class="avatar-boundaries"><h3>默认形象，不默认开启采集或计费连接</h3><p>未联网时，显示从你提供的截图中裁出的同款小猴子静态预览；它不是可离线旋转或说话的 3D 模型。本人授权后才请求星云实时形象服务。</p><p>只向星云建立形象会话、下载形象资源和发送 SDK 必需的设备/性能信息。不自动开麦、不采集屏幕，也不把已有问答发给星云。</p><p>断网或加载失败会恢复本机形象；不自动重连。已有原画和本地模型不删除。收起面板不等于停止服务，请点击“停止”结束云端会话。</p><p>App Secret 仅由本机主进程解密和代签，不进入页面。应用与小猴子造型以星云后台的已发布配置为准。</p></div>
+          <div class="avatar-actions"><button id="avatar-start" class="primary-button" type="button" disabled>启用花环水獭</button><button id="avatar-stop" type="button" disabled>停止并恢复原桌宠</button></div>
+          <div class="avatar-boundaries"><h3>默认形象，不默认开启采集或计费连接</h3><p>未联网时，显示从你提供的截图中裁出的同款花环水獭静态预览；它不是可离线旋转或说话的 3D 模型。本人授权后才请求星云实时形象服务。</p><p>只向星云建立形象会话、下载形象资源和发送 SDK 必需的设备/性能信息。不自动开麦、不采集屏幕，也不把已有问答发给星云。</p><p>断网或加载失败会恢复本机形象；不自动重连。已有原画和本地模型不删除。收起面板不等于停止服务，请点击“停止”结束云端会话。</p><p>App Secret 仅由本机主进程解密和代签，不进入页面。默认角色对应星云应用 188337；本机仍是其他应用时禁止连接，避免重新显示旧猴子。实时造型以该应用后台的有效配置为准。</p></div>
         </section>
         <section id="archive-view" class="function-page library-page" aria-labelledby="archive-title" tabindex="-1" hidden>
           <div class="section-heading"><span class="eyebrow">学过的，一起收好</span><span class="feature-tag">桌宠内完成</span></div>
@@ -122,6 +125,7 @@
           </details>
           <div class="library-tabs" role="group" aria-label="待办状态筛选"><button id="todos-pending" type="button" aria-pressed="true">待完成</button><button id="todos-due" type="button" aria-pressed="false">已到期</button><button id="todos-completed" type="button" aria-pressed="false">已完成</button></div>
           <p id="todos-count" class="fine-print"></p>
+          <button id="pet-due-todos" class="pet-due-todos" type="button" aria-controls="todos-view" hidden>到期待办</button>
           <ul id="todos-list" class="library-list" aria-label="待办与复习列表"></ul>
           <p class="fine-print library-privacy">桌宠运行时会在下方显示到期待办入口；关闭后不会提供后台提醒，也不会自动申请系统通知。记录复习或完成待办，不会自动改变掌握状态。</p>
         </section>
@@ -249,10 +253,7 @@
         <div class="composer-footer"><span id="question-hint">Enter 发送 · Shift + Enter 换行</span><div class="button-row"><button id="start-dictation" type="button" disabled>语音输入</button><button id="cancel-dictation" type="button" hidden>取消听写</button><button id="send-question" class="primary-button" type="submit" disabled>问暖暖 <span aria-hidden="true">↗</span></button></div></div>
       </form>
     </section>
-    <button id="pet-due-todos" class="pet-due-todos" type="button" aria-controls="todos-view" hidden>到期待办</button>
     <p id="caption-line" class="caption-line" role="status" hidden></p>
-    <p id="artwork-status" class="caption-line" role="status" hidden></p>
-    <p id="model-status" class="caption-line" role="status" hidden></p>
     <section id="pet-voice-bubble" class="pet-voice-bubble" aria-label="桌宠面对面语音气泡" hidden>
       <div class="voice-bubble-heading"><span class="voice-presence-dot" aria-hidden="true"></span><span id="pet-voice-state" role="status">正在准备语音</span><span class="voice-bubble-name">暖暖在身边</span></div>
       <p id="pet-voice-you" class="voice-bubble-you" hidden></p>
@@ -260,8 +261,8 @@
       <p id="pet-voice-note" class="voice-bubble-note"></p>
     </section>
     <div class="pet-dock">
-      <button id="pet-toggle" class="pet-stage" type="button" aria-label="展开暖暖面板" aria-controls="pet-panel" aria-expanded="false" title="点击或按 Enter 提问；右键打开功能菜单">
-      <img id="builtin-pet" class="pet default-pet" src="./assets/xingyun-monkey-preview.png" alt="默认桌宠：小猴子（本地静态预览）" draggable="false" data-avatar-id="xingyun-monkey">
+      <button id="pet-toggle" class="pet-stage" type="button" aria-label="展开暖暖面板" aria-controls="pet-panel" aria-expanded="false">
+      <img id="builtin-pet" class="pet default-pet" src="./assets/xingyun-floral-otter-preview.png" alt="默认桌宠：花环水獭（本地静态预览）" draggable="false" data-avatar-id="xingyun-floral-otter">
       <svg id="fallback-cat-pet" class="pet" viewBox="0 0 240 260" role="img" aria-label="备用小橘猫暖暖" hidden>
         <ellipse cx="122" cy="241" rx="68" ry="11" fill="#503A23" opacity=".08"/>
         <path d="M165 204c60 6 43-77 18-52" fill="none" stroke="#D98347" stroke-width="23" stroke-linecap="round"/>
@@ -288,9 +289,9 @@
       </svg>
       <img id="custom-pet" class="pet custom-pet" alt="你的原画桌宠" draggable="false" hidden>
       <span id="model-pet" class="pet model-pet" hidden></span>
-      <span id="xingyun-pet" class="pet xingyun-pet" role="img" aria-label="星云小猴子 3D 桌宠" hidden><span id="xingyun-canvas" class="xingyun-canvas"></span></span>
-      <span id="avatar-display-state" class="avatar-display-state" aria-live="polite">默认小猴子 · 本地静态预览</span>
+      <span id="xingyun-pet" class="pet xingyun-pet" role="img" aria-label="星云花环水獭 3D 桌宠" hidden><span id="xingyun-canvas" class="xingyun-canvas"></span></span>
       </button>
+      <button id="pet-notification" class="pet-notification" type="button" aria-label="有新消息，点击查看" aria-controls="pet-panel" hidden><span aria-hidden="true"></span></button>
       <div class="dock-copy"><p id="message" role="status">我在这里，点我聊聊</p><div class="dock-tools"><span class="drag-handle" aria-hidden="true" title="仅按住此处拖动桌宠">⠿ 移动</span><button id="pet-voice" type="button" title="单独授权后直接与暖暖语音聊天" disabled>语音聊聊</button><button id="pet-search" type="button" title="使用已配置的模型回答问题">搜索</button><button id="pet-menu" type="button" title="打开原生菜单；位置调整由桌面宿主提供">功能与位置</button></div></div>
     </div>
     <div id="pet-voice-controls" class="pet-voice-controls" aria-label="面对面语音控制" hidden>

@@ -131,6 +131,7 @@ function renderTodos(): void {
   const shortcut = element<HTMLButtonElement>('pet-due-todos');
   shortcut.hidden = !available || !due.length;
   shortcut.textContent = '到期待办 ' + due.length + ' 项 · 在桌宠查看';
+  window.dispatchEvent(new CustomEvent('nuanban:pet:due-todos', { detail: { keys: available ? due.map(todo => JSON.stringify([todo.id, todo.dueAt])) : [] } }));
   const fragment = document.createDocumentFragment();
   for (const todo of todos) {
     const item = make('li', '', 'library-card');
@@ -334,6 +335,7 @@ element('todo-form').addEventListener('submit', event => {
 for (const page of ['archive', 'todos']) element(page + '-refresh').addEventListener('click', () => { void refresh(true); });
 for (const filter of ['pending', 'due', 'completed'] as const) element('todos-' + filter).addEventListener('click', () => { todoFilter = filter; render(); });
 element('pet-due-todos').addEventListener('click', () => { todoFilter = 'due'; render(); });
+window.addEventListener('nuanban:pet:show-due-todos', () => { todoFilter = 'due'; render(); });
 window.addEventListener('nuanban:pet:view-changed', event => {
   activeSection = (event as CustomEvent<{ section: string | null }>).detail.section;
   pendingDelete = undefined;

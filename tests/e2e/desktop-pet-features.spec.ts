@@ -149,6 +149,7 @@ test('关联复习待办先核对时间，修改后重新确认，完成复习�
 });
 
 test('档案与待办切页不丢编辑草稿，到期入口只打开桌宠待办页', async ({ page }) => {
+  await page.clock.install();
   await featureFixture(page);
   await page.locator('#feature-archive').click();
   await page.locator('#archive-add').click();
@@ -161,6 +162,7 @@ test('档案与待办切页不丢编辑草稿，到期入口只打开桌宠待�
   await page.locator('#todo-save').click();
   await page.locator('#todo-save').click();
   await expect(page.locator('#todos-list details')).toHaveCount(1);
+  await page.locator('#collapse-panel').click();
   await page.evaluate(async () => {
     const database = await new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open('nuanban-demo-v1', 4);
@@ -177,10 +179,11 @@ test('档案与待办切页不丢编辑草稿，到期入口只打开桌宠待�
     });
     database.close();
   });
-  await page.locator('#todos-refresh').click();
-  await expect(page.locator('#pet-due-todos')).toBeVisible();
-  await page.locator('#collapse-panel').click();
-  await page.locator('#pet-due-todos').click();
+  await page.clock.fastForward(15000);
+  await expect(page.locator('#pet-due-todos')).toBeHidden();
+  await expect(page.locator('#pet-notification')).toBeVisible();
+  await expect(page.locator('#pet-panel')).toBeHidden();
+  await page.locator('#pet-notification').click();
   await expect(page.locator('#pet-panel')).toHaveAttribute('data-view', 'todos');
   await expect(page.locator('#todos-due')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#todos-list')).toContainText('真实的本机待办');
@@ -274,7 +277,7 @@ test('面对面入口收起功能小屋，只保留桌宠、对话气泡和精�
   await expect(page.locator('#pet-window')).toHaveClass(/is-voice-chat/);
   await expect(page.locator('#pet-voice-bubble')).toBeVisible();
   await expect(page.locator('#pet-voice-state')).toHaveText('正在听你说');
-  await expect(page.locator('#pet-toggle')).toBeDisabled();
+  await expect(page.locator('#pet-toggle')).toBeEnabled();
   await expect(page.locator('.dock-copy')).toBeHidden();
   await page.evaluate(() => window.dispatchEvent(new Event('test-feature-panel-open')));
   await expect(page.locator('#pet-panel')).toBeHidden();

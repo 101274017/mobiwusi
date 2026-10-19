@@ -19,6 +19,8 @@ class UiElement extends EventTarget {
   open = false;
   offsetHeight = 146;
   focus = vi.fn();
+  setPointerCapture = vi.fn();
+  releasePointerCapture = vi.fn();
   scrollIntoView = vi.fn();
   classList = { toggle: vi.fn() };
   get firstElementChild() { return this.children[0]; }
@@ -90,6 +92,7 @@ function petHarness(initial: unknown = snapshot()) {
   const unsubscribePanel = vi.fn(() => { panelListener = undefined; });
   const bridge = {
     snapshot: vi.fn(async (): Promise<unknown> => current),
+    drag: vi.fn(async (_action: string) => true),
     onState: vi.fn((callback: StateListener) => { listener = callback; return unsubscribe; }),
     onPanel: vi.fn((callback: StateListener) => { panelListener = callback; return unsubscribePanel; }),
     command: vi.fn(async (_payload: unknown): Promise<unknown> => ({ ok: true })),
@@ -148,6 +151,242 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+describe('直接按住桌宠拖动', () => {
+  const press = (harness: ReturnType<typeof petHarness>, fields = {}) => dispatch(harness.element('pet-toggle'), 'pointerdown', { pointerId: 1, button: 0, isPrimary: true, screenX: 100, screenY: 100, ...fields });
+  const move = (harness: ReturnType<typeof petHarness>, fields = {}) => dispatch(harness.element('pet-toggle'), 'pointermove', { pointerId: 1, buttons: 1, screenX: 140, screenY: 130, ...fields });
+  const release = (harness: ReturnType<typeof petHarness>) => dispatch(harness.element('pet-toggle'), 'pointerup', { pointerId: 1, button: 0, screenX: 140, screenY: 130 });
+
+  it('小幅抖动仍是单击，按住身体不必再点击移动把手', async () => {
+    const harness = petHarness();
+    await settle();
+    press(harness);
+    move(harness, { screenX: 103, screenY: 102 });
+    release(harness);
+    dispatch(harness.element('pet-toggle'), 'click', { detail: 1 });
+    await settle();
+    expect(harness.bridge.drag.mock.calls).toEqual([['start'], ['end']]);
+    expect(harness.element('pet-panel').hidden).toBe(false);
+    expect(harness.element('pet-toggle').setPointerCapture).toHaveBeenCalledWith(1);
+    expect(harness.element('pet-toggle').releasePointerCapture).toHaveBeenCalledWith(1);
+  });
+
+  it('拖动和释放不误开功能页，下次单击仍可正常打开', async () => {
+    const harness = petHarness();
+    await settle();
+    press(harness);
+    expect(move(harness).defaultPrevented).toBe(true);
+    release(harness);
+    dispatch(harness.element('pet-toggle'), 'click', { detail: 1 });
+    await settle();
+    expect(harness.element('pet-panel').hidden).toBe(true);
+    expect(harness.bridge.command).not.toHaveBeenCalled();
+    expect(harness.bridge.drag.mock.calls).toEqual([['start'], ['move'], ['move'], ['end']]);
+    press(harness);
+    release(harness);
+    dispatch(harness.element('pet-toggle'), 'click', { detail: 1 });
+    await settle();
+    expect(harness.element('pet-panel').hidden).toBe(false);
+    expect(harness.bridge.openMain).not.toHaveBeenCalled();
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+    expect(harness.bridge.dictate).not.toHaveBeenCalled();
+  });
+
+  it('右键和非主指针不开始移动，其他指针不能接管当前拖动', async () => {
+    const harness = petHarness();
+    await settle();
+    press(harness, { button: 2 });
+    press(harness, { isPrimary: false });
+    move(harness);
+    expect(harness.bridge.drag).not.toHaveBeenCalled();
+    dispatch(harness.element('pet-toggle'), 'contextmenu');
+    await settle();
+    expect(harness.bridge.showMenu).toHaveBeenCalledOnce();
+    press(harness);
+    move(harness, { pointerId: 2 });
+    dispatch(harness.element('pet-toggle'), 'pointerup', { pointerId: 2 });
+    expect(harness.bridge.drag.mock.calls).toEqual([['start']]);
+    release(harness);
+    expect(harness.bridge.drag.mock.calls).toEqual([['start'], ['end']]);
+  });
+
+  it.each(['pointercancel', 'lostpointercapture', 'blur', 'buttons-released', 'pagehide'])('%s 结束拖动，迟到移动不再移动窗口', async eventName => {
+    const harness = petHarness();
+    await settle();
+    press(harness);
+    move(harness);
+    if (eventName === 'buttons-released') move(harness, { buttons: 0 });
+    else if (eventName === 'blur' || eventName === 'pagehide') dispatch(harness.window, eventName);
+    else dispatch(harness.element('pet-toggle'), eventName, { pointerId: 1 });
+    move(harness);
+    release(harness);
+    await settle();
+    expect(harness.bridge.drag.mock.calls).toEqual([['start'], ['move'], ['end']]);
+  });
+
+  it('拖动后仍能用键盘打开功能页', async () => {
+    const harness = petHarness();
+    await settle();
+    press(harness);
+    move(harness);
+    release(harness);
+    dispatch(harness.element('pet-toggle'), 'click', { detail: 0 });
+    await settle();
+    expect(harness.element('pet-panel').hidden).toBe(false);
+  });
+
+  it('面对面语音中可拖动形象，但不误开小屋或打断会话', async () => {
+    const harness = petHarness({ ...snapshot(), voice: { presentation: 'pet', state: 'listening', active: true, microphoneActive: true } });
+    await settle();
+    expect(harness.element('pet-toggle').disabled).toBe(false);
+    press(harness);
+    move(harness);
+    release(harness);
+    dispatch(harness.element('pet-toggle'), 'click', { detail: 1 });
+    await settle();
+    expect(harness.element('pet-panel').hidden).toBe(true);
+    expect(harness.element('pet-voice-controls').hidden).toBe(false);
+    expect(harness.bridge.command).not.toHaveBeenCalled();
+    expect(harness.bridge.drag).toHaveBeenCalledWith('move');
+  });
+
+  it('移动失败会结束本次拖动而不自动重试', async () => {
+    const harness = petHarness();
+    await settle();
+    harness.bridge.drag.mockRejectedValueOnce(new Error('窗口暂不可用'));
+    press(harness);
+    await settle();
+    move(harness);
+    expect(harness.bridge.drag.mock.calls).toEqual([['start'], ['end']]);
+    expect(harness.element('error-text').textContent).toContain('桌宠移动未完成');
+    expect(harness.bridge.command).not.toHaveBeenCalled();
+  });
+});
+
+describe('桌宠安静未读提示', () => {
+  it('启动不把历史消息当未读，普通状态和用户消息不点亮圆点', async () => {
+    const history = { id: 'history', role: 'assistant', text: '之前的回答' };
+    const harness = petHarness({ ...snapshot(), messages: [history] });
+    await settle();
+    expect(harness.element('pet-notification').hidden).toBe(true);
+    harness.emit({ ...snapshot(), message: '右键查看功能', messages: [history, { id: 'user', role: 'user', text: '我的问题' }] });
+    expect(harness.element('pet-notification').hidden).toBe(true);
+    expect(harness.element('pet-panel').hidden).toBe(true);
+    expect(harness.bridge.command).not.toHaveBeenCalled();
+  });
+
+  it('新消息只点亮一个圆点，点击在桌宠内查看，重复快照不再提醒', async () => {
+    const harness = petHarness();
+    await settle();
+    const state = { ...snapshot(), messages: [
+      { id: 'answer', role: 'assistant', text: '请在真实软件里亲手点击。' },
+      { id: 'notice', role: 'system', text: '本次结果已保存。' },
+    ] };
+    harness.emit(state);
+    expect(harness.element('pet-notification').hidden).toBe(false);
+    expect(harness.element('pet-panel').hidden).toBe(true);
+    expect(harness.bridge.command).not.toHaveBeenCalled();
+    harness.click('pet-notification');
+    await settle();
+    expect(harness.element('pet-panel').dataset.view).toBe('question');
+    expect(harness.element('conversation-view').hidden).toBe(false);
+    expect(harness.element('pet-notification').hidden).toBe(true);
+    harness.click('collapse-panel');
+    await settle();
+    harness.emit(state);
+    expect(harness.element('pet-notification').hidden).toBe(true);
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+    expect(harness.bridge.openMain).not.toHaveBeenCalled();
+    expect(harness.bridge.openTool).not.toHaveBeenCalled();
+    expect(harness.bridge.dictate).not.toHaveBeenCalled();
+    expect(harness.bridge.command.mock.calls.every(([payload]) => (payload as { type: string }).type === 'panel.set-expanded')).toBe(true);
+  });
+
+  it('只在相关详情页消除未读，正在阅读问答时不积累新提示', async () => {
+    const harness = petHarness();
+    await settle();
+    harness.click('pet-toggle');
+    await settle();
+    harness.emit({ ...snapshot(), messages: [{ id: 'answer', role: 'assistant', text: '一条新回答' }] });
+    harness.click('collapse-panel');
+    await settle();
+    expect(harness.element('pet-notification').hidden).toBe(false);
+    harness.click('pet-notification');
+    await settle();
+    const state = { ...snapshot(), messages: [{ id: 'next-answer', role: 'assistant', text: '阅读时到达的回答' }] };
+    harness.emit(state);
+    harness.click('collapse-panel');
+    await settle();
+    harness.emit(state);
+    expect(harness.element('pet-notification').hidden).toBe(true);
+  });
+
+  it('到期待办合并到同一个圆点，查看后不反复提醒，撤销的提醒会移除', async () => {
+    const harness = petHarness();
+    const showDue = vi.fn();
+    harness.window.addEventListener('nuanban:pet:show-due-todos', showDue);
+    await settle();
+    dispatch(harness.window, 'nuanban:pet:due-todos', { detail: { keys: ['todo-1', 'todo-2'] } });
+    expect(harness.element('pet-notification').hidden).toBe(false);
+    harness.click('pet-notification');
+    await settle();
+    expect(harness.element('pet-panel').dataset.view).toBe('todos');
+    expect(showDue).toHaveBeenCalledTimes(1);
+    harness.click('collapse-panel');
+    await settle();
+    dispatch(harness.window, 'nuanban:pet:due-todos', { detail: { keys: ['todo-1', 'todo-2'] } });
+    expect(harness.element('pet-notification').hidden).toBe(true);
+    dispatch(harness.window, 'nuanban:pet:due-todos', { detail: { keys: ['todo-1', 'todo-2', 'todo-3'] } });
+    expect(harness.element('pet-notification').hidden).toBe(false);
+    dispatch(harness.window, 'nuanban:pet:due-todos', { detail: { keys: [] } });
+    expect(harness.element('pet-notification').hidden).toBe(true);
+    expect(harness.bridge.openMain).not.toHaveBeenCalled();
+  });
+
+  it('未读问答和待办各自确认，但始终只使用同一个圆点', async () => {
+    const harness = petHarness();
+    await settle();
+    harness.emit({ ...snapshot(), messages: [{ id: 'answer', role: 'assistant', text: '一条新回答' }] });
+    dispatch(harness.window, 'nuanban:pet:due-todos', { detail: { keys: ['todo-1'] } });
+    harness.click('pet-notification');
+    await settle();
+    expect(harness.element('pet-panel').dataset.view).toBe('question');
+    harness.click('collapse-panel');
+    await settle();
+    expect(harness.element('pet-notification').hidden).toBe(false);
+    harness.click('pet-notification');
+    await settle();
+    expect(harness.element('pet-panel').dataset.view).toBe('todos');
+    harness.click('collapse-panel');
+    await settle();
+    expect(harness.element('pet-notification').hidden).toBe(true);
+  });
+
+  it('安全提醒优先打开隐私详情，但不自行恢复采集', async () => {
+    const harness = petHarness();
+    await settle();
+    harness.emit({ ...snapshot({ state: 'privacy_paused', reason: 'sensitive_content' }), messages: [{ id: 'answer', role: 'assistant', text: '一条新回答' }] });
+    expect(harness.element('pet-notification').hidden).toBe(false);
+    harness.click('pet-notification');
+    await settle();
+    expect(harness.element('pet-panel').dataset.view).toBe('observation');
+    expect(harness.element('privacy-notice').hidden).toBe(false);
+    expect(harness.bridge.command.mock.calls.every(([payload]) => (payload as { type: string }).type === 'panel.set-expanded')).toBe(true);
+    expect(harness.bridge.dictate).not.toHaveBeenCalled();
+  });
+
+  it('面对面语音期间不堆未读圆点，仍保留静音与结束入口', async () => {
+    const harness = petHarness();
+    await settle();
+    const voice = { presentation: 'pet', state: 'listening', active: true, microphoneActive: true };
+    harness.emit({ ...snapshot(), voice, messages: [{ id: 'voice-answer', role: 'assistant', text: '面对面回答' }] });
+    expect(harness.element('pet-notification').hidden).toBe(true);
+    expect(harness.element('pet-voice-controls').hidden).toBe(false);
+    expect(harness.element('pet-voice-bubble').hidden).toBe(false);
+    harness.emit({ ...snapshot(), voice: { ...voice, active: false, microphoneActive: false }, messages: [{ id: 'voice-answer', role: 'assistant', text: '面对面回答' }] });
+    expect(harness.element('pet-notification').hidden).toBe(true);
+  });
+});
+
 describe('桌宠面对面语音入口', () => {
   const faceSnapshot = (voice: Record<string, unknown> = {}) => ({ ...snapshot(), voice: {
     presentation: 'pet', mode: 'local', state: 'listening', active: true, microphoneActive: true,
@@ -185,7 +424,7 @@ describe('桌宠面对面语音入口', () => {
     expect(current.element('pet-voice-you').textContent).toBe('你说：<img src=x onerror=alert(1)>');
     expect(current.element('pet-voice-text').textContent).toBe('<script>合成回答</script>');
     expect(current.element('pet-voice-text').children).toHaveLength(0);
-    expect(current.element('pet-toggle').disabled).toBe(true);
+    expect(current.element('pet-toggle').disabled).toBe(false);
     current.emitPanel({ expanded: true, section: 'features' });
     expect(current.element('pet-panel').hidden).toBe(true);
     expect(current.element('pet-voice-interrupt').disabled).toBe(false);
@@ -296,7 +535,7 @@ describe('桌宠 preload 的最小 IPC 合约', () => {
     const harness = preloadHarness('pet-preload.cjs');
     const api = harness.exposed.nuanbanPet;
     expect(Object.isFrozen(api)).toBe(true);
-    expect(Object.keys(api).sort()).toEqual(['ask', 'cancelDictation', 'close', 'command', 'dictate', 'onPanel', 'onState', 'openMain', 'openTool', 'showMenu', 'snapshot']);
+    expect(Object.keys(api).sort()).toEqual(['ask', 'cancelDictation', 'close', 'command', 'dictate', 'drag', 'onPanel', 'onState', 'openMain', 'openTool', 'showMenu', 'snapshot']);
     await api.openMain();
     await api.openMain('/notes');
     await api.ask('如何收藏网页');
@@ -314,6 +553,17 @@ describe('桌宠 preload 的最小 IPC 合约', () => {
     expect(harness.ipcRenderer.invoke).toHaveBeenCalledWith('nuanban:pet:command', { type: 'guidance.verify' });
     expect(harness.ipcRenderer.invoke).toHaveBeenCalledWith('nuanban:pet:command', { type: 'panel.set-expanded', expanded: true });
     expect(JSON.stringify(harness.ipcRenderer.invoke.mock.calls)).not.toContain('rawFrame');
+  });
+
+  it('移动接口只接受三个动作，不传递任意坐标或输入自动化', async () => {
+    const { exposed, ipcRenderer } = preloadHarness('pet-preload.cjs');
+    for (const action of ['start', 'move', 'end']) {
+      await exposed.nuanbanPet.drag(action);
+      expect(ipcRenderer.invoke).toHaveBeenLastCalledWith('nuanban:pet:drag', action);
+    }
+    ipcRenderer.invoke.mockClear();
+    for (const action of ['input.click', 'resize', null, { x: 100, y: 200 }, ['move']]) expect(() => exposed.nuanbanPet.drag(action)).toThrow();
+    expect(ipcRenderer.invoke).not.toHaveBeenCalled();
   });
 
   it('拒绝输入自动化、外部 URL、空问题和错误的展开参数', () => {
@@ -722,14 +972,15 @@ describe('合成 snapshot 的桌宠 DOM 隔离测试，不代表真实跨应用�
     expect(harness.element('question').value).toBe('问题草稿');
   });
 
-  it('安全控件布局仍显示持续本地观察，并说明没有原始画面和自动出云', () => {
+  it('安全控件布局仍显示持续本地观察，并说明没有原始画面和自动出云', async () => {
     const harness = petHarness(snapshot({ state: 'observing', captureActive: true, reason: 'controls_only' }));
+    await settle();
     expect(harness.element('observation-status').textContent).toBe('正在本地观察');
     expect(harness.element('observation-detail').textContent).toContain('安全控件布局模式');
     expect(harness.element('observation-detail').textContent).toContain('不包含原画面');
     expect(harness.element('observation-detail').textContent).toContain('本人另行授权');
     expect(harness.element('privacy-notice').hidden).toBe(true);
-    expect(harness.commands).toEqual([]);
+    expect(harness.bridge.command).not.toHaveBeenCalled();
   });
 
   it.each(['unclassified_screen', 'unknown'])('安全原因 %s 允许本人重新授权检查，但不会直接恢复共享', async reason => {
@@ -804,6 +1055,17 @@ describe('合成 snapshot 的桌宠 DOM 隔离测试，不代表真实跨应用�
     expect(harness.element('observation-detail').textContent).toBe(detail);
     expect(harness.element('analysis-detail').textContent).toBe(detail);
     expect(harness.element(state === 'stopped' ? 'start-observation' : 'resume-sharing').disabled).toBe(false);
+  });
+
+  it.each(['no_readable_text', 'local_detection_limit', 'incomplete_local_detection', 'invalid_or_stale_frame'])('本地检测 %s 不误报云端失败，保留原因与本人继续共享入口', async reason => {
+    const message = `本地检查未放行，已停止观察且未发送画面。（${reason}）`;
+    const harness = petHarness(snapshot({ state: 'privacy_paused', captureActive: false, reason }, {}, { state: 'error', message }));
+    await settle();
+    expect(harness.element('analysis-status').textContent).toBe('本地安全检查暂停');
+    expect(harness.element('observation-detail').textContent).toBe(message);
+    expect(harness.element('resume-sharing').disabled).toBe(false);
+    expect(harness.bridge.command).not.toHaveBeenCalled();
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
   });
 
   it('cleanup_failed 禁止继续、提问与核验，明确提示退出重启', async () => {
@@ -1617,12 +1879,14 @@ describe('合成 DIP 坐标的只读指引隔离测试', () => {
 });
 
 describe('桌宠 UI 源码安全边界', () => {
-  it('猫身体非拖拽，仅专用 handle 拖动，保留原来的猫 SVG', () => {
+  it('身体按指针拖动以保留单击右键，原生把手作为备用，保留原来的猫 SVG', () => {
     const css = source('pet.css');
     const dragRules = [...css.matchAll(/([^{}]+)\{([^{}]*-webkit-app-region:\s*drag\s*;[^{}]*)\}/g)];
     expect(dragRules).toHaveLength(1);
     expect(dragRules[0][1].trim()).toBe('.drag-handle');
     expect(css).toMatch(/\.pet-stage\s*\{[^}]*-webkit-app-region:\s*no-drag/);
+    expect(css).toMatch(/\.pet-stage\s*\{[^}]*touch-action:\s*none/);
+    expect(source('pet.js')).toContain("bind(element('pet-toggle'), 'pointerdown'");
     expect(source('pet.html')).toContain('viewBox="0 0 240 260"');
     expect(source('pet.html')).toContain('M165 204c60 6 43-77 18-52');
     expect(source('pet.html')).toMatch(/<button id="pet-toggle"[^>]*aria-controls="pet-panel"/);

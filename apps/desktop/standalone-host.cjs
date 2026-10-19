@@ -13,7 +13,7 @@ const { createModelSearchClient } = require('./model-search-client.cjs');
 const { createRealtimeVoiceHost } = require('./realtime-voice-host.cjs');
 const { registerDictationBridge } = require('./wake/dictation-bridge.cjs');
 const { loadXingyunCredentials } = require('./xingyun-credentials.cjs');
-const { createXingyunAvatarService, registerXingyunAvatarBridge } = require('./xingyun-avatar.cjs');
+const { createXingyunAvatarService, registerXingyunAvatarBridge, defaultPet } = require('./xingyun-avatar.cjs');
 
 function createStandaloneHost(options) {
   const { BrowserWindow, ipcMain, screen, Menu, dialog, desktopCapturer, nativeImage, safeStorage, powerMonitor, session } = options.electron;
@@ -23,6 +23,8 @@ function createStandaloneHost(options) {
   const managementRoutes = new Set(['/', '/chat/new', '/notes', '/todos', '/pets', '/pets/draw', '/family', '/settings']);
   const petToolRoutes = new Set(['/chat/new', '/notes', '/todos', '/pets', '/pets/draw', '/pets/import-3d', '/family', '/settings', '/settings/status', '/onboarding/mode', '/onboarding/login', '/sync/conflicts']);
   let petWindow = null;
+  let petDisplayCompatible = options.petDisplayCompatible === true;
+  let petProtected;
   let guideWindow = null;
   let captionWindow = null;
   let guideTimer = null;
@@ -50,6 +52,7 @@ function createStandaloneHost(options) {
   let avatarBridge = null;
   let expanded = false;
   let petClosePromise = null;
+  let petDrag = null;
   const listeners = [];
   const channels = [];
   const analyzer = options.analyzer ?? createDesktopAnalysisClient();
@@ -161,6 +164,8 @@ function createStandaloneHost(options) {
 
   function publish() {
     const state = snapshot();
+    syncPetProtection(state.observation);
+    options.onObservationState?.({ ...state.observation });
     if (state.observation.state !== 'observing') consentedSourceId = null;
     if (live(petWindow)) petWindow.webContents.send('nuanban:pet:state', state);
     updateCaptions();
@@ -215,11 +220,25 @@ function createStandaloneHost(options) {
     window.webContents.on('will-attach-webview', event => event.preventDefault());
   }
 
+  function syncPetProtection(observation) {
+    if (!live(petWindow)) return;
+    const required = !petDisplayCompatible || observation?.captureActive !== false;
+    if (petProtected === required) return;
+    petWindow.setContentProtection(required);
+    petProtected = required;
+  }
+
+  function setPetDisplayCompatibility(compatible) {
+    petDisplayCompatible = compatible === true;
+    syncPetProtection(runtime?.snapshot().observation);
+  }
+
   function windowPreferences(preload) {
     return { preload: path.join(__dirname, preload), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true };
   }
 
   function setExpanded(value) {
+    petDrag = null;
     expanded = value && !faceVoiceVisible;
     if (!live(petWindow)) return;
     const area = screen.getDisplayMatching(petWindow.getBounds()).workArea;
@@ -228,6 +247,34 @@ function createStandaloneHost(options) {
     const current = petWindow.getBounds();
     petWindow.setBounds({ x: Math.max(area.x + 12, Math.min(current.x, area.x + area.width - width - 12)),
       y: Math.max(area.y + 12, Math.min(current.y, area.y + area.height - height - 12)), width, height });
+  }
+
+  function dragPet(action) {
+    if (!['start', 'move', 'end'].includes(action)) throw new Error('桌宠移动请求无效');
+    if (action === 'end') { petDrag = null; return true; }
+    if (closing || !live(petWindow) || !petWindow.isVisible()) { petDrag = null; return false; }
+    const cursor = screen.getCursorScreenPoint();
+    if (action === 'start') {
+      const bounds = petWindow.getBounds();
+      if (cursor.x < bounds.x || cursor.x >= bounds.x + bounds.width || cursor.y < bounds.y || cursor.y >= bounds.y + bounds.height) {
+        petDrag = null;
+        return false;
+      }
+      petDrag = { cursor, bounds };
+      return true;
+    }
+    if (!petDrag) return false;
+    const area = screen.getDisplayNearestPoint(cursor).workArea;
+    const bounds = petWindow.getBounds();
+    const width = Math.min(bounds.width, area.width);
+    const height = Math.min(bounds.height, area.height);
+    const position = {
+      x: Math.round(Math.max(area.x, Math.min(petDrag.bounds.x + cursor.x - petDrag.cursor.x, area.x + area.width - width))),
+      y: Math.round(Math.max(area.y, Math.min(petDrag.bounds.y + cursor.y - petDrag.cursor.y, area.y + area.height - height))),
+    };
+    if (width !== bounds.width || height !== bounds.height) petWindow.setBounds({ ...position, width, height });
+    else petWindow.setPosition(position.x, position.y, false);
+    return true;
   }
 
   function showPetPanel(panel = {}) {
@@ -439,7 +486,9 @@ function createStandaloneHost(options) {
     return Menu.buildFromTemplate([
       { label: '暖伴 · 独立桌宠', enabled: false }, { type: 'separator' },
       { label: '桌宠全部功能', click: () => showPetPanel({ section: 'features' }) },
-      { label: '星云小猴子 · 3D 形象', click: () => showPetPanel({ section: 'avatar' }) },
+      { label: '远程与录屏可见（观察期间暂停）', type: 'checkbox', checked: petDisplayCompatible,
+        click: () => setPetDisplayCompatibility(!petDisplayCompatible) },
+      { label: '星云' + defaultPet.name + ' · 3D 形象', click: () => showPetPanel({ section: 'avatar' }) },
       { label: '停止星云形象（恢复本机桌宠）', enabled: ['connecting', 'ready', 'cleanup_failed'].includes(avatarService?.status().phase), click: () => runAction(() => avatarService.stop()) },
       { label: '光标指引 · 教我操作', click: () => showPetPanel({ section: 'guidance' }) },
       { label: '和暖伴说说 / 教我操作', click: showPetPanel },
@@ -552,6 +601,7 @@ function createStandaloneHost(options) {
     captionWindow = new BrowserWindow({ width: 700, height: 116, title: '暖伴大字字幕', show: false, transparent: true, frame: false,
       hasShadow: false, alwaysOnTop: true, skipTaskbar: true, focusable: false, resizable: false, backgroundColor: '#00000000', webPreferences: windowPreferences('caption-preload.cjs') });
     for (const window of [petWindow, guideWindow, captionWindow]) { secureWindow(window); window.setAlwaysOnTop(true, 'floating'); }
+    syncPetProtection(runtime.snapshot().observation);
     guideWindow.setIgnoreMouseEvents(true, { forward: true });
     captionWindow.setIgnoreMouseEvents(true, { forward: true });
     petWindow.on('close', event => { if (!options.isQuitting()) { event.preventDefault(); runAction(closePetWindow); } });
@@ -563,6 +613,9 @@ function createStandaloneHost(options) {
     captionWindow.webContents.on('did-finish-load', updateCaptions);
     handle('nuanban:pet:snapshot', snapshot);
     handle('nuanban:pet:command', command);
+    handle('nuanban:pet:drag', dragPet);
+    for (const event of ['blur', 'hide', 'closed']) listen(petWindow, event, () => { petDrag = null; });
+    listen(petWindow.webContents, 'render-process-gone', () => { petDrag = null; });
     handle('nuanban:pet:ask', async input => {
       if (!input || Object.keys(input).length !== 1 || typeof input.text !== 'string') throw new Error('提问参数无效');
       await runtime.ask(input.text);
@@ -590,7 +643,7 @@ function createStandaloneHost(options) {
       } });
     listen(powerMonitor, 'lock-screen', () => runAction(() => stop('lock')));
     listen(powerMonitor, 'suspend', () => runAction(() => stop('lock')));
-    for (const event of ['display-added', 'display-removed', 'display-metrics-changed']) listen(screen, event, () => { clearGuide(); runAction(() => stop('window-moved')); });
+    for (const event of ['display-added', 'display-removed', 'display-metrics-changed']) listen(screen, event, () => { petDrag = null; clearGuide(); runAction(() => stop('window-moved')); });
     await Promise.all([petWindow.loadFile(petPath), guideWindow.loadFile(guidePath), captionWindow.loadFile(captionPath)]);
     petWindow.showInactive();
     pollReviews();
@@ -600,6 +653,7 @@ function createStandaloneHost(options) {
   }
 
   async function dispose(reason) {
+    petDrag = null;
     regionSelector.dispose();
     closing = true;
     const voiceStopping = voiceHost?.dispose() ?? { stopped: true, microphoneActive: false };
@@ -625,7 +679,7 @@ function createStandaloneHost(options) {
     return result;
   }
 
-  return { initialize, dispose, stop, snapshot, showPetPanel, requestObservation: resume => chooseObservation(resume === true),
+  return { initialize, dispose, stop, snapshot, showPetPanel, setPetDisplayCompatibility, requestObservation: resume => chooseObservation(resume === true),
     requestLocalVoice: enableWake, stopLocalVoice: disableWake, requestVoiceDictation,
     hasPetWindow: () => live(petWindow), getPetWindow: () => live(petWindow) ? petWindow : null };
 }

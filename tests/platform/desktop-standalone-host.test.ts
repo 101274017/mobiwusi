@@ -9,7 +9,7 @@ import { syntheticDetection, syntheticFrame } from '../helpers/standalone-frame'
 const { createStandaloneHost } = createRequire(import.meta.url)('../../apps/desktop/standalone-host.cjs');
 const hosts: { dispose(reason: string): Promise<unknown> }[] = [];
 type Handler = (event: unknown, payload?: unknown) => unknown;
-type MenuEntry = { label?: string; click?: () => unknown };
+type MenuEntry = { label?: string; type?: string; checked?: boolean; click?: () => unknown };
 type Bounds = { x: number; y: number; width: number; height: number };
 type WakeState = { state: string; enabled: boolean; microphoneActive: boolean; generation: number; localOnly: true; dictationAvailable: boolean };
 type WakeCallbacks = { onState(state: WakeState): void; onWake(event: { localOnly: true; generation: number }): void; onQuestion(text: string): void };
@@ -76,7 +76,7 @@ function fixture(overrides: Record<string, unknown> = {}) {
   const dialog = { showMessageBox: vi.fn(async (..._arguments: unknown[]) => ({ response: 1, checkboxChecked: false })) };
   const powerMonitor = new EventEmitter();
   const screen = Object.assign(new EventEmitter(), { getPrimaryDisplay: () => display, getDisplayMatching: () => display,
-    getDisplayNearestPoint: () => display, getCursorScreenPoint: () => ({ x: 0, y: 0 }) });
+    getDisplayNearestPoint: vi.fn(() => display), getCursorScreenPoint: vi.fn(() => ({ x: 0, y: 0 })) });
   const options = { electron: { BrowserWindow: FakeWindow, ipcMain: { handle: (channel: string, handler: Handler) => handlers.set(channel, handler),
     removeHandler: (channel: string) => handlers.delete(channel) }, screen, safeStorage, powerMonitor, dialog,
     Menu: { buildFromTemplate(template: MenuEntry[]) { menus.push(template); return { popup(configuration: { callback?: () => void }) {
@@ -112,6 +112,87 @@ function faceVoiceFixture() {
 
 afterEach(async () => {
   await Promise.all(hosts.splice(0).map(host => host.dispose('test')));
+});
+
+describe('桌宠身体拖动的受限窗口接线', () => {
+  it('只用系统光标移动桌宠，保留原尺寸，不触发观察、麦克风或管理窗口', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    const before = current.windows[0].getBounds();
+    const otherWindows = current.windows.slice(1).map(window => window.getBounds());
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: before.x + 80, y: before.y + 100 });
+    expect(await current.invoke('nuanban:pet:drag', 'start')).toBe(true);
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: before.x + 30, y: before.y + 80 });
+    expect(await current.invoke('nuanban:pet:drag', 'move')).toBe(true);
+    expect(current.windows[0].getBounds()).toEqual({ ...before, x: before.x - 50, y: before.y - 20 });
+    await current.invoke('nuanban:pet:drag', 'end');
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: -700, y: 10 });
+    expect(await current.invoke('nuanban:pet:drag', 'move')).toBe(false);
+    expect(current.windows[0].getBounds()).toEqual({ ...before, x: before.x - 50, y: before.y - 20 });
+    expect(current.windows.slice(1).map(window => window.getBounds())).toEqual(otherWindows);
+    expect(current.source.capture).not.toHaveBeenCalled();
+    expect(current.wake.dictate).not.toHaveBeenCalled();
+    expect(current.wake.enable).not.toHaveBeenCalled();
+    expect(current.showManagement).not.toHaveBeenCalled();
+    expect(current.showPetTool).not.toHaveBeenCalled();
+  });
+
+  it('负坐标屏幕边界与任务栏工作区限制生效', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    const before = current.windows[0].getBounds();
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: before.x + 80, y: before.y + 100 });
+    await current.invoke('nuanban:pet:drag', 'start');
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: -5000, y: -5000 });
+    await current.invoke('nuanban:pet:drag', 'move');
+    expect(current.windows[0].getBounds()).toMatchObject({ x: -800, y: 0 });
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: 5000, y: 5000 });
+    await current.invoke('nuanban:pet:drag', 'move');
+    expect(current.windows[0].getBounds()).toMatchObject({ x: -300, y: 230 });
+  });
+
+  it('跨屏使用系统 DIP 坐标，较小屏幕会收紧窗口以免移出可见区域', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    const before = current.windows[0].getBounds();
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: before.x + 80, y: before.y + 100 });
+    await current.invoke('nuanban:pet:drag', 'start');
+    const point = { x: 200, y: 100 };
+    current.screen.getCursorScreenPoint.mockReturnValue(point);
+    current.screen.getDisplayNearestPoint.mockReturnValue({ id: 2, scaleFactor: 1.5, bounds: { x: 0, y: 0, width: 220, height: 340 }, workArea: { x: 0, y: 0, width: 220, height: 300 } });
+    await current.invoke('nuanban:pet:drag', 'move');
+    expect(current.screen.getDisplayNearestPoint).toHaveBeenCalledWith(point);
+    expect(current.windows[0].getBounds()).toEqual({ x: 0, y: 0, width: 220, height: 300 });
+  });
+
+  it.each(['blur', 'hide', 'render-process-gone'])('%s 后不接受迟到的移动', async eventName => {
+    const current = fixture();
+    await current.host.initialize();
+    const before = current.windows[0].getBounds();
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: before.x + 80, y: before.y + 100 });
+    await current.invoke('nuanban:pet:drag', 'start');
+    if (eventName === 'render-process-gone') current.windows[0].webContents.emit(eventName);
+    else current.windows[0].emit(eventName);
+    await Promise.resolve();
+    const afterEvent = current.windows[0].getBounds();
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: -700, y: 10 });
+    expect(await current.invoke('nuanban:pet:drag', 'move')).toBe(false);
+    expect(current.windows[0].getBounds()).toEqual(afterEvent);
+  });
+
+  it('未开始、鼠标不在桌宠内或已隐藏时不能移动，拒绝不可信调用和任意坐标', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    const before = current.windows[0].getBounds();
+    expect(await current.invoke('nuanban:pet:drag', 'move')).toBe(false);
+    expect(await current.invoke('nuanban:pet:drag', 'start')).toBe(false);
+    for (const action of ['resize', { x: 5000, y: 5000 }, null]) expect(() => current.invoke('nuanban:pet:drag', action)).toThrow();
+    const guide = current.windows[1];
+    expect(() => current.invoke('nuanban:pet:drag', 'start', { sender: guide.webContents, senderFrame: guide.webContents.mainFrame })).toThrow('不可信');
+    current.windows[0].hide();
+    expect(await current.invoke('nuanban:pet:drag', 'start')).toBe(false);
+    expect(current.windows[0].getBounds()).toEqual(before);
+  });
 });
 
 describe('独立桌宠面对面气泡接线（合成语音，不打开真实麦克风）', () => {
@@ -361,6 +442,65 @@ describe('独立桌宠宿主接线（合成依赖，不代表外部软件或系�
     expect(current.host.snapshot().observation.state).toBe('off');
     expect(current.host.snapshot().wake.state).not.toBe('listening');
     expect(current.wake.probe).not.toHaveBeenCalled();
+    expect(current.wake.enable).not.toHaveBeenCalled();
+  });
+
+  it('采集开始前同步通知客户端恢复保护，确认停止后才允许兼容显示', async () => {
+    const onObservationState = vi.fn();
+    const current = fixture({ onObservationState });
+    await current.host.initialize();
+    expect(onObservationState).toHaveBeenLastCalledWith(expect.objectContaining({ captureActive: false }));
+    const originalCapture = current.source.capture.getMockImplementation()!;
+    current.source.capture.mockImplementation(async (...argumentsList: Parameters<typeof originalCapture>) => {
+      expect(onObservationState).toHaveBeenLastCalledWith(expect.objectContaining({ captureActive: true }));
+      return originalCapture(...argumentsList);
+    });
+    current.choose();
+    current.dialog.showMessageBox.mockResolvedValueOnce({ response: 0, checkboxChecked: false });
+    await current.invoke('nuanban:pet:command', { type: 'observation.start' });
+    await vi.waitFor(() => expect(current.source.capture).toHaveBeenCalled());
+    await current.host.stop('user');
+    expect(onObservationState).toHaveBeenLastCalledWith(expect.objectContaining({ captureActive: false }));
+  });
+
+  it('桌宠兼容显示不影响字幕和指引保护，开启观察前恢复、停止后解除桌宠保护', async () => {
+    const current = fixture({ petDisplayCompatible: true });
+    await current.host.initialize();
+    expect(current.windows.map(window => window.protection)).toEqual([false, true, true]);
+    const originalCapture = current.source.capture.getMockImplementation()!;
+    current.source.capture.mockImplementation(async (...argumentsList: Parameters<typeof originalCapture>) => {
+      expect(current.windows.map(window => window.protection)).toEqual([true, true, true]);
+      return originalCapture(...argumentsList);
+    });
+    current.choose();
+    current.dialog.showMessageBox.mockResolvedValueOnce({ response: 0, checkboxChecked: false });
+    await current.invoke('nuanban:pet:command', { type: 'observation.start' });
+    await vi.waitFor(() => expect(current.source.capture).toHaveBeenCalled());
+    current.host.setPetDisplayCompatibility(true);
+    expect(current.windows[0].protection).toBe(true);
+    current.source.stop.mockRejectedValueOnce(new Error('synthetic stop failure'));
+    expect(await current.host.stop('user')).toMatchObject({ stopped: false });
+    expect(current.windows[0].protection).toBe(true);
+    expect(await current.host.stop('user')).toMatchObject({ stopped: true });
+    expect(current.windows.map(window => window.protection)).toEqual([false, true, true]);
+  });
+
+  it('右键独立切换远程录屏兼容，第二次启动可启用，不开启观察或麦克风', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    await current.invoke('nuanban:pet:context-menu');
+    const entry = current.menus.at(-1)!.find(item => item.label === '远程与录屏可见（观察期间暂停）')!;
+    expect(entry).toMatchObject({ type: 'checkbox', checked: false });
+    entry.click!();
+    expect(current.windows.map(window => window.protection)).toEqual([false, true, true]);
+    await current.invoke('nuanban:pet:context-menu');
+    const enabled = current.menus.at(-1)!.find(item => item.label === entry.label)!;
+    expect(enabled.checked).toBe(true);
+    enabled.click!();
+    expect(current.windows[0].protection).toBe(true);
+    current.host.setPetDisplayCompatibility(true);
+    expect(current.windows.map(window => window.protection)).toEqual([false, true, true]);
+    expect(current.source.capture).not.toHaveBeenCalled();
     expect(current.wake.enable).not.toHaveBeenCalled();
   });
 

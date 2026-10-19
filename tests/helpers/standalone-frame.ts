@@ -16,7 +16,7 @@ function pngChunk(name: string, data: Buffer): Buffer {
   return Buffer.concat([length, content, crc]);
 }
 
-export function syntheticPng(shade = 255, width = 800, height = 600): Buffer {
+export function syntheticPng(shade = 255, width = 800, height = 600, noisyBackground = false): Buffer {
   const header = Buffer.alloc(13);
   header.writeUInt32BE(width, 0);
   header.writeUInt32BE(height, 4);
@@ -24,6 +24,19 @@ export function syntheticPng(shade = 255, width = 800, height = 600): Buffer {
   header[9] = 2;
   const pixels = Buffer.alloc((width * 3 + 1) * height, shade);
   for (let rowIndex = 0; rowIndex < height; rowIndex += 1) pixels[rowIndex * (width * 3 + 1)] = 0;
+  if (noisyBackground) {
+    let noiseState = 123456789;
+    for (let rowIndex = 0; rowIndex < height; rowIndex += 1) {
+      for (let columnIndex = Math.floor(width / 3); columnIndex < width; columnIndex += 1) {
+        for (let channel = 0; channel < 3; channel += 1) {
+          noiseState ^= noiseState << 13;
+          noiseState ^= noiseState >>> 17;
+          noiseState ^= noiseState << 5;
+          pixels[rowIndex * (width * 3 + 1) + 1 + columnIndex * 3 + channel] = noiseState & 255;
+        }
+      }
+    }
+  }
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), pngChunk('IHDR', header), pngChunk('IDAT', deflateSync(pixels)), pngChunk('IEND', Buffer.alloc(0))]);
 }
 

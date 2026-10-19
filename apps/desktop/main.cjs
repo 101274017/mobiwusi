@@ -4,6 +4,7 @@ const { createLifecycleController } = require('./lifecycle.cjs');
 const { createStandaloneHost } = require('./standalone-host.cjs');
 const { createPetWorkspace } = require('./pet-workspace.cjs');
 const { createPetToolWindow } = require('./pet-tool-window.cjs');
+const { createManagementWindowVisibility } = require('./management-window-visibility.cjs');
 const { registerManagementObservationBridge } = require('./management-observation-bridge.cjs');
 const { registerManagementVoiceBridge } = require('./management-voice-bridge.cjs');
 const { createImageQuestionService, registerManagementImageQuestionBridge } = require('./image-question.cjs');
@@ -37,6 +38,7 @@ let imageQuestionBridge;
 let textQuestionBridge;
 let aiProvider;
 let workspaceBridge;
+const managementVisibility = createManagementWindowVisibility({ displayCompatible: process.argv.includes('--client-display-compatible') });
 const petTools = createPetToolWindow({ BrowserWindow, getIndexPath: managementIndex, preloadPath: path.join(__dirname, 'preload.cjs'),
   onLifecycle: (name, window) => {
     if (name !== 'nuanban:host-window-moved') { imageQuestionBridge?.stop(); textQuestionBridge?.stop(); }
@@ -61,15 +63,8 @@ function trusted(event) {
 async function showMainWindow(route = '/') {
   if (!mainWindow || mainWindow.isDestroyed()) {
     if (!mainWindowLoading) mainWindowLoading = createWindow().finally(() => { mainWindowLoading = undefined; });
-    await mainWindowLoading;
   }
-  if (!mainWindow || mainWindow.isDestroyed()) throw new Error('管理窗口未就绪');
-  mainWindow.setTitle('暖伴 · 管理中心');
-  if (mainWindow.isMinimized()) mainWindow.restore();
-  await mainWindow.webContents.executeJavaScript(`window.location.hash = ${JSON.stringify(route)};`, true);
-  mainWindow.show();
-  mainWindow.focus();
-  return true;
+  return managementVisibility.show(mainWindow, { route, ready: mainWindowLoading });
 }
 function registerBridge() {
   const requireTrusted = event => { if (!trusted(event)) throw new Error('不可信桥接来源'); };
@@ -112,7 +107,7 @@ function registerBridge() {
 async function createWindow() {
   const startPage = managementIndex();
   mainWindow = new BrowserWindow({ width:1360,height:920,minWidth:420,minHeight:640,title:'暖伴 · 管理中心',backgroundColor:'#FFF8EF',show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true} });
-  mainWindow.setContentProtection(true);
+  managementVisibility.syncProtection(mainWindow);
   mainWindow.webContents.setWindowOpenHandler(() => ({action:'deny'}));
   mainWindow.webContents.on('will-navigate', event => event.preventDefault());
   mainWindow.webContents.on('will-attach-webview', event => event.preventDefault());
@@ -160,7 +155,11 @@ app.on('will-quit', () => {
 const ownsInstance = app.requestSingleInstanceLock();
 if (!ownsInstance) app.quit();
 app.on('second-instance', (_event, argumentsList) => {
-  if (argumentsList.includes('--management')) void showMainWindow('/').catch(() => dialog.showErrorBox('管理窗口未打开', '请从桌宠重新打开管理窗口。'));
+  if (argumentsList.includes('--pet-display-compatible')) standaloneHost?.setPetDisplayCompatibility(true);
+  if (argumentsList.includes('--management')) {
+    if (argumentsList.includes('--client-display-compatible')) managementVisibility.enableCompatibility(mainWindow);
+    void app.whenReady().then(() => showMainWindow('/')).catch(() => dialog.showErrorBox('管理窗口未打开', '请从桌宠重新打开管理窗口。'));
+  }
   else standaloneHost?.showPetPanel();
 });
 if (ownsInstance) app.whenReady().then(async () => {
@@ -181,12 +180,13 @@ if (ownsInstance) app.whenReady().then(async () => {
   try { aiProvider = await loadConfiguredProvider(); } catch { aiProvider = undefined; }
   registerBridge();
   standaloneHost = createStandaloneHost({ electron, userDataPath: app.getPath('userData'), showManagement: showMainWindow,
+    petDisplayCompatible: process.argv.includes('--pet-display-compatible'),
     showPetTool: route => petTools.show(route),
+    onObservationState: observation => managementVisibility.updateObservation(observation, mainWindow),
     analyzer: aiProvider ? createProviderAnalysisClient({ provider: aiProvider }) : undefined,
     questioner: aiProvider,
     reminderStore, reminderNotifications, isQuitting: () => quitAfterLifecycle, hasManagementWindow: hasVisibleClientWindow, onExit: () => app.quit() });
-  await standaloneHost.initialize();
-  if (process.argv.includes('--management')) await showMainWindow('/');
+  await Promise.all([standaloneHost.initialize(), process.argv.includes('--management') ? showMainWindow('/') : Promise.resolve()]);
 }).catch(() => {
   dialog.showErrorBox('暖伴启动未完成', '独立桌宠加载失败，未自动开启屏幕或麦克风采集。请检查本地启动日志与依赖后重试。');
   app.quit();
