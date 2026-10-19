@@ -7,8 +7,9 @@ export interface Entity { id: string; ownerId: string; createdAt: string; update
 export interface Note extends Entity { question: string; topic: string; summary: string; mastery: Mastery; masterySource: 'user' | null; reviewedAt: string | null; source: 'demo' | 'conversation' | 'guidance'; }
 export interface Todo extends Entity { title: string; dueAt: string; timezone: string; noteId: string | null; completedAt: string | null; repeat: 'none' | 'daily' | 'weekly'; source: 'self' | 'review'; }
 export interface PetAppearance { eyes: 'round' | 'happy' | 'sleepy'; mouth: 'smile' | 'small' | 'open'; color: string; action: 'idle' | 'greeting' | 'celebrating'; }
-export interface PetConfiguration { kind: 'cat' | 'rabbit' | 'dog'; appearance: PetAppearance; }
-export interface Preferences { mode: Mode; fontScale: number; captionSize: number; muted: boolean; speechRate: number; reducedMotion: boolean; pet: 'cat' | 'rabbit' | 'dog'; petColor: string; petAppearance?: Omit<PetAppearance, 'color'>; previousPet?: PetConfiguration | null; petRevision?: number; }
+export type PetKind = 'cat' | 'rabbit' | 'dog' | 'lili';
+export interface PetConfiguration { kind: PetKind; appearance: PetAppearance; }
+export interface Preferences { mode: Mode; fontScale: number; captionSize: number; muted: boolean; speechRate: number; reducedMotion: boolean; pet: PetKind; petColor: string; petAppearance?: Omit<PetAppearance, 'color'>; previousPet?: PetConfiguration | null; petRevision?: number; }
 export interface Family { id: string; name: string; relation: string; status: 'active' | 'revoked'; scopes: ('notes:read' | 'todos:write')[]; }
 export interface OutboxEntry { id: string; ownerId: string; entityId: string; entityType: 'note' | 'todo'; version: number; status: 'pending'; createdAt: string; }
 export type GuideState = 'idle' | 'await_consent' | 'analyzing' | 'await_action' | 'verifying' | 'completed' | 'need_help' | 'risk_paused' | 'ended';

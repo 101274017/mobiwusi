@@ -1,4 +1,13 @@
 const { contextBridge, ipcRenderer } = require('electron');
+contextBridge.exposeInMainWorld('nuanbanCompanion', Object.freeze({
+  showLili: async () => {
+    try { return await ipcRenderer.invoke('nuanban:companion:show-lili'); }
+    catch (error) {
+      const message = typeof error?.message === 'string' ? error.message.replace(/^Error invoking remote method 'nuanban:companion:show-lili': (?:Error: )?/, '') : '';
+      throw new Error(message || '栗栗桌宠调用未完成，请重试。');
+    }
+  },
+}));
 contextBridge.exposeInMainWorld('nuanbanWorkspace', Object.freeze({
   status: async () => {
     const mode = await ipcRenderer.invoke('nuanban:workspace:status');

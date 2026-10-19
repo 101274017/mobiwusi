@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { currentPet, applyPet, undoPet, samePet } from '@nuanban/pet-engine';
+import { currentPet, applyPet, undoPet, samePet, validPet } from '@nuanban/pet-engine';
 import { IndexedDbRepository } from '@nuanban/local-data';
 import { createDemoSnapshot } from '../fixtures/business-scenarios';
 import { useApp } from '../../apps/web/src/store';
@@ -11,6 +11,21 @@ const conversation = { async *stream(): AsyncGenerator<never> { throw new Error(
 beforeEach(() => useApp.setState({ snapshot: null, ready: false, error: null, busy: false, toast: null }));
 
 describe('内置桌宠预览应用与撤回', () => {
+  it('栗栗作为独立角色保存，重开保留，撤回恢复原伙伴', async () => {
+    const lili: PetConfiguration = { kind: 'lili', appearance: { eyes: 'round', mouth: 'smile', color: '#A66B4B', action: 'idle' } };
+    expect(validPet(lili)).toBe(true);
+    expect(validPet({ ...lili, kind: 'unknown' } as unknown as PetConfiguration)).toBe(false);
+    const repository = new IndexedDbRepository();
+    const ownerId = crypto.randomUUID();
+    const initial = createDemoSnapshot(ownerId);
+    await useApp.getState().initialize({ repository, ownerId, conversation }, () => initial);
+    await useApp.getState().applyPet(lili, 0);
+    expect(currentPet((await repository.load(ownerId))!.preferences)).toEqual(lili);
+    await useApp.getState().initialize({ repository, ownerId, conversation }, () => initial);
+    expect(currentPet(useApp.getState().snapshot!.preferences)).toEqual(lili);
+    await useApp.getState().undoPet(1);
+    expect(currentPet((await repository.load(ownerId))!.preferences)).toEqual(currentPet(initial.preferences));
+  });
   it('纯预览不改变偏好，应用保留原形象且不改变模式/语音', () => {
     const preferences = createDemoSnapshot('owner').preferences;
     const original = structuredClone(preferences);

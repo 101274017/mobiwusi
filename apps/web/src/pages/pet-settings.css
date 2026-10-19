@@ -13,5 +13,13 @@
 .pet-tuning-fields label { display: flex; flex-direction: column; gap: 10px; font-weight: 600; }
 .pet-tuning-fields select, .pet-tuning-fields input { width: 100%; min-height: 52px; }
 .pet-editor-controls .small-note { font-size: 13px; color: #78634e; }
+.lili-resource-card { border: 1px solid #dec9a5; border-radius: 18px; background: #fff9ee; padding: 20px; margin-bottom: 24px; }
+.lili-resource-card h3 { font-size: 20px; line-height: 1.6; margin: 14px 0 10px; color: #69452f; }
+.lili-resource-card p { margin-bottom: 14px; }
+.lili-resource-tags { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 14px; font-size: 13px; color: #69452f; }
+.lili-resource-tags code { font-weight: 700; }
+.lili-resource-card .lili-call-status { font-size: 14px; margin: 12px 0 0; }
+.lili-call-status:empty { display: none; }
+.pet-tuning-fields :disabled { opacity: .55; cursor: not-allowed; }
 @media (max-width: 850px) { .pet-editor-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 400px) { .pet-tuning-fields { grid-template-columns: minmax(0, 1fr); } }

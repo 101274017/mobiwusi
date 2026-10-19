@@ -6,6 +6,7 @@ const { createPetWorkspace } = require('./pet-workspace.cjs');
 const { createPetToolWindow } = require('./pet-tool-window.cjs');
 const { createManagementWindowVisibility } = require('./management-window-visibility.cjs');
 const { registerManagementObservationBridge } = require('./management-observation-bridge.cjs');
+const { registerManagementCompanionBridge } = require('./management-companion-bridge.cjs');
 const { registerManagementVoiceBridge } = require('./management-voice-bridge.cjs');
 const { createImageQuestionService, registerManagementImageQuestionBridge } = require('./image-question.cjs');
 const { loadConfiguredProvider } = require('./ai-provider.cjs');
@@ -72,6 +73,7 @@ function registerBridge() {
     getToolWindow: petTools.getWindow, getToolRevision: petTools.getRevision,
     showPet: () => { if (!standaloneHost) throw new Error('桌宠尚未就绪'); return standaloneHost.showPetPanel({ section: 'features' }); } });
   registerManagementObservationBridge({ ipcMain, isTrusted: trusted, getHost: () => standaloneHost });
+  registerManagementCompanionBridge({ ipcMain, isTrusted: trusted, getHost: () => standaloneHost });
   registerManagementVoiceBridge({ ipcMain, isTrusted: trusted, getHost: () => standaloneHost,
     openMicrophoneSettings: () => electron.shell.openExternal('ms-settings:privacy-microphone') });
   imageQuestionBridge = registerManagementImageQuestionBridge({ ipcMain, isTrusted: trusted,

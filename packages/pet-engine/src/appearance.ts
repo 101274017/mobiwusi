@@ -5,7 +5,7 @@ export function currentPet(preferences: Preferences): PetConfiguration {
 }
 
 export function validPet(value: PetConfiguration): boolean {
-  return !!value && ['cat', 'rabbit', 'dog'].includes(value.kind) && !!value.appearance && /^#[a-f0-9]{6}$/i.test(value.appearance.color) && ['round', 'happy', 'sleepy'].includes(value.appearance.eyes) && ['smile', 'small', 'open'].includes(value.appearance.mouth) && ['idle', 'greeting', 'celebrating'].includes(value.appearance.action);
+  return !!value && ['cat', 'rabbit', 'dog', 'lili'].includes(value.kind) && !!value.appearance && /^#[a-f0-9]{6}$/i.test(value.appearance.color) && ['round', 'happy', 'sleepy'].includes(value.appearance.eyes) && ['smile', 'small', 'open'].includes(value.appearance.mouth) && ['idle', 'greeting', 'celebrating'].includes(value.appearance.action);
 }
 
 export function samePet(first: PetConfiguration, second: PetConfiguration): boolean {

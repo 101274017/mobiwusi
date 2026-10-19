@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Pencil, RotateCcw } from 'lucide-react';
+import { Check, Monitor, Pencil, RotateCcw } from 'lucide-react';
 import { currentPet, samePet } from '@nuanban/pet-engine';
 import type { PetAppearance, PetConfiguration } from '@nuanban/domain';
 import { useApp } from '../store';
 import { Pet, PageTitle, Badge, Modal } from '../components';
 import './pet-settings.css';
 import { LocalModelPanel } from '../three-d/model-panel';
+import { localCompanionBridge, showLiliCompanion } from '../local-companion';
 
-const pets = [{ id: 'cat', name: '小橘猫', color: '#D98347' }, { id: 'rabbit', name: '小白兔', color: '#D7C5AB' }, { id: 'dog', name: '小暖狗', color: '#C19165' }] as const;
+const pets = [{ id: 'cat', name: '小橘猫', color: '#D98347' }, { id: 'rabbit', name: '小白兔', color: '#D7C5AB' }, { id: 'dog', name: '小暖狗', color: '#C19165' }, { id: 'lili', name: '栗栗小鹿', color: '#A66B4B' }] as const;
 
 export function PetsPage() {
   const preferences = useApp(state => state.snapshot!.preferences);
@@ -17,7 +18,27 @@ export function PetsPage() {
   const [revision, setRevision] = useState(preferences.petRevision ?? 0);
   const [confirmation, setConfirmation] = useState<'apply' | 'undo' | null>(null);
   const [unsupported, setUnsupported] = useState(false);
+  const [calling, setCalling] = useState(false);
+  const [callStatus, setCallStatus] = useState('');
+  const [callError, setCallError] = useState('');
+  const isLili = draft.kind === 'lili';
+  const canCall = Boolean(localCompanionBridge());
   const changed = !samePet(currentPet(preferences), draft);
+  function selectPet(pet: typeof pets[number]) {
+    setCallStatus(''); setCallError('');
+    setDraft(previous => ({ kind: pet.id, appearance: pet.id === 'lili'
+      ? { eyes: 'round', mouth: 'smile', action: 'idle', color: pet.color }
+      : { ...previous.appearance, color: pet.color } }));
+  }
+  async function callLili() {
+    if (calling) return;
+    setCalling(true); setCallStatus(''); setCallError('');
+    try {
+      const resource = await showLiliCompanion();
+      setCallStatus(`栗栗 ${resource.version} 已切换并显示在桌面。`);
+    } catch (error) { setCallError(error instanceof Error ? error.message : '栗栗桌宠调用未完成，请重试。'); }
+    finally { setCalling(false); }
+  }
   function tune<Key extends keyof PetAppearance>(key: Key, value: PetAppearance[Key]) {
     setDraft(previous => ({ ...previous, appearance: { ...previous.appearance, [key]: value } }));
   }
@@ -34,22 +55,33 @@ export function PetsPage() {
     } catch { }
   }
   return <>
-    <PageTitle eyebrow="B03 · 内置原创 SVG" title="我的小伙伴" subtitle="微调的是内置原创伙伴，不是手绘生成资产。先预览，明确确认后才替换；上一套设置可撤回。" />
+    <PageTitle eyebrow="B03 · 内置伙伴与栗栗" title="我的小伙伴" subtitle="选择喜欢的伙伴，先预览再确认。栗栗小鹿已作为本机二维角色加入，可保存选择，也可直接调用桌宠。" />
     <div className="pet-editor-grid">
       <section className="panel pet-editor-preview" aria-label="桌宠微调预览">
         <Badge tone="sage">当前陪伴伙伴</Badge><div className="pet-editor-current"><Pet kind={preferences.pet} color={preferences.petColor} /><p>当前设置 · 本机保存</p></div>
-        <div className="pet-editor-candidate"><Badge>尚未应用的预览</Badge><Pet kind={draft.kind} color={draft.appearance.color} appearance={draft.appearance} /><p aria-live="polite">{changed ? '只有右侧预览改变，当前伙伴未替换。' : '预览与当前设置相同。'}</p></div>
+        <div className="pet-editor-candidate"><Badge>尚未应用的预览</Badge><Pet kind={draft.kind} color={draft.appearance.color} appearance={draft.appearance} /><p aria-live="polite">{changed ? '只有候选预览改变，当前伙伴未替换。' : '预览与当前设置相同。'}</p></div>
       </section>
       <section className="panel pet-editor-controls" aria-label="内置伙伴微调">
-        <h2>让小伙伴，更像你喜欢的样子。</h2><p>所有选项只改变本页预览。不上传画稿，不调用生成服务。</p>
-        <fieldset><legend>选择内置伙伴</legend><div className="pet-kind-options">{pets.map(pet => <button key={pet.id} className={'button ' + (draft.kind === pet.id ? 'primary' : 'secondary')} aria-pressed={draft.kind === pet.id} onClick={() => setDraft(previous => ({ kind: pet.id, appearance: { ...previous.appearance, color: pet.color } }))}>{pet.name}</button>)}</div></fieldset>
+        <h2>让小伙伴，更像你喜欢的样子。</h2><p>选择与微调只改变本页预览，调用桌宠是单独操作。不上传画稿，不调用生成服务。</p>
+        <fieldset><legend>选择内置伙伴</legend><div className="pet-kind-options">{pets.map(pet => <button key={pet.id} className={'button ' + (draft.kind === pet.id ? 'primary' : 'secondary')} aria-pressed={draft.kind === pet.id} disabled={calling} onClick={() => selectPet(pet)}>{pet.name}</button>)}</div></fieldset>
+        {isLili && <section className="lili-resource-card" aria-label="栗栗角色资源">
+          <Badge tone="sage">本机二维角色 · 固定形象</Badge>
+          <h3>栗栗小鹿 · 提一盏暖灯，陪在身旁。</h3>
+          <p>使用已有角色工程导出的透明 PNG 素材；这里是静态预览，桌面运行时播放真实动作，不是三维模型。</p>
+          <div className="lili-resource-tags"><span>资源 ID：<code>lili</code></span><span>六种表情 · 六个动作</span></div>
+          <p className="small-note">确认应用会在本机记住伙伴；调用会立即切换桌面角色，不会替你保存本页预览。栗栗的五官、围巾、配色和持灯侧保持统一，不使用下方通用微调。</p>
+          <button className="button secondary" disabled={!canCall || calling || busy} onClick={() => void callLili()}><Monitor size={18} />{calling ? '正在调用栗栗…' : '调用栗栗桌宠'}</button>
+          {!canCall && <p className="small-note">调用需要新版暖伴桌面客户端；若客户端已打开，请正常退出后重新启动。浏览器里仍可预览和保存选择。</p>}
+          <p className="lili-call-status" role="status">{callStatus}</p>
+          {callError && <p className="inline-error" role="alert">{callError}</p>}
+        </section>}
         <div className="pet-tuning-fields">
-          <label>眼睛<select aria-label="眼睛" value={draft.appearance.eyes} onChange={event => tune('eyes', event.target.value as PetAppearance['eyes'])}><option value="round">圆圆眼</option><option value="happy">弯弯笑眼</option><option value="sleepy">眯眯眼</option></select></label>
-          <label>嘴型<select aria-label="嘴型" value={draft.appearance.mouth} onChange={event => tune('mouth', event.target.value as PetAppearance['mouth'])}><option value="smile">微笑</option><option value="small">小嘴</option><option value="open">张嘴</option></select></label>
-          <label>动作姿态<select aria-label="动作姿态" value={draft.appearance.action} onChange={event => tune('action', event.target.value as PetAppearance['action'])}><option value="idle">安静陪伴</option><option value="greeting">招招手</option><option value="celebrating">一起庆祝</option></select></label>
-          <label>伙伴颜色<input type="color" aria-label="伙伴颜色" value={draft.appearance.color} onChange={event => tune('color', event.target.value)} /></label>
+          <label>眼睛<select aria-label="眼睛" disabled={isLili} value={draft.appearance.eyes} onChange={event => tune('eyes', event.target.value as PetAppearance['eyes'])}><option value="round">圆圆眼</option><option value="happy">弯弯笑眼</option><option value="sleepy">眯眯眼</option></select></label>
+          <label>嘴型<select aria-label="嘴型" disabled={isLili} value={draft.appearance.mouth} onChange={event => tune('mouth', event.target.value as PetAppearance['mouth'])}><option value="smile">微笑</option><option value="small">小嘴</option><option value="open">张嘴</option></select></label>
+          <label>动作姿态<select aria-label="动作姿态" disabled={isLili} value={draft.appearance.action} onChange={event => tune('action', event.target.value as PetAppearance['action'])}><option value="idle">安静陪伴</option><option value="greeting">招招手</option><option value="celebrating">一起庆祝</option></select></label>
+          <label>伙伴颜色<input type="color" aria-label="伙伴颜色" disabled={isLili} value={draft.appearance.color} onChange={event => tune('color', event.target.value)} /></label>
         </div>
-        <p className="small-note">姿态是内置 SVG 形象，不代表生成动画或已验证的原生浮层。</p>
+        <p className="small-note">{isLili ? '动作在独立桌宠的菜单或暖伴事件中触发；运行桌宠无需打开 Blender。' : '通用微调只适用于猫、兔、狗的内置 SVG 形象，不代表生成动画。'}</p>
         <div className="stack"><button className="button primary" disabled={!changed || busy} onClick={() => setConfirmation('apply')}><Check size={19} />预览满意，确认应用</button><button className="button secondary" disabled={busy} onClick={reload}>放弃预览，读取当前设置</button><button className="button secondary" disabled={!preferences.previousPet || busy} onClick={() => setConfirmation('undo')}><RotateCcw size={18} />撤回上次应用</button></div>
       </section>
     </div>
