@@ -155,6 +155,8 @@ app.on('will-quit', () => {
 const ownsInstance = app.requestSingleInstanceLock();
 if (!ownsInstance) app.quit();
 app.on('second-instance', (_event, argumentsList) => {
+  if (argumentsList.includes('--pet-lili')) void standaloneHost?.selectLili(true);
+  if (argumentsList.includes('--pet-default')) void standaloneHost?.selectLili(false);
   if (argumentsList.includes('--pet-display-compatible')) standaloneHost?.setPetDisplayCompatibility(true);
   if (argumentsList.includes('--management')) {
     if (argumentsList.includes('--client-display-compatible')) managementVisibility.enableCompatibility(mainWindow);
@@ -180,6 +182,7 @@ if (ownsInstance) app.whenReady().then(async () => {
   try { aiProvider = await loadConfiguredProvider(); } catch { aiProvider = undefined; }
   registerBridge();
   standaloneHost = createStandaloneHost({ electron, userDataPath: app.getPath('userData'), showManagement: showMainWindow,
+    liliEnabled: process.argv.includes('--pet-lili') || (!process.argv.includes('--pet-default') && process.env.NUANBAN_DESKTOP_PET === 'lili'),
     petDisplayCompatible: process.argv.includes('--pet-display-compatible'),
     showPetTool: route => petTools.show(route),
     onObservationState: observation => managementVisibility.updateObservation(observation, mainWindow),

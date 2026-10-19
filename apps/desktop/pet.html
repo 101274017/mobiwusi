@@ -7,6 +7,7 @@
   <title>暖伴桌宠</title>
   <link rel="stylesheet" href="./pet.css">
   <script defer src="./pet.js"></script>
+  <script defer src="./lili-renderer.js"></script>
   <script defer src="./pet-artwork.js"></script>
   <script type="module" src="./model-runtime/model-renderer.js"></script>
   <script defer src="./pet-search.js"></script>
@@ -82,6 +83,14 @@
           <progress id="avatar-progress" max="100" value="0" aria-label="花环水獭资源加载进度" hidden></progress><p id="avatar-download" class="fine-print" aria-live="polite"></p>
           <label class="avatar-consent"><input id="avatar-consent" type="checkbox"><span>我同意连接星云形象服务，连接期间可能按星云平台规则计费。</span></label>
           <div class="avatar-actions"><button id="avatar-start" class="primary-button" type="button" disabled>启用花环水獭</button><button id="avatar-stop" type="button" disabled>停止并恢复原桌宠</button></div>
+          <h3 class="avatar-motion-title">角色动作</h3>
+          <p id="avatar-motion-status" class="avatar-display-state" role="status">本地预览不包含星云动作。启用实时 3D 后，播放当前应用已发布的角色动作。</p>
+          <div class="avatar-motion-grid" role="group" aria-label="星云角色动作">
+            <button id="avatar-motion-idle" type="button" disabled>待机动作</button>
+            <button id="avatar-motion-interactive" type="button" disabled>互动动作</button>
+            <button id="avatar-motion-listen" type="button" disabled>聆听动作</button>
+            <button id="avatar-motion-think" type="button" disabled>思考动作</button>
+          </div>
           <div class="avatar-boundaries"><h3>默认形象，不默认开启采集或计费连接</h3><p>未联网时，显示从你提供的截图中裁出的同款花环水獭静态预览；它不是可离线旋转或说话的 3D 模型。本人授权后才请求星云实时形象服务。</p><p>只向星云建立形象会话、下载形象资源和发送 SDK 必需的设备/性能信息。不自动开麦、不采集屏幕，也不把已有问答发给星云。</p><p>断网或加载失败会恢复本机形象；不自动重连。已有原画和本地模型不删除。收起面板不等于停止服务，请点击“停止”结束云端会话。</p><p>App Secret 仅由本机主进程解密和代签，不进入页面。默认角色对应星云应用 188337；本机仍是其他应用时禁止连接，避免重新显示旧猴子。实时造型以该应用后台的有效配置为准。</p></div>
         </section>
         <section id="archive-view" class="function-page library-page" aria-labelledby="archive-title" tabindex="-1" hidden>
@@ -260,8 +269,10 @@
       <p id="pet-voice-text" class="voice-bubble-text" role="status" aria-live="polite" aria-atomic="true"></p>
       <p id="pet-voice-note" class="voice-bubble-note"></p>
     </section>
+    <p id="lili-bubble" class="lili-bubble" role="status" aria-live="polite" hidden></p>
     <div class="pet-dock">
       <button id="pet-toggle" class="pet-stage" type="button" aria-label="展开暖暖面板" aria-controls="pet-panel" aria-expanded="false">
+      <canvas id="lili-pet" class="pet lili-pet" width="384" height="384" role="img" aria-label="栗栗，围着条纹围巾、提着小黄灯的二维小鹿" hidden></canvas>
       <img id="builtin-pet" class="pet default-pet" src="./assets/xingyun-floral-otter-preview.png" alt="默认桌宠：花环水獭（本地静态预览）" draggable="false" data-avatar-id="xingyun-floral-otter">
       <svg id="fallback-cat-pet" class="pet" viewBox="0 0 240 260" role="img" aria-label="备用小橘猫暖暖" hidden>
         <ellipse cx="122" cy="241" rx="68" ry="11" fill="#503A23" opacity=".08"/>
@@ -292,7 +303,7 @@
       <span id="xingyun-pet" class="pet xingyun-pet" role="img" aria-label="星云花环水獭 3D 桌宠" hidden><span id="xingyun-canvas" class="xingyun-canvas"></span></span>
       </button>
       <button id="pet-notification" class="pet-notification" type="button" aria-label="有新消息，点击查看" aria-controls="pet-panel" hidden><span aria-hidden="true"></span></button>
-      <div class="dock-copy"><p id="message" role="status">我在这里，点我聊聊</p><div class="dock-tools"><span class="drag-handle" aria-hidden="true" title="仅按住此处拖动桌宠">⠿ 移动</span><button id="pet-voice" type="button" title="单独授权后直接与暖暖语音聊天" disabled>语音聊聊</button><button id="pet-search" type="button" title="使用已配置的模型回答问题">搜索</button><button id="pet-menu" type="button" title="打开原生菜单；位置调整由桌面宿主提供">功能与位置</button></div></div>
+      <div class="dock-copy"><p id="message" role="status">我在这里，点我聊聊</p><div class="dock-tools"><span class="drag-handle" aria-hidden="true" title="也可直接按住桌宠形象拖动">⠿ 移动</span><button id="pet-voice" type="button" title="单独授权后直接与暖暖语音聊天" disabled>语音聊聊</button><button id="pet-search" type="button" title="使用已配置的模型回答问题">搜索</button><button id="pet-menu" type="button" title="打开原生菜单；位置调整由桌面宿主提供">功能与位置</button></div></div>
     </div>
     <div id="pet-voice-controls" class="pet-voice-controls" aria-label="面对面语音控制" hidden>
       <span class="drag-handle voice-drag-handle" aria-hidden="true" title="按住这里移动桌宠">⠿</span>

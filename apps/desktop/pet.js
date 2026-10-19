@@ -67,9 +67,9 @@
     return typeof value === 'string' && value.trim() ? value : fallback;
   }
 
-  function bind(target, name, handler) {
-    target.addEventListener(name, handler);
-    removers.push(() => target.removeEventListener(name, handler));
+  function bind(target, name, handler, options) {
+    target.addEventListener(name, handler, options);
+    removers.push(() => target.removeEventListener(name, handler, options));
   }
 
   function faceVoiceActive() {
@@ -783,9 +783,10 @@
     if (value && !element('question-form').hidden && (options.focusInput === true || (options.focusInput !== false && !options.section && !retryAction))) element('question').focus({ preventScroll: true });
   }
 
-  function sendPetDrag(action) {
+  function sendPetDrag(action, event) {
+    const point = event && Number.isFinite(event.screenX) && Number.isFinite(event.screenY) ? { x: event.screenX, y: event.screenY } : undefined;
     try {
-      Promise.resolve(bridge.drag(action)).catch(error => {
+      Promise.resolve(point ? bridge.drag(action, point) : bridge.drag(action)).catch(error => {
         if (disposed) return;
         endPetDrag();
         showError('桌宠移动未完成', error);
@@ -800,10 +801,45 @@
     if (!petDrag || (event?.pointerId !== undefined && event.pointerId !== petDrag.pointerId)) return;
     const current = petDrag;
     petDrag = undefined;
+    if (current.frame !== undefined) window.cancelAnimationFrame?.(current.frame);
     suppressPetClick = suppressPetClick || current.moved;
     element('pet-toggle').classList.toggle('is-dragging', false);
     try { element('pet-toggle').releasePointerCapture?.(current.pointerId); } catch {}
     sendPetDrag('end');
+  }
+
+  function markPetDragMoved(event) {
+    if (!petDrag || event.pointerId !== petDrag.pointerId) return false;
+    if (!petDrag.moved && Math.hypot(event.screenX - petDrag.x, event.screenY - petDrag.y) < 2) return false;
+    petDrag.moved = true;
+    suppressPetClick = true;
+    element('pet-toggle').classList.toggle('is-dragging', true);
+    return true;
+  }
+
+  function movePetDrag(event) {
+    if (!petDrag || event.pointerId !== petDrag.pointerId) return;
+    if ((event.buttons & 1) === 0) { endPetDrag(event); return; }
+    if (!markPetDragMoved(event)) return;
+    event.preventDefault();
+    if (petDrag.point?.screenX === event.screenX && petDrag.point?.screenY === event.screenY) return;
+    petDrag.point = { screenX: event.screenX, screenY: event.screenY };
+    if (!petDrag.sentFirstMove) {
+      petDrag.sentFirstMove = true;
+      sendPetDrag('move', petDrag.point);
+    } else if (petDrag.frame === undefined && typeof window.requestAnimationFrame === 'function') {
+      const current = petDrag;
+      current.frame = window.requestAnimationFrame(() => {
+        current.frame = undefined;
+        if (petDrag === current) sendPetDrag('move', current.point);
+      });
+    }
+  }
+
+  function releasePetDrag(event) {
+    if (!petDrag || event.pointerId !== petDrag.pointerId) return;
+    if (markPetDragMoved(event)) sendPetDrag('move', event);
+    endPetDrag(event);
   }
 
   function showMenu() {
@@ -835,25 +871,16 @@
     if (event.button !== 0 || event.isPrimary === false || typeof bridge?.drag !== 'function') return;
     endPetDrag();
     suppressPetClick = false;
-    petDrag = { pointerId: event.pointerId, x: event.screenX, y: event.screenY, moved: false };
-    try { element('pet-toggle').setPointerCapture?.(event.pointerId); } catch { petDrag = undefined; return; }
-    sendPetDrag('start');
-  });
-  bind(element('pet-toggle'), 'pointermove', event => {
-    if (!petDrag || event.pointerId !== petDrag.pointerId) return;
-    if ((event.buttons & 1) === 0) { endPetDrag(event); return; }
-    if (!petDrag.moved && Math.hypot(event.screenX - petDrag.x, event.screenY - petDrag.y) < 6) return;
-    petDrag.moved = true;
-    suppressPetClick = true;
-    element('pet-toggle').classList.toggle('is-dragging', true);
-    event.preventDefault();
-    sendPetDrag('move');
-  });
-  bind(element('pet-toggle'), 'pointerup', event => {
-    if (petDrag?.pointerId === event.pointerId && petDrag.moved) sendPetDrag('move');
-    endPetDrag(event);
-  });
-  for (const name of ['pointercancel', 'lostpointercapture']) bind(element('pet-toggle'), name, endPetDrag);
+    petDrag = { pointerId: event.pointerId, x: event.screenX, y: event.screenY, moved: false, sentFirstMove: false };
+    try { element('pet-toggle').setPointerCapture?.(event.pointerId); } catch {}
+    sendPetDrag('start', event);
+  }, true);
+  for (const target of [element('pet-toggle'), window]) {
+    bind(target, 'pointermove', movePetDrag, true);
+    bind(target, 'pointerup', releasePetDrag, true);
+    bind(target, 'pointercancel', endPetDrag, true);
+  }
+  bind(element('pet-toggle'), 'lostpointercapture', endPetDrag);
   bind(window, 'blur', () => endPetDrag());
   bind(element('pet-toggle'), 'dragstart', event => event.preventDefault());
   bind(element('pet-toggle'), 'click', event => {
@@ -861,6 +888,8 @@
       suppressPetClick = false;
       if (event.detail !== 0) { event.preventDefault(); event.stopPropagation(); return; }
     }
+    if (window.nuanbanLili && element('pet-window').classList.contains('is-lili')) void window.nuanbanLili.interaction({ type: 'click' }).catch(() => {});
+    window.dispatchEvent(new CustomEvent('nuanban:avatar-interaction'));
     setExpanded(!expanded);
   });
   bind(element('pet-notification'), 'click', () => {

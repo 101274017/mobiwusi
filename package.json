@@ -24,6 +24,8 @@
     "contracts:kotlin:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-kotlin-contracts.ps1",
     "desktop": "pnpm build && pnpm --filter @nuanban/desktop start",
     "desktop:client": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-desktop-client.ps1 -CompatibleDisplay",
+    "desktop:lili": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-lili-desktop.ps1",
+    "desktop:lili:check": "node scripts/test-lili-desktop.mjs",
     "desktop:artwork:check": "node scripts/check-local-artwork-desktop.mjs",
     "desktop:model:check": "node scripts/check-local-model-desktop.mjs",
     "desktop:package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/desktop-package.ps1",

@@ -8,6 +8,12 @@ const consent = element('avatar-consent');
 const startButton = element('avatar-start');
 const stopButton = element('avatar-stop');
 const progress = element('avatar-progress');
+const motions = [
+  { button: 'avatar-motion-idle', method: 'idle', label: '待机' },
+  { button: 'avatar-motion-interactive', method: 'interactiveidle', label: '互动' },
+  { button: 'avatar-motion-listen', method: 'listen', label: '聆听' },
+  { button: 'avatar-motion-think', method: 'think', label: '思考' },
+];
 let state = { configured: false, phase: 'unconfigured', message: '正在读取本机形象配置…' };
 let instance;
 let generation = 0;
@@ -45,6 +51,28 @@ function render() {
   stopButton.textContent = state.phase === 'cleanup_failed' ? '重试关闭云端会话' : '停止并恢复原桌宠';
   progress.hidden = state.phase !== 'connecting';
   if (progress.hidden) element('avatar-download').textContent = '';
+  for (const motion of motions) {
+    const button = element(motion.button);
+    if (button) button.disabled = state.phase !== 'ready' || !instance;
+  }
+  const motionStatus = element('avatar-motion-status');
+  if (motionStatus) {
+    if (state.phase !== 'ready') motionStatus.textContent = '本地预览不包含星云动作。启用实时 3D 后，播放当前应用已发布的角色动作。';
+    else if (motionStatus.dataset.phase !== 'ready') motionStatus.textContent = '实时 3D 已启用，由星云应用播放已发布的默认动作。点击桌宠可请求互动动作，也可在这里切换动作状态。';
+    motionStatus.dataset.phase = state.phase;
+  }
+}
+
+function playMotion(motion) {
+  if (disposed || state.phase !== 'ready' || !instance) return;
+  const status = element('avatar-motion-status');
+  try {
+    if (typeof instance[motion.method] !== 'function') throw new Error('unsupported');
+    instance[motion.method]();
+    if (status) status.textContent = '已请求星云播放' + motion.label + '动作；具体效果以当前应用已发布的配置为准。聆听动作不会开启麦克风。';
+  } catch {
+    if (status) status.textContent = '本次动作未能发送，实时形象保持连接。请检查星云应用的动作配置与发布状态。';
+  }
 }
 
 function destroyLocal() {
@@ -164,6 +192,8 @@ if (bridge && container && surface && startButton && stopButton && consent) {
   startButton.addEventListener('click', () => { void start(); });
   stopButton.addEventListener('click', () => { void stop(); });
   consent.addEventListener('change', render);
+  for (const motion of motions) element(motion.button)?.addEventListener('click', () => playMotion(motion));
+  window.addEventListener('nuanban:avatar-interaction', () => playMotion(motions[1]));
   void bridge.status().then(receive).catch(() => receive({ ...state, phase: 'error', message: '本机形象配置读取失败，原桌宠保持不变。' }));
   window.addEventListener('offline', () => { if (lease && instance) { const failedLease = lease; destroyLocal(); void bridge.fail(failedLease, 'load_failed').then(receive).catch(() => {}); } });
   window.addEventListener('pagehide', () => { disposed = true; destroyLocal(); sourceObserver.disconnect(); unsubscribe(); void bridge.stop().catch(() => {}); }, { once: true });

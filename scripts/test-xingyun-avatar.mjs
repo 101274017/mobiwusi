@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -22,6 +23,7 @@ const synthetic = process.argv.includes('--simulate');
 const checks = [];
 const pageErrors = [];
 const failedRequests = [];
+const motionAudit = { sentStates: [], bodyPackets: 0, binaryPackets: 0, distinctFrames: 0 };
 const application = await _electron.launch({ executablePath, args: [path.join(workspace, 'tests/helpers/xingyun-avatar-electron-smoke.cjs')],
   env: { ...process.env, NUANBAN_SMOKE_USER_DATA: output, NUANBAN_AVATAR_SMOKE_SYNTHETIC: synthetic ? '1' : '' }, timeout: 30000 });
 application.on('window', page => {
@@ -39,6 +41,19 @@ try {
   await expect.poll(async () => (await application.windows()).filter(page => page.url().endsWith('/pet.html')).length, { timeout: 20000 }).toBe(1);
   pet = (await application.windows()).find(page => page.url().endsWith('/pet.html'));
   await pet.waitForLoadState('domcontentloaded');
+  pet.on('websocket', socket => {
+    socket.on('framesent', ({ payload }) => {
+      if (typeof payload !== 'string') return;
+      try {
+        const packet = JSON.parse(payload.slice(payload.indexOf('[')));
+        if (packet[0] === 'state_change' && ['idle', 'interactive_idle', 'listen', 'think'].includes(packet[1]?.state)) motionAudit.sentStates.push(packet[1].state);
+      } catch {}
+    });
+    socket.on('framereceived', ({ payload }) => {
+      if (typeof payload !== 'string') motionAudit.binaryPackets++;
+      else if (payload.includes('"body_data"')) motionAudit.bodyPackets++;
+    });
+  });
   await pet.evaluate(() => {
     window.__avatarPolicyViolations = [];
     document.addEventListener('securitypolicyviolation', event => {
@@ -99,9 +114,24 @@ try {
     if (liveOutcome.phase === 'ready') {
       await expect(pet.locator('#xingyun-pet')).toBeVisible();
       assert(await pet.locator('#xingyun-canvas canvas').count() > 0);
+      for (const motion of ['idle', 'listen', 'think', 'interactive']) {
+        await expect(pet.locator('#avatar-motion-' + motion)).toBeEnabled();
+        await pet.locator('#avatar-motion-' + motion).click();
+        await pet.waitForTimeout(1000);
+      }
+      assert(['idle', 'interactive_idle', 'listen', 'think'].every(state => motionAudit.sentStates.includes(state)), 'Official SDK action states must reach the real socket');
+      checks.push('real_sdk_motion_controls_sent_without_new_sessions');
       await pet.locator('#collapse-panel').click();
       await pet.waitForTimeout(1200);
       await pet.screenshot({ path: path.join(output, 'live-desktop-pet.png') });
+      const frames = new Set();
+      for (let index = 0; index < 4; index++) {
+        frames.add(createHash('sha256').update(await pet.locator('#xingyun-pet').screenshot({ animations: 'allow', omitBackground: true })).digest('hex'));
+        await pet.waitForTimeout(350);
+      }
+      motionAudit.distinctFrames = frames.size;
+      assert(frames.size > 1, 'Real avatar frames must change, not just the local PNG');
+      checks.push('real_avatar_animation_frames_change_without_css_sway');
       checks.push('real_cloud_session_and_rendered_avatar');
     }
     assert.equal((await application.evaluate(() => global.__avatarSmoke)).posts, 1);
@@ -139,7 +169,7 @@ try {
   assert.equal(audit.screenRequests, 0);
   assert.equal(pageErrors.length, 0, 'Renderer errors must be investigated');
   checks.push('no_screen_capture_microphone_or_renderer_errors');
-  const report = { live, synthetic, checks, liveOutcome, cleanup, audit, pageErrors, failedRequests, policyViolations: await pet.evaluate(() => window.__avatarPolicyViolations) };
+  const report = { live, synthetic, checks, liveOutcome, cleanup, audit, motionAudit, pageErrors, failedRequests, policyViolations: await pet.evaluate(() => window.__avatarPolicyViolations) };
   await writeFile(path.join(output, 'report.json'), JSON.stringify(report, null, 2));
   console.log(JSON.stringify({ output, ...report }, null, 2));
   if (live && liveOutcome.phase !== 'ready') process.exitCode = 2;

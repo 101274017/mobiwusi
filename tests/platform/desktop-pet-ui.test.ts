@@ -92,7 +92,7 @@ function petHarness(initial: unknown = snapshot()) {
   const unsubscribePanel = vi.fn(() => { panelListener = undefined; });
   const bridge = {
     snapshot: vi.fn(async (): Promise<unknown> => current),
-    drag: vi.fn(async (_action: string) => true),
+    drag: vi.fn(async (_action: string, _point?: { x: number; y: number }) => true),
     onState: vi.fn((callback: StateListener) => { listener = callback; return unsubscribe; }),
     onPanel: vi.fn((callback: StateListener) => { panelListener = callback; return unsubscribePanel; }),
     command: vi.fn(async (_payload: unknown): Promise<unknown> => ({ ok: true })),
@@ -152,19 +152,21 @@ afterEach(() => {
 });
 
 describe('直接按住桌宠拖动', () => {
+  const actions = (harness: ReturnType<typeof petHarness>) => harness.bridge.drag.mock.calls.map(([action]) => [action]);
   const press = (harness: ReturnType<typeof petHarness>, fields = {}) => dispatch(harness.element('pet-toggle'), 'pointerdown', { pointerId: 1, button: 0, isPrimary: true, screenX: 100, screenY: 100, ...fields });
   const move = (harness: ReturnType<typeof petHarness>, fields = {}) => dispatch(harness.element('pet-toggle'), 'pointermove', { pointerId: 1, buttons: 1, screenX: 140, screenY: 130, ...fields });
-  const release = (harness: ReturnType<typeof petHarness>) => dispatch(harness.element('pet-toggle'), 'pointerup', { pointerId: 1, button: 0, screenX: 140, screenY: 130 });
+  const release = (harness: ReturnType<typeof petHarness>, fields = {}) => dispatch(harness.element('pet-toggle'), 'pointerup', { pointerId: 1, button: 0, screenX: 100, screenY: 100, ...fields });
 
   it('小幅抖动仍是单击，按住身体不必再点击移动把手', async () => {
     const harness = petHarness();
     await settle();
     press(harness);
-    move(harness, { screenX: 103, screenY: 102 });
+    move(harness, { screenX: 101, screenY: 101 });
     release(harness);
     dispatch(harness.element('pet-toggle'), 'click', { detail: 1 });
     await settle();
-    expect(harness.bridge.drag.mock.calls).toEqual([['start'], ['end']]);
+    expect(actions(harness)).toEqual([['start'], ['end']]);
+    expect(harness.bridge.drag).toHaveBeenCalledWith('start', { x: 100, y: 100 });
     expect(harness.element('pet-panel').hidden).toBe(false);
     expect(harness.element('pet-toggle').setPointerCapture).toHaveBeenCalledWith(1);
     expect(harness.element('pet-toggle').releasePointerCapture).toHaveBeenCalledWith(1);
@@ -180,7 +182,8 @@ describe('直接按住桌宠拖动', () => {
     await settle();
     expect(harness.element('pet-panel').hidden).toBe(true);
     expect(harness.bridge.command).not.toHaveBeenCalled();
-    expect(harness.bridge.drag.mock.calls).toEqual([['start'], ['move'], ['move'], ['end']]);
+    expect(actions(harness)).toEqual([['start'], ['move'], ['move'], ['end']]);
+    expect(harness.bridge.drag).toHaveBeenCalledWith('move', { x: 140, y: 130 });
     press(harness);
     release(harness);
     dispatch(harness.element('pet-toggle'), 'click', { detail: 1 });
@@ -189,6 +192,45 @@ describe('直接按住桌宠拖动', () => {
     expect(harness.bridge.openMain).not.toHaveBeenCalled();
     expect(harness.bridge.ask).not.toHaveBeenCalled();
     expect(harness.bridge.dictate).not.toHaveBeenCalled();
+  });
+
+  it('指针捕获失败时仍能通过窗口级事件完成拖动', async () => {
+    const harness = petHarness();
+    await settle();
+    harness.element('pet-toggle').setPointerCapture.mockImplementationOnce(() => { throw new Error('capture unavailable'); });
+    press(harness);
+    dispatch(harness.window, 'pointermove', { pointerId: 1, buttons: 1, screenX: 140, screenY: 130 });
+    dispatch(harness.window, 'pointerup', { pointerId: 1, button: 0, screenX: 140, screenY: 130 });
+    dispatch(harness.element('pet-toggle'), 'click', { detail: 1 });
+    await settle();
+    expect(actions(harness)).toEqual([['start'], ['move'], ['move'], ['end']]);
+    expect(harness.element('pet-panel').hidden).toBe(true);
+  });
+
+  it('快速拖动未收到中间移动事件时，释放位移仍阻止误展开', async () => {
+    const harness = petHarness();
+    await settle();
+    press(harness);
+    release(harness, { screenX: 140, screenY: 130 });
+    dispatch(harness.element('pet-toggle'), 'click', { detail: 1 });
+    await settle();
+    expect(actions(harness)).toEqual([['start'], ['move'], ['end']]);
+    expect(harness.element('pet-panel').hidden).toBe(true);
+  });
+
+  it.each(['pointercancel', 'pointerup'])('窗口级 %s 清理拖动，连续移动不会排队发送 IPC', async eventName => {
+    const harness = petHarness();
+    await settle();
+    press(harness);
+    for (let index = 0; index < 80; index += 1) {
+      dispatch(harness.window, 'pointermove', { pointerId: 1, buttons: 1, screenX: 140 + index, screenY: 130 });
+    }
+    dispatch(harness.window, eventName, { pointerId: 1, button: 0, screenX: 220, screenY: 130 });
+    move(harness);
+    await settle();
+    expect(actions(harness)).toEqual(eventName === 'pointerup'
+      ? [['start'], ['move'], ['move'], ['end']] : [['start'], ['move'], ['end']]);
+    expect(harness.element('pet-toggle').classList.toggle).toHaveBeenLastCalledWith('is-dragging', false);
   });
 
   it('右键和非主指针不开始移动，其他指针不能接管当前拖动', async () => {
@@ -204,9 +246,9 @@ describe('直接按住桌宠拖动', () => {
     press(harness);
     move(harness, { pointerId: 2 });
     dispatch(harness.element('pet-toggle'), 'pointerup', { pointerId: 2 });
-    expect(harness.bridge.drag.mock.calls).toEqual([['start']]);
+    expect(actions(harness)).toEqual([['start']]);
     release(harness);
-    expect(harness.bridge.drag.mock.calls).toEqual([['start'], ['end']]);
+    expect(actions(harness)).toEqual([['start'], ['end']]);
   });
 
   it.each(['pointercancel', 'lostpointercapture', 'blur', 'buttons-released', 'pagehide'])('%s 结束拖动，迟到移动不再移动窗口', async eventName => {
@@ -220,7 +262,7 @@ describe('直接按住桌宠拖动', () => {
     move(harness);
     release(harness);
     await settle();
-    expect(harness.bridge.drag.mock.calls).toEqual([['start'], ['move'], ['end']]);
+    expect(actions(harness)).toEqual([['start'], ['move'], ['end']]);
   });
 
   it('拖动后仍能用键盘打开功能页', async () => {
@@ -246,7 +288,29 @@ describe('直接按住桌宠拖动', () => {
     expect(harness.element('pet-panel').hidden).toBe(true);
     expect(harness.element('pet-voice-controls').hidden).toBe(false);
     expect(harness.bridge.command).not.toHaveBeenCalled();
-    expect(harness.bridge.drag).toHaveBeenCalledWith('move');
+    expect(harness.bridge.drag).toHaveBeenCalledWith('move', { x: 140, y: 130 });
+  });
+
+  it('远程指针按帧合并位置，释放发送最终点并取消迟到帧', async () => {
+    const harness = petHarness();
+    const frames: FrameRequestCallback[] = [];
+    const cancelAnimationFrame = vi.fn();
+    Object.assign(harness.window, { requestAnimationFrame: (callback: FrameRequestCallback) => { frames.push(callback); return frames.length; }, cancelAnimationFrame });
+    await settle();
+    press(harness);
+    move(harness);
+    for (let index = 0; index < 100; index++) move(harness, { screenX: 150 + index, screenY: 140 + index });
+    expect(frames).toHaveLength(1);
+    expect(actions(harness)).toEqual([['start'], ['move']]);
+    frames[0](0);
+    expect(harness.bridge.drag).toHaveBeenLastCalledWith('move', { x: 249, y: 239 });
+    move(harness, { screenX: 260, screenY: 250 });
+    release(harness, { screenX: 270, screenY: 260 });
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(2);
+    expect(harness.bridge.drag.mock.calls.at(-2)).toEqual(['move', { x: 270, y: 260 }]);
+    const count = harness.bridge.drag.mock.calls.length;
+    frames[1](1);
+    expect(harness.bridge.drag).toHaveBeenCalledTimes(count);
   });
 
   it('移动失败会结束本次拖动而不自动重试', async () => {
@@ -256,7 +320,7 @@ describe('直接按住桌宠拖动', () => {
     press(harness);
     await settle();
     move(harness);
-    expect(harness.bridge.drag.mock.calls).toEqual([['start'], ['end']]);
+    expect(actions(harness)).toEqual([['start'], ['end']]);
     expect(harness.element('error-text').textContent).toContain('桌宠移动未完成');
     expect(harness.bridge.command).not.toHaveBeenCalled();
   });
@@ -555,13 +619,16 @@ describe('桌宠 preload 的最小 IPC 合约', () => {
     expect(JSON.stringify(harness.ipcRenderer.invoke.mock.calls)).not.toContain('rawFrame');
   });
 
-  it('移动接口只接受三个动作，不传递任意坐标或输入自动化', async () => {
+  it('移动接口只接受三个动作，受信指针仅转发有限的坐标而非窗口边界', async () => {
     const { exposed, ipcRenderer } = preloadHarness('pet-preload.cjs');
     for (const action of ['start', 'move', 'end']) {
       await exposed.nuanbanPet.drag(action);
       expect(ipcRenderer.invoke).toHaveBeenLastCalledWith('nuanban:pet:drag', action);
     }
+    await exposed.nuanbanPet.drag('start', { x: 120.5, y: -30.5 });
+    expect(ipcRenderer.invoke).toHaveBeenLastCalledWith('nuanban:pet:drag', 'start', { x: 120.5, y: -30.5 });
     ipcRenderer.invoke.mockClear();
+    for (const point of [null, { x: NaN, y: 0 }, { x: 0, y: Infinity }, { x: 1000001, y: 0 }, { x: 0, y: 0, width: 1000 }]) expect(() => exposed.nuanbanPet.drag('move', point)).toThrow('指针坐标');
     for (const action of ['input.click', 'resize', null, { x: 100, y: 200 }, ['move']]) expect(() => exposed.nuanbanPet.drag(action)).toThrow();
     expect(ipcRenderer.invoke).not.toHaveBeenCalled();
   });

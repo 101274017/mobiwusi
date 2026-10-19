@@ -14,9 +14,10 @@ const { createRealtimeVoiceHost } = require('./realtime-voice-host.cjs');
 const { registerDictationBridge } = require('./wake/dictation-bridge.cjs');
 const { loadXingyunCredentials } = require('./xingyun-credentials.cjs');
 const { createXingyunAvatarService, registerXingyunAvatarBridge, defaultPet } = require('./xingyun-avatar.cjs');
+const { createLiliHost } = require('./lili-host.cjs');
 
 function createStandaloneHost(options) {
-  const { BrowserWindow, ipcMain, screen, Menu, dialog, desktopCapturer, nativeImage, safeStorage, powerMonitor, session } = options.electron;
+  const { BrowserWindow, ipcMain, screen, Menu, Tray, dialog, desktopCapturer, nativeImage, safeStorage, powerMonitor, session } = options.electron;
   const petPath = path.join(__dirname, 'pet.html');
   const guidePath = path.join(__dirname, 'guide.html');
   const captionPath = path.join(__dirname, 'caption.html');
@@ -53,6 +54,8 @@ function createStandaloneHost(options) {
   let expanded = false;
   let petClosePromise = null;
   let petDrag = null;
+  let liliTray = null;
+  let petDragTimer = null;
   const listeners = [];
   const channels = [];
   const analyzer = options.analyzer ?? createDesktopAnalysisClient();
@@ -71,6 +74,12 @@ function createStandaloneHost(options) {
       if (!closing && current.enabled && current.microphoneActive && typeof text === 'string') runAction(() => runtime.ask(text));
     },
   });
+
+  const lili = createLiliHost({ userDataPath: options.userDataPath,
+    isVisible: () => live(petWindow) && petWindow.isVisible(), onView: applyLiliView,
+    onFrame: state => { if (live(petWindow)) petWindow.webContents.send('nuanban:lili:state', state); },
+    onResource: resource => { if (live(petWindow)) petWindow.webContents.send('nuanban:lili:resource', resource); },
+    onEvent: event => { if (live(petWindow)) petWindow.webContents.send('nuanban:lili:event', event); } });
 
   function live(window) { return Boolean(window && !window.isDestroyed() && !window.webContents.isDestroyed()); }
 
@@ -164,6 +173,7 @@ function createStandaloneHost(options) {
 
   function publish() {
     const state = snapshot();
+    lili.observe(state);
     syncPetProtection(state.observation);
     options.onObservationState?.({ ...state.observation });
     if (state.observation.state !== 'observing') consentedSourceId = null;
@@ -237,49 +247,74 @@ function createStandaloneHost(options) {
     return { preload: path.join(__dirname, preload), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true };
   }
 
-  function setExpanded(value) {
-    petDrag = null;
+  function setExpanded(value, liliView = lili.snapshot().view) {
+    clearPetDrag();
     expanded = value && !faceVoiceVisible;
     if (!live(petWindow)) return;
     const area = screen.getDisplayMatching(petWindow.getBounds()).workArea;
-    const width = Math.max(1, Math.min(expanded ? 400 : faceVoiceVisible ? 320 : 300, area.width - 24));
-    const height = Math.max(1, Math.min(expanded ? 760 : faceVoiceVisible ? 500 : 390, area.height - 24));
+    const liliSelected = lili.snapshot().enabled;
+    const width = Math.max(1, Math.min(expanded ? 400 : faceVoiceVisible ? 320 : liliSelected ? Math.max(300, liliView.size + 24) : 300, area.width - 24));
+    const height = Math.max(1, Math.min(expanded ? 760 : faceVoiceVisible ? 500 : liliSelected ? Math.max(390, liliView.size + 144) : 390, area.height - 24));
     const current = petWindow.getBounds();
     petWindow.setBounds({ x: Math.max(area.x + 12, Math.min(current.x, area.x + area.width - width - 12)),
       y: Math.max(area.y + 12, Math.min(current.y, area.y + area.height - height - 12)), width, height });
   }
 
-  function dragPet(action) {
-    if (!['start', 'move', 'end'].includes(action)) throw new Error('桌宠移动请求无效');
-    if (action === 'end') { petDrag = null; return true; }
-    if (closing || !live(petWindow) || !petWindow.isVisible()) { petDrag = null; return false; }
-    const cursor = screen.getCursorScreenPoint();
-    if (action === 'start') {
-      const bounds = petWindow.getBounds();
-      if (cursor.x < bounds.x || cursor.x >= bounds.x + bounds.width || cursor.y < bounds.y || cursor.y >= bounds.y + bounds.height) {
-        petDrag = null;
-        return false;
-      }
-      petDrag = { cursor, bounds };
-      return true;
+  function clearPetDrag() {
+    if (petDragTimer) {
+      clearInterval(petDragTimer);
+      petDragTimer = null;
     }
-    if (!petDrag) return false;
+    petDrag = null;
+  }
+
+  function movePetToCursor(point) {
+    if (closing || !live(petWindow) || !petWindow.isVisible() || !petDrag) {
+      clearPetDrag();
+      return false;
+    }
+    const cursor = point ?? screen.getCursorScreenPoint();
     const area = screen.getDisplayNearestPoint(cursor).workArea;
-    const bounds = petWindow.getBounds();
-    const width = Math.min(bounds.width, area.width);
-    const height = Math.min(bounds.height, area.height);
+    const width = Math.min(petDrag.bounds.width, area.width);
+    const height = Math.min(petDrag.bounds.height, area.height);
     const position = {
       x: Math.round(Math.max(area.x, Math.min(petDrag.bounds.x + cursor.x - petDrag.cursor.x, area.x + area.width - width))),
       y: Math.round(Math.max(area.y, Math.min(petDrag.bounds.y + cursor.y - petDrag.cursor.y, area.y + area.height - height))),
     };
-    if (width !== bounds.width || height !== bounds.height) petWindow.setBounds({ ...position, width, height });
-    else petWindow.setPosition(position.x, position.y, false);
+    const next = { ...position, width, height };
+    const previous = petDrag.applied ?? petDrag.bounds;
+    if (Object.keys(next).some(key => next[key] !== previous[key])) {
+      petWindow.setBounds(next, false);
+      petDrag.applied = next;
+    }
     return true;
+  }
+
+  function dragPet(action, point) {
+    if (!['start', 'move', 'end'].includes(action)) throw new Error('桌宠移动请求无效');
+    if (point !== undefined && (!point || Object.keys(point).length !== 2 || !['x', 'y'].every(key => Number.isFinite(point[key]) && Math.abs(point[key]) <= 1000000))) throw new Error('桌宠指针坐标无效');
+    if (action === 'end') { clearPetDrag(); if (live(petWindow)) lili.rememberPosition(petWindow.getBounds()); return true; }
+    if (closing || !live(petWindow) || !petWindow.isVisible()) { clearPetDrag(); return false; }
+    const cursor = point ?? screen.getCursorScreenPoint();
+    if (action === 'start') {
+      clearPetDrag();
+      const bounds = petWindow.getBounds();
+      if (cursor.x < bounds.x || cursor.x >= bounds.x + bounds.width || cursor.y < bounds.y || cursor.y >= bounds.y + bounds.height) return false;
+      const content = petWindow.getContentBounds();
+      petDrag = { cursor, bounds: { ...bounds, width: content.width, height: content.height } };
+      if (!point) {
+        petDragTimer = setInterval(movePetToCursor, 8);
+        petDragTimer.unref?.();
+      }
+      return true;
+    }
+    return movePetToCursor(point);
   }
 
   function showPetPanel(panel = {}) {
     if (petClosePromise) return petClosePromise.then(() => showPetPanel(panel));
     if (!live(petWindow)) throw new Error('独立桌宠尚未就绪，请重新打开客户端。');
+    if (lili.snapshot().enabled && lili.snapshot().view.clickThrough) lili.command({ type: 'display.set', options: { clickThrough: false } });
     if (petWindow.isMinimized()) petWindow.restore();
     setExpanded(true);
     if (!expanded) {
@@ -485,6 +520,11 @@ function createStandaloneHost(options) {
     const current = runtime.snapshot();
     return Menu.buildFromTemplate([
       { label: '暖伴 · 独立桌宠', enabled: false }, { type: 'separator' },
+      { label: '角色', submenu: [
+        { label: '栗栗 · 本地二维小鹿', type: 'radio', checked: lili.snapshot().enabled, click: () => runAction(() => selectLili(true)) },
+        { label: '原有形象（花环水獭 / 原画 / 本地模型）', type: 'radio', checked: !lili.snapshot().enabled, click: () => runAction(() => selectLili(false)) },
+      ] },
+      ...(lili.snapshot().enabled ? liliMenuItems() : []),
       { label: '桌宠全部功能', click: () => showPetPanel({ section: 'features' }) },
       { label: '远程与录屏可见（观察期间暂停）', type: 'checkbox', checked: petDisplayCompatible,
         click: () => setPetDisplayCompatibility(!petDisplayCompatible) },
@@ -511,6 +551,80 @@ function createStandaloneHost(options) {
       { type: 'separator' }, { label: '停止观察、语音和发送', click: () => runAction(() => stop('user')) },
       { label: '关闭桌宠（停止所有采集）', click: () => runAction(closePetWindow) },
     ]);
+  }
+
+  function liliMenuItems() {
+    const state = lili.snapshot();
+    const send = payload => { lili.command(payload); refreshLiliTray(); };
+    return [
+      { label: '栗栗动作', submenu: [ ['idle', '站立待机'], ['wave', '招手'], ['guide', '提灯指路'], ['sign', '举空白木牌'], ['success', '成功反馈'], ['rest', '夜间休息'] ]
+        .map(([action, label]) => ({ label, click: () => send({ type: 'action.play', action }) })) },
+      { label: '栗栗表情', submenu: [ [null, '随动作变化'], ['smile', '温柔微笑'], ['blink', '缓慢眨眼'], ['listening', '认真倾听'], ['happy', '开心'], ['sleepy', '困倦'], ['concern', '担心但平静'] ]
+        .map(([expression, label]) => ({ label, click: () => send({ type: 'expression.set', expression }) })) },
+      { label: '栗栗大小', submenu: [64, 160, 240, 320].map(size => ({ label: `${size} 像素`, type: 'radio', checked: state.view.size === size,
+        click: () => send({ type: 'display.set', options: { size } }) })) },
+      { label: '暂停栗栗动画', type: 'checkbox', checked: state.view.paused, click: () => send({ type: 'animation.configure', options: { paused: !state.view.paused } }) },
+      { label: '减少动态效果', type: 'checkbox', checked: state.view.reducedMotion, click: () => send({ type: 'animation.configure', options: { reducedMotion: !state.view.reducedMotion } }) },
+      { label: '栗栗置顶', type: 'checkbox', checked: state.view.alwaysOnTop, click: () => send({ type: 'display.set', options: { alwaysOnTop: !state.view.alwaysOnTop } }) },
+      { label: '鼠标穿透（从托盘取消）', type: 'checkbox', checked: state.view.clickThrough, enabled: Boolean(liliTray),
+        click: () => send({ type: 'display.set', options: { clickThrough: !state.view.clickThrough } }) },
+      { label: '隐藏栗栗（从托盘恢复）', enabled: Boolean(liliTray), click: () => send({ type: 'display.set', options: { visible: false } }) },
+      { type: 'separator' },
+    ];
+  }
+
+  function refreshLiliTray() {
+    if (!liliTray || liliTray.isDestroyed?.()) return;
+    liliTray.setContextMenu(Menu.buildFromTemplate([
+      { label: '显示桌宠 / 取消鼠标穿透', click: () => { lili.command({ type: 'display.set', options: { visible: true, clickThrough: false } }); if (live(petWindow)) petWindow.showInactive(); } },
+      ...liliMenuItems(),
+      { label: '打开暖伴面板', click: () => { lili.command({ type: 'display.set', options: { visible: true, clickThrough: false } }); showPetPanel(); } },
+      { label: '退出暖伴（停止所有采集）', click: () => runAction(() => options.onExit()) },
+    ]));
+  }
+
+  function ensureLiliTray() {
+    if (liliTray) return true;
+    if (!Tray || !nativeImage?.createFromPath) return false;
+    try {
+      const icon = nativeImage.createFromPath(path.join(__dirname, 'assets', 'lili', 'icon.png')).resize({ width: 32, height: 32 });
+      if (icon.isEmpty()) return false;
+      liliTray = new Tray(icon);
+      liliTray.setToolTip('栗栗 · 暖伴桌宠');
+      liliTray.on('double-click', () => { lili.command({ type: 'display.set', options: { visible: true, clickThrough: false } }); if (live(petWindow)) petWindow.showInactive(); });
+      return true;
+    } catch { return false; }
+  }
+
+  function applyLiliView(view) {
+    if (!live(petWindow)) return { ok: false, code: 'window_unavailable' };
+    if (view.enabled) ensureLiliTray();
+    if ((view.clickThrough || view.visible === false) && !liliTray) return { ok: false, code: 'tray_unavailable' };
+    petWindow.setIgnoreMouseEvents(view.enabled && view.clickThrough, { forward: true });
+    petWindow.setAlwaysOnTop(view.enabled ? view.alwaysOnTop : true, 'floating');
+    petWindow.setOpacity?.(view.enabled ? view.opacity : 1);
+    setExpanded(expanded, view);
+    if (view.enabled && Number.isFinite(view.x) && Number.isFinite(view.y)) {
+      const bounds = petWindow.getBounds();
+      const area = screen.getDisplayNearestPoint({ x: view.x, y: view.y }).workArea;
+      petWindow.setPosition(Math.round(Math.max(area.x, Math.min(view.x, area.x + area.width - bounds.width))),
+        Math.round(Math.max(area.y, Math.min(view.y, area.y + area.height - bounds.height))), false);
+    }
+    if (view.visible === false) petWindow.hide();
+    else if (view.visible === true) petWindow.showInactive();
+    refreshLiliTray();
+    return { ok: true };
+  }
+
+  async function selectLili(value) {
+    if (typeof value !== 'boolean') return { ok: false, code: 'invalid_selection' };
+    if (value && ['connecting', 'ready', 'cleanup_failed'].includes(avatarService?.status().phase)) {
+      const stopped = await avatarService.stop();
+      if (stopped?.stopped !== true) return { ok: false, code: 'avatar_stop_unconfirmed' };
+    }
+    const result = lili.setEnabled(value);
+    refreshLiliTray();
+    return result;
   }
 
   function handle(channel, action) {
@@ -614,8 +728,12 @@ function createStandaloneHost(options) {
     handle('nuanban:pet:snapshot', snapshot);
     handle('nuanban:pet:command', command);
     handle('nuanban:pet:drag', dragPet);
-    for (const event of ['blur', 'hide', 'closed']) listen(petWindow, event, () => { petDrag = null; });
-    listen(petWindow.webContents, 'render-process-gone', () => { petDrag = null; });
+    handle('nuanban:lili:bootstrap', lili.bootstrap);
+    handle('nuanban:lili:select', selectLili);
+    handle('nuanban:lili:command', payload => { const result = lili.command(payload); refreshLiliTray(); return result; });
+    handle('nuanban:lili:interaction', lili.interaction);
+    for (const event of ['blur', 'hide', 'closed']) listen(petWindow, event, clearPetDrag);
+    listen(petWindow.webContents, 'render-process-gone', clearPetDrag);
     handle('nuanban:pet:ask', async input => {
       if (!input || Object.keys(input).length !== 1 || typeof input.text !== 'string') throw new Error('提问参数无效');
       await runtime.ask(input.text);
@@ -643,7 +761,11 @@ function createStandaloneHost(options) {
       } });
     listen(powerMonitor, 'lock-screen', () => runAction(() => stop('lock')));
     listen(powerMonitor, 'suspend', () => runAction(() => stop('lock')));
-    for (const event of ['display-added', 'display-removed', 'display-metrics-changed']) listen(screen, event, () => { petDrag = null; clearGuide(); runAction(() => stop('window-moved')); });
+    for (const event of ['display-added', 'display-removed', 'display-metrics-changed']) listen(screen, event, () => {
+      clearPetDrag(); clearGuide(); setExpanded(expanded); if (live(petWindow)) lili.rememberPosition(petWindow.getBounds()); runAction(() => stop('window-moved'));
+    });
+    if (options.liliEnabled === true) lili.setEnabled(true);
+    lili.start();
     await Promise.all([petWindow.loadFile(petPath), guideWindow.loadFile(guidePath), captionWindow.loadFile(captionPath)]);
     petWindow.showInactive();
     pollReviews();
@@ -653,7 +775,11 @@ function createStandaloneHost(options) {
   }
 
   async function dispose(reason) {
-    petDrag = null;
+    clearPetDrag();
+    lili.rememberPosition(live(petWindow) ? petWindow.getBounds() : null);
+    lili.dispose();
+    liliTray?.destroy();
+    liliTray = null;
     regionSelector.dispose();
     closing = true;
     const voiceStopping = voiceHost?.dispose() ?? { stopped: true, microphoneActive: false };
@@ -679,7 +805,7 @@ function createStandaloneHost(options) {
     return result;
   }
 
-  return { initialize, dispose, stop, snapshot, showPetPanel, setPetDisplayCompatibility, requestObservation: resume => chooseObservation(resume === true),
+  return { initialize, dispose, stop, snapshot, showPetPanel, setPetDisplayCompatibility, selectLili, lili, requestObservation: resume => chooseObservation(resume === true),
     requestLocalVoice: enableWake, stopLocalVoice: disableWake, requestVoiceDictation,
     hasPetWindow: () => live(petWindow), getPetWindow: () => live(petWindow) ? petWindow : null };
 }

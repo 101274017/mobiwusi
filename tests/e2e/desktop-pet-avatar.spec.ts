@@ -8,12 +8,18 @@ const sdkFixture = `export default class SyntheticAvatar {
     window.avatarAudit.dimensions = { width: options.container.offsetWidth, height: options.container.offsetHeight };
   }
   setVolume(value) { window.avatarAudit.volume = value; }
+  idle() { window.avatarAudit.motions.push('idle'); }
+  interactiveidle() { window.avatarAudit.motions.push('interactiveidle'); }
+  listen() { window.avatarAudit.motions.push('listen'); }
+  think() { window.avatarAudit.motions.push('think'); }
   async init({onDownloadProgress}) {
     await fetch(this.options.gatewayServer, { method: 'POST', body: JSON.stringify({ request_id: 'synthetic-request' }) });
     onDownloadProgress(100);
     if (window.avatarMode === 'pending') await new Promise(resolve => window.addEventListener('synthetic-avatar-resolve', resolve, { once: true }));
     if (window.avatarMode === 'error') { this.options.agentCallbacks.onError({ code: 'synthetic-error' }); throw new Error('synthetic-error'); }
     const canvas = document.createElement('canvas'); canvas.width = 100; canvas.height = 100;
+    canvas.style.pointerEvents = 'auto';
+    for (const name of ['pointerdown', 'pointermove', 'pointerup', 'click', 'contextmenu']) canvas.addEventListener(name, event => event.stopPropagation());
     this.options.container.append(canvas);
     this.options.onRenderChange('rendering');
   }
@@ -31,7 +37,7 @@ async function fixture(page: Page, mode = 'ready') {
     return route.fulfill({ body: readFileSync(new URL('../../apps/desktop/' + filename, import.meta.url)), contentType: filename.endsWith('.html') ? 'text/html; charset=utf-8' : filename.endsWith('.css') ? 'text/css' : 'text/javascript' });
   });
   await page.addInitScript(({ mode }) => {
-    const audit = { begins: 0, exchanges: 0, stops: 0, failures: 0, destroyed: 0, management: 0, microphones: 0, menus: 0, drags: [] as string[] };
+    const audit = { begins: 0, exchanges: 0, stops: 0, failures: 0, destroyed: 0, management: 0, microphones: 0, menus: 0, drags: [] as string[], motions: [] as string[] };
     let listener: ((value: unknown) => void) | undefined;
     let runtimeListener: ((value: unknown) => void) | undefined;
     let state = { configured: mode !== 'mismatch', configurationMismatch: mode === 'mismatch', phase: mode === 'mismatch' ? 'unconfigured' : 'idle', message: mode === 'mismatch' ? '本机仍是其他星云应用，请先更新为应用 188337 的完整凭证。' : '本机应用已配置', appId: '031ce3cd-synthetic-application' };
@@ -62,6 +68,61 @@ async function fixture(page: Page, mode = 'ready') {
 }
 
 async function audit(page: Page) { return page.evaluate(() => (window as unknown as { avatarAudit: Record<string, unknown> }).avatarAudit); }
+
+test('真实动作入口只控制已连接的星云角色，点击互动而拖动不触发动作', async ({ page }) => {
+  await fixture(page);
+  await expect(page.locator('#avatar-motion-idle')).toBeDisabled();
+  await expect(page.locator('#avatar-motion-status')).toContainText('本地预览不包含星云动作');
+  expect(await audit(page)).toMatchObject({ begins: 0, motions: [] });
+  await page.locator('#avatar-consent').check();
+  await page.locator('#avatar-start').click();
+  await expect(page.locator('#avatar-motion-idle')).toBeEnabled();
+  expect(await audit(page)).toMatchObject({ motions: [] });
+  for (const name of ['interactive', 'listen', 'think', 'idle']) await page.locator('#avatar-motion-' + name).click();
+  expect(await audit(page)).toMatchObject({ motions: ['interactiveidle', 'listen', 'think', 'idle'], begins: 1, exchanges: 1, microphones: 0 });
+  await page.locator('#collapse-panel').click();
+  const bounds = await page.locator('#pet-toggle').boundingBox();
+  if (!bounds) throw new Error('Pet not visible');
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(bounds.x + 12, bounds.y + 12, { steps: 10 });
+  await page.mouse.up();
+  expect((await audit(page)).motions).toEqual(['interactiveidle', 'listen', 'think', 'idle']);
+  await page.locator('#pet-toggle').click();
+  expect((await audit(page)).motions).toEqual(['interactiveidle', 'listen', 'think', 'idle', 'interactiveidle']);
+  await page.locator('#feature-avatar').click();
+  await page.locator('#avatar-stop').click();
+  await expect(page.locator('#avatar-motion-idle')).toBeDisabled();
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('nuanban:avatar-interaction')));
+  expect(await audit(page)).toMatchObject({ begins: 1, exchanges: 1, microphones: 0, destroyed: 1 });
+  expect((await audit(page)).motions).toHaveLength(5);
+});
+
+test('本地预览自动轻摇呼吸，拖动暂停动效，减少动态与实时 3D 不叠加', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await fixture(page);
+  await page.locator('#collapse-panel').click();
+  const preview = page.locator('#builtin-pet');
+  await expect(preview).toHaveCSS('animation-name', 'pet-idle');
+  const transform = await preview.evaluate(element => getComputedStyle(element).transform);
+  await expect.poll(() => preview.evaluate(element => getComputedStyle(element).transform)).not.toBe(transform);
+  await page.locator('#pet-toggle').evaluate(element => element.classList.add('is-dragging'));
+  await expect(preview).toHaveCSS('animation-play-state', 'paused');
+  await page.locator('#pet-toggle').evaluate(element => element.classList.remove('is-dragging'));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(preview).toHaveCSS('animation-name', 'none');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  expect(await audit(page)).toMatchObject({ begins: 0, exchanges: 0, management: 0, microphones: 0 });
+  await page.locator('#pet-toggle').click();
+  await page.locator('#feature-avatar').click();
+  await page.locator('#avatar-consent').check();
+  await page.locator('#avatar-start').click();
+  await expect(page.locator('#avatar-status')).toHaveAttribute('data-phase', 'ready');
+  await page.locator('#collapse-panel').click();
+  await expect(page.locator('#xingyun-pet')).toHaveCSS('animation-name', 'none');
+  await expect(page.locator('#xingyun-canvas canvas')).toHaveCSS('pointer-events', 'none');
+  expect(await audit(page)).toMatchObject({ begins: 1, exchanges: 1, destroyed: 0, stops: 0, management: 0, microphones: 0 });
+});
 
 test('按住形象直接拖动，释放不打开面板，单击右键和实时 3D 不受影响', async ({ page }) => {
   const errors: string[] = [];

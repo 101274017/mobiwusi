@@ -1,0 +1,20 @@
+const { app, desktopCapturer } = require('electron');
+const path = require('node:path');
+const fs = require('node:fs');
+const cacheRoot = path.resolve(__dirname, '..', '..', '.cache');
+const userData = process.env.NUANBAN_LILI_TEST_USER_DATA;
+if (!userData || !path.isAbsolute(userData) || !path.resolve(userData).startsWith(cacheRoot + path.sep)) throw new Error('栗栗验收必须使用专用缓存目录');
+fs.mkdirSync(userData, { recursive: true });
+app.setPath('userData', userData);
+process.env.NUANBAN_DESKTOP_API_BASE_URL = '';
+process.env.NUANBAN_DESKTOP_API_TOKEN = '';
+global.__liliSmoke = { screenRequests: 0 };
+desktopCapturer.getSources = async () => { global.__liliSmoke.screenRequests += 1; throw new Error('栗栗验收禁止采集真实桌面'); };
+const standalone = require('../../apps/desktop/standalone-host.cjs');
+const original = standalone.createStandaloneHost;
+standalone.createStandaloneHost = options => {
+  const host = original({ ...options, questioner: undefined });
+  global.__liliSmoke.host = host;
+  return host;
+};
+require('../../apps/desktop/main.cjs');

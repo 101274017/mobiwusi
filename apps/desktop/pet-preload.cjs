@@ -1,4 +1,31 @@
 const { contextBridge, ipcRenderer } = require('electron');
+contextBridge.exposeInMainWorld('nuanbanLili', Object.freeze({
+  bootstrap: () => ipcRenderer.invoke('nuanban:lili:bootstrap'),
+  select: enabled => {
+    if (typeof enabled !== 'boolean') throw new TypeError('角色选择必须是布尔值');
+    return ipcRenderer.invoke('nuanban:lili:select', enabled);
+  },
+  command: payload => {
+    const commands = ['resource.describe', 'state.get', 'action.play', 'action.stop', 'expression.set', 'expression.reset',
+      'animation.configure', 'semantic.send', 'ui.bubble', 'display.set'];
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload) || !commands.includes(payload.type)) throw new TypeError('栗栗指令无效');
+    return ipcRenderer.invoke('nuanban:lili:command', payload);
+  },
+  interaction: payload => {
+    if (!payload || !['loaded', 'loadFailed', 'click'].includes(payload.type)) throw new TypeError('栗栗交互无效');
+    return ipcRenderer.invoke('nuanban:lili:interaction', { type: payload.type });
+  },
+  onState: listener => subscribeLili('nuanban:lili:state', listener),
+  onResource: listener => subscribeLili('nuanban:lili:resource', listener),
+  onEvent: listener => subscribeLili('nuanban:lili:event', listener),
+}));
+
+function subscribeLili(channel, listener) {
+  if (typeof listener !== 'function') throw new TypeError('栗栗监听器必须是函数');
+  const handler = (_event, payload) => listener(payload);
+  ipcRenderer.on(channel, handler);
+  return () => ipcRenderer.removeListener(channel, handler);
+}
 contextBridge.exposeInMainWorld('nuanbanAvatar', Object.freeze({
   status: () => ipcRenderer.invoke('nuanban:avatar:status'),
   begin: consent => ipcRenderer.invoke('nuanban:avatar:begin', consent === true),
@@ -138,8 +165,12 @@ function requireIdentifier(value) {
 
 contextBridge.exposeInMainWorld('nuanbanPet', Object.freeze({
   snapshot: () => ipcRenderer.invoke('nuanban:pet:snapshot').then(projectSnapshot),
-  drag: action => {
+  drag: (action, point) => {
     if (!['start', 'move', 'end'].includes(action)) throw new TypeError('桌宠移动请求无效');
+    if (point !== undefined) {
+      if (!point || Object.keys(point).length !== 2 || !['x', 'y'].every(key => Number.isFinite(point[key]) && Math.abs(point[key]) <= 1000000)) throw new TypeError('桌宠指针坐标无效');
+      return ipcRenderer.invoke('nuanban:pet:drag', action, { x: point.x, y: point.y });
+    }
     return ipcRenderer.invoke('nuanban:pet:drag', action);
   },
   dictate: () => ipcRenderer.invoke('nuanban:pet:voice:dictate'),

@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -8,7 +9,7 @@ import { syntheticDetection, syntheticFrame } from '../helpers/standalone-frame'
 
 const { createStandaloneHost } = createRequire(import.meta.url)('../../apps/desktop/standalone-host.cjs');
 const hosts: { dispose(reason: string): Promise<unknown> }[] = [];
-type Handler = (event: unknown, payload?: unknown) => unknown;
+type Handler = (event: unknown, ...payload: unknown[]) => unknown;
 type MenuEntry = { label?: string; type?: string; checked?: boolean; click?: () => unknown };
 type Bounds = { x: number; y: number; width: number; height: number };
 type WakeState = { state: string; enabled: boolean; microphoneActive: boolean; generation: number; localOnly: true; dictationAvailable: boolean };
@@ -55,6 +56,7 @@ function fixture(overrides: Record<string, unknown> = {}) {
     setAlwaysOnTop() {}
     setIgnoreMouseEvents(value: boolean) { this.ignoresMouse = value; }
     getBounds() { return { ...this.bounds }; }
+    getContentBounds() { return { ...this.bounds }; }
     setBounds(bounds: Bounds) { this.bounds = bounds; }
     setPosition(positionX: number, positionY: number) { this.bounds = { ...this.bounds, x: positionX, y: positionY }; }
     hide() { this.visible = false; }
@@ -114,6 +116,45 @@ afterEach(async () => {
   await Promise.all(hosts.splice(0).map(host => host.dispose('test')));
 });
 
+describe('栗栗可选角色的受信接线', () => {
+  it('默认保留现有形象，显式选择后动作与事件通过原桌宠窗口', async () => {
+    const current = fixture({ userDataPath: mkdtempSync(join(tmpdir(), 'lili-host-wiring-')) });
+    await current.host.initialize();
+    expect(current.invoke('nuanban:lili:bootstrap')).toMatchObject({ enabled: false });
+    expect(await current.invoke('nuanban:lili:select', true)).toMatchObject({ ok: true, enabled: true });
+    expect(current.invoke('nuanban:lili:bootstrap')).toMatchObject({ enabled: true, manifest: { id: 'lili' } });
+    current.windows[0].webContents.send.mockClear();
+    expect(current.invoke('nuanban:lili:command', { type: 'action.play', action: 'wave' })).toMatchObject({ ok: true, status: 'started' });
+    expect(current.windows[0].webContents.send).toHaveBeenCalledWith('nuanban:lili:event', expect.objectContaining({ type: 'action.started', action: 'wave' }));
+    expect(current.windows).toHaveLength(3);
+    expect(current.source.capture).not.toHaveBeenCalled();
+    expect(await current.invoke('nuanban:lili:select', false)).toMatchObject({ ok: true, enabled: false });
+  });
+
+  it('其他窗口或子 frame 不能通过栗栗桥读取资源和发送动作', async () => {
+    const current = fixture({ userDataPath: mkdtempSync(join(tmpdir(), 'lili-host-trust-')) });
+    await current.host.initialize();
+    const trustedWindow = current.windows[0];
+    const otherWindow = current.windows[1];
+    for (const channel of ['nuanban:lili:bootstrap', 'nuanban:lili:select', 'nuanban:lili:command', 'nuanban:lili:interaction']) {
+      expect(() => current.invoke(channel, true, { sender: otherWindow.webContents, senderFrame: otherWindow.webContents.mainFrame })).toThrow('不可信');
+      expect(() => current.invoke(channel, true, { sender: trustedWindow.webContents, senderFrame: { url: trustedWindow.webContents.mainFrame.url } })).toThrow('不可信');
+    }
+  });
+
+  it('托盘不可用时显式拒绝隐藏与穿透，不影响角色和菜单可操作', async () => {
+    const current = fixture({ liliEnabled: true, userDataPath: mkdtempSync(join(tmpdir(), 'lili-host-no-tray-')) });
+    await current.host.initialize();
+    for (const options of [{ clickThrough: true }, { visible: false }]) {
+      expect(current.invoke('nuanban:lili:command', { type: 'display.set', options })).toMatchObject({ ok: false, code: 'tray_unavailable' });
+    }
+    expect(current.windows[0].ignoresMouse).toBe(false);
+    expect(current.windows[0].isVisible()).toBe(true);
+    current.invoke('nuanban:pet:context-menu');
+    expect(current.menus.at(-1)).toEqual(expect.arrayContaining([expect.objectContaining({ label: '角色' }), expect.objectContaining({ label: '栗栗动作' })]));
+  });
+});
+
 describe('桌宠身体拖动的受限窗口接线', () => {
   it('只用系统光标移动桌宠，保留原尺寸，不触发观察、麦克风或管理窗口', async () => {
     const current = fixture();
@@ -135,6 +176,64 @@ describe('桌宠身体拖动的受限窗口接线', () => {
     expect(current.wake.enable).not.toHaveBeenCalled();
     expect(current.showManagement).not.toHaveBeenCalled();
     expect(current.showPetTool).not.toHaveBeenCalled();
+  });
+
+  it('原生轮询只使用最新光标；结束后定时器清除且迟到回调不再移动', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    const interval = vi.spyOn(globalThis, 'setInterval');
+    const clear = vi.spyOn(globalThis, 'clearInterval');
+    try {
+      const before = current.windows[0].getBounds();
+      current.screen.getCursorScreenPoint.mockReturnValue({ x: before.x + 80, y: before.y + 100 });
+      await current.invoke('nuanban:pet:drag', 'start');
+      expect(interval).toHaveBeenCalledWith(expect.any(Function), 8);
+      const tick = interval.mock.calls[0][0] as () => void;
+      current.screen.getCursorScreenPoint.mockReturnValue({ x: before.x + 50, y: before.y + 80 });
+      tick();
+      expect(current.windows[0].getBounds()).toEqual({ ...before, x: before.x - 30, y: before.y - 20 });
+      current.screen.getCursorScreenPoint.mockReturnValue({ x: before.x + 20, y: before.y + 60 });
+      tick();
+      expect(current.windows[0].getBounds()).toEqual({ ...before, x: before.x - 60, y: before.y - 40 });
+      await current.invoke('nuanban:pet:drag', 'end');
+      expect(clear).toHaveBeenCalled();
+      const after = current.windows[0].getBounds();
+      current.screen.getCursorScreenPoint.mockReturnValue({ x: -700, y: 10 });
+      tick();
+      expect(current.windows[0].getBounds()).toEqual(after);
+    } finally {
+      interval.mockRestore();
+      clear.mockRestore();
+    }
+  });
+
+  it('高 DPI 边界读回存在舍入时也固定起始尺寸，相同光标不重复定位', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    const pet = current.windows[0];
+    const before = pet.getBounds();
+    vi.spyOn(pet, 'getContentBounds').mockImplementation(() => ({ ...pet.getBounds(), width: before.width, height: before.height }));
+    const setBounds = vi.spyOn(pet, 'setBounds').mockImplementation(bounds => {
+      pet.bounds = { ...bounds, width: bounds.width + 1, height: bounds.height + 1 };
+    });
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: before.x + 80, y: before.y + 100 });
+    await current.invoke('nuanban:pet:drag', 'start');
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: before.x + 50, y: before.y + 80 });
+    await current.invoke('nuanban:pet:drag', 'move');
+    await current.invoke('nuanban:pet:drag', 'move');
+    expect(setBounds).toHaveBeenCalledTimes(1);
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: before.x + 20, y: before.y + 60 });
+    await current.invoke('nuanban:pet:drag', 'move');
+    expect(setBounds).toHaveBeenCalledTimes(2);
+    await current.invoke('nuanban:pet:drag', 'end');
+    const firstDrag = pet.getBounds();
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: firstDrag.x + 80, y: firstDrag.y + 100 });
+    await current.invoke('nuanban:pet:drag', 'start');
+    current.screen.getCursorScreenPoint.mockReturnValue({ x: firstDrag.x + 50, y: firstDrag.y + 80 });
+    await current.invoke('nuanban:pet:drag', 'move');
+    expect(setBounds).toHaveBeenCalledTimes(3);
+    expect(setBounds.mock.calls.every(([bounds]) => bounds.width === before.width && bounds.height === before.height)).toBe(true);
+    await current.invoke('nuanban:pet:drag', 'end');
   });
 
   it('负坐标屏幕边界与任务栏工作区限制生效', async () => {
@@ -192,6 +291,37 @@ describe('桌宠身体拖动的受限窗口接线', () => {
     current.windows[0].hide();
     expect(await current.invoke('nuanban:pet:drag', 'start')).toBe(false);
     expect(current.windows[0].getBounds()).toEqual(before);
+  });
+});
+
+describe('远程与触摸指针的桌宠拖动', () => {
+  it('系统光标不跟随远程事件时，使用受信指针位置移动并在释放后停止', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    const pet = current.windows[0];
+    const before = pet.getBounds();
+    const start = { x: before.x + 80, y: before.y + 100 };
+    const event = { sender: pet.webContents, senderFrame: pet.webContents.mainFrame };
+    const drag = (action: string, point?: unknown) => current.handlers.get('nuanban:pet:drag')!(event, action, point);
+    current.screen.getCursorScreenPoint.mockClear();
+    expect(drag('start', start)).toBe(true);
+    expect(drag('move', { x: start.x - 42, y: start.y - 31 })).toBe(true);
+    expect(pet.getBounds()).toEqual({ ...before, x: before.x - 42, y: before.y - 31 });
+    expect(current.screen.getCursorScreenPoint).not.toHaveBeenCalled();
+    expect(drag('end')).toBe(true);
+    expect(drag('move', start)).toBe(false);
+    expect(pet.getBounds()).toEqual({ ...before, x: before.x - 42, y: before.y - 31 });
+    expect(current.source.capture).not.toHaveBeenCalled();
+  });
+
+  it('指针起点仍必须在可见桌宠内，拒绝无效位置与伪造字段', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    const pet = current.windows[0];
+    const event = { sender: pet.webContents, senderFrame: pet.webContents.mainFrame };
+    const drag = (point: unknown) => current.handlers.get('nuanban:pet:drag')!(event, 'start', point);
+    expect(drag({ x: 50000, y: 50000 })).toBe(false);
+    for (const point of [null, { x: NaN, y: 0 }, { x: 0, y: Infinity }, { x: 1000001, y: 0 }, { x: '0', y: 0 }, { x: 0, y: 0, width: 600 }]) expect(() => drag(point)).toThrow('指针坐标');
   });
 });
 
