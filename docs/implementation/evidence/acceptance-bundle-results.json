@@ -1,13 +1,35 @@
 {
-  "generatedAt": "2026-10-17T15:58:47.186Z",
+  "generatedAt": "2026-10-18T09:24:22.691Z",
   "scope": "FE-13 front-end acceptance bundle, D gate preflight, and C07/C08/C17 packaging preflight",
-  "success": true,
+  "success": false,
   "mode": "development",
   "development": {
-    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
-    "eligible": true,
-    "failedChecks": [],
-    "failed_checks": [],
+    "verdict": "DEV_BLOCKED",
+    "eligible": false,
+    "failedChecks": [
+      {
+        "id": "FE13-02",
+        "reason": "全量单元与边界验证证据有效",
+        "kind": "code"
+      },
+      {
+        "id": "FE13-05",
+        "reason": "C17 开发就绪与正式发布待项使用共享双状态判定",
+        "kind": "code"
+      }
+    ],
+    "failed_checks": [
+      {
+        "id": "FE13-02",
+        "reason": "全量单元与边界验证证据有效",
+        "kind": "code"
+      },
+      {
+        "id": "FE13-05",
+        "reason": "C17 开发就绪与正式发布待项使用共享双状态判定",
+        "kind": "code"
+      }
+    ],
     "externalPending": [
       {
         "id": "C17_WEBVIEW_DEVICE",
@@ -62,7 +84,7 @@
     ]
   },
   "release": {
-    "verdict": "EXTERNAL_PENDING",
+    "verdict": "BLOCKED",
     "ready": false,
     "blockers": [],
     "reasonRefs": [
@@ -78,7 +100,7 @@
       "ACCEPTANCE_EXTERNAL_VERIFICATION"
     ]
   },
-  "status": "preparatory_ready",
+  "status": "blocked",
   "acceptance": "preparatory_not_accepted",
   "goNoGoEligible": false,
   "checks": [
@@ -110,13 +132,15 @@
     {
       "id": "FE13-02",
       "title": "全量单元与边界验证证据有效",
-      "status": "passed",
+      "status": "failed",
       "details": {
-        "testFiles": 73,
-        "passedTests": 880,
-        "failedTests": 0
+        "testFiles": 106,
+        "passedTests": 1852,
+        "failedTests": 43
       },
-      "missing": []
+      "missing": [
+        "unit test baseline below 633 or has failures"
+      ]
     },
     {
       "id": "FE13-03",
@@ -149,19 +173,21 @@
     {
       "id": "FE13-05",
       "title": "C17 开发就绪与正式发布待项使用共享双状态判定",
-      "status": "passed",
+      "status": "failed",
       "details": {
-        "auditPassed": true,
-        "status": "ready_for_development",
+        "auditPassed": false,
+        "status": "blocked",
         "acceptance": "preparatory_not_accepted",
-        "developmentVerdict": "DEV_READY_WITH_EXTERNAL_PENDING",
-        "developmentEligible": true,
-        "releaseVerdict": "EXTERNAL_PENDING",
+        "developmentVerdict": "DEV_BLOCKED",
+        "developmentEligible": false,
+        "releaseVerdict": "BLOCKED",
         "releaseReady": false,
         "goNoGoEligible": false,
         "highRiskCapabilitiesEnabled": false
       },
-      "missing": []
+      "missing": [
+        "C17 development verdict is not eligible or release state is incorrectly ready"
+      ]
     },
     {
       "id": "FE13-06",
@@ -170,9 +196,15 @@
       "details": {
         "asarPath": "apps/desktop/out/NuanbanDemo-win32-x64/resources/app.asar",
         "packagedFiles": [
+          "/caption-preload.cjs",
+          "/guide-preload.cjs",
           "/main.cjs",
+          "/model-validator-preload.cjs",
           "/notification-adapter.cjs",
+          "/observation/capture-worker-preload.cjs",
+          "/pet-preload.cjs",
           "/preload.cjs",
+          "/realtime-voice-preload.cjs",
           "/reminder-notification-bridge.cjs",
           "/reminder-store.cjs"
         ]
@@ -199,6 +231,8 @@
           "contracts:check": "node scripts/generate-contracts.mjs --check && node scripts/validate-contracts.mjs",
           "contracts:kotlin:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-kotlin-contracts.ps1",
           "desktop": "pnpm build && pnpm --filter @nuanban/desktop start",
+          "desktop:artwork:check": "node scripts/check-local-artwork-desktop.mjs",
+          "desktop:model:check": "node scripts/check-local-model-desktop.mjs",
           "desktop:package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/desktop-package.ps1",
           "desktop:lab": "node scripts/desktop-lab.mjs --open",
           "desktop:lab:check": "node scripts/desktop-lab.mjs --self-test",

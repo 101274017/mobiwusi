@@ -29,6 +29,9 @@ build/
 .idea/
 work/
 apps/desktop/ui/
+apps/desktop/model-runtime/
+apps/desktop/avatar-runtime/
+apps/desktop/library-runtime/
 apps/desktop/out/
 apps/desktop/native-lab/out/
 apps/android/app/src/main/assets/ui/

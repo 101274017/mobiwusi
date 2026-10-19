@@ -35,8 +35,10 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
     return failure(['windows_analysis_unavailable', 'helper_spawn_unavailable', 'native_image_unavailable'].includes(reason) ? 'unavailable' : 'failed', reason, frame);
   }
 
-  function snapshotFrame(frame) {
-    if (!frame || typeof frame.sourceId !== 'string' || !/^(screen|window):\d+:\d+$/.test(frame.sourceId) || typeof frame.frameHash !== 'string' || !/^[a-f0-9]{64}$/.test(frame.frameHash)) throw new ObservationError('frame_invalid');
+  function snapshotFrame(frame, attachment) {
+    const sourcePattern = attachment ? /^attachment:[a-f0-9-]{36}$/ : /^(screen|window):\d+:\d+$/;
+    if (!frame || typeof frame.sourceId !== 'string' || !sourcePattern.test(frame.sourceId) || typeof frame.frameHash !== 'string' || !/^[a-f0-9]{64}$/.test(frame.frameHash)) throw new ObservationError('frame_invalid');
+    if (attachment && (frame.geometry != null || frame.sourceIdentity != null)) throw new ObservationError('attachment_source_invalid');
     const dimensions = pngDimensions(frame.png, limits);
     if (frame.width !== dimensions.width || frame.height !== dimensions.height) throw new ObservationError('image_dimensions_mismatch');
     if (frame.frameHash !== hashPng(frame.png)) throw new ObservationError('frame_hash_mismatch');
@@ -52,7 +54,9 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
 
   function positioned(rect, geometry) {
     if (!geometry) return { rect };
-    return { rect, globalRect: { x: geometry.x + rect.x / geometry.scaleFactor, y: geometry.y + rect.y / geometry.scaleFactor, width: rect.width / geometry.scaleFactor, height: rect.height / geometry.scaleFactor } };
+    const scaleX = geometry.width / geometry.pixelWidth;
+    const scaleY = geometry.height / geometry.pixelHeight;
+    return { rect, globalRect: { x: geometry.x + rect.x * scaleX, y: geometry.y + rect.y * scaleY, width: rect.width * scaleX, height: rect.height * scaleY } };
   }
 
   function maskRect(rect, width, height, padding, angle = 0) {
@@ -80,9 +84,12 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
     const size = image.getSize(1);
     if (size.width !== snapshot.width || size.height !== snapshot.height) throw new ObservationError('image_dimensions_mismatch');
     const originalBitmap = image.toBitmap({ scaleFactor: 1 });
-    if (!Buffer.isBuffer(originalBitmap) || originalBitmap.length !== snapshot.width * snapshot.height * 4) throw new ObservationError('bitmap_dimensions_mismatch');
-    const bitmap = Buffer.from(originalBitmap);
+    let bitmap;
+    let sanitizedPng;
+    let returned = false;
     try {
+      if (!Buffer.isBuffer(originalBitmap) || originalBitmap.length !== snapshot.width * snapshot.height * 4) throw new ObservationError('bitmap_dimensions_mismatch');
+      bitmap = Buffer.from(originalBitmap);
       const masks = [...words.map(word => maskRect(word.rect, snapshot.width, snapshot.height, 3, textAngle)), ...faces.map(face => maskRect(face.rect, snapshot.width, snapshot.height, Math.max(4, Math.ceil(Math.max(face.rect.width, face.rect.height) * 0.08))))];
       const work = masks.reduce((total, rect) => total + (rect.right - rect.left) * (rect.bottom - rect.top), 0);
       if (work > limits.maxPixels * 4) throw new ObservationError('redaction_work_limit');
@@ -92,18 +99,20 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
       }
       const sanitized = nativeImage.createFromBitmap(bitmap, { width: snapshot.width, height: snapshot.height, scaleFactor: 1 });
       if (!sanitized || sanitized.isEmpty()) throw new ObservationError('redaction_encode_failed');
-      const png = sanitized.toPNG({ scaleFactor: 1 });
-      const dimensions = pngDimensions(png, limits);
+      sanitizedPng = sanitized.toPNG({ scaleFactor: 1 });
+      const dimensions = pngDimensions(sanitizedPng, limits);
       if (dimensions.width !== snapshot.width || dimensions.height !== snapshot.height) throw new ObservationError('redaction_dimensions_mismatch');
       checkAborted(signal);
-      return png;
+      returned = true;
+      return sanitizedPng;
     } finally {
-      bitmap.fill(0);
-      originalBitmap.fill(0);
+      bitmap?.fill(0);
+      if (Buffer.isBuffer(originalBitmap)) originalBitmap.fill(0);
+      if (!returned && Buffer.isBuffer(sanitizedPng)) sanitizedPng.fill(0);
     }
   }
 
-  async function detect(frame, { signal } = {}) {
+  async function detectFrame(frame, { signal } = {}, attachment = false) {
     if (busy) return failure('failed', 'busy', frame);
     const operation = begin(signal);
     signal = operation.signal;
@@ -111,7 +120,7 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
     try {
       checkAborted(signal);
       if (typeof nativeImage?.createFromBuffer !== 'function' || typeof nativeImage?.createFromBitmap !== 'function') throw new ObservationError('native_image_unavailable');
-      snapshot = snapshotFrame(frame);
+      snapshot = snapshotFrame(frame, attachment);
       const result = await helper.run({ protocol: 1, operation: 'detect', sourceId: snapshot.sourceId, sourceIdentity: snapshot.sourceIdentity, frameHash: snapshot.frameHash, width: snapshot.width, height: snapshot.height, pngBase64: snapshot.png.toString('base64') }, { signal });
       checkAborted(signal);
       if (!result || result.protocol !== 1 || !['complete', 'unavailable', 'failed'].includes(result.status)) throw new ObservationError('detector_output_invalid');
@@ -163,7 +172,8 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
     await operation?.done;
   }
 
-  return Object.freeze({ detect, probe, stop });
+  return Object.freeze({ detect: (frame, options) => detectFrame(frame, options),
+    detectAttachment: (frame, options) => detectFrame(frame, options, true), probe, stop });
 }
 
 module.exports = { createWindowsLocalDetector };

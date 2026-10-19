@@ -1,15 +1,15 @@
 {
   "schemaVersion": "d07-decision/v2",
   "generatedBy": "nuanban/scripts/check-d07-decision.mjs",
-  "generatedAt": "2026-10-17T15:58:47.722Z",
-  "decisionId": "d07-development-cd66cc5b64f74058",
-  "decision": "go",
+  "generatedAt": "2026-10-18T09:24:23.509Z",
+  "decisionId": "d07-development-bd746b8a44e546ff",
+  "decision": "no_go",
   "decisionMode": "development",
   "reviewType": "automated",
   "review_type": "automated",
   "development": {
-    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
-    "eligible": true,
+    "verdict": "DEV_BLOCKED",
+    "eligible": false,
     "evidenceRefs": [
       "docs/implementation/evidence/acceptance-bundle-results.json",
       "docs/implementation/evidence/c15-nv-readiness-results.json",
@@ -58,7 +58,7 @@
     ]
   },
   "release": {
-    "verdict": "EXTERNAL_PENDING",
+    "verdict": "BLOCKED",
     "ready": false,
     "reasonRefs": [
       "C15_EXTERNAL_EVIDENCE",
@@ -69,8 +69,8 @@
     ],
     "formalDecision": null
   },
-  "inputFingerprint": "cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
-  "idempotencyKey": "cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
+  "inputFingerprint": "bd746b8a44e546ff2aaaf8b4b0f06799d843210a0701d87a89d151f45ca02262",
+  "idempotencyKey": "bd746b8a44e546ff2aaaf8b4b0f06799d843210a0701d87a89d151f45ca02262",
   "limitations": [
     "该决定由本机自动检查生成，reviewType=automated，不冒充负责人、独立人员或真人试点签收。",
     "development go 只允许继续代码、契约、夹具和本地验证；release.ready=false 时不得开放真实生产能力。",

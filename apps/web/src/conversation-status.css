@@ -1,0 +1,8 @@
+.conversation-failure { margin: 14px 20px; border: 1px solid #b56546; border-radius: 14px; padding: 20px; background: #fff3e7; color: #743b24; }
+.conversation-failure p { margin: 12px 0; line-height: 1.9; overflow-wrap: anywhere; }
+.conversation-failure .button-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.message-state { display: block; margin-top: 10px; font-weight: 700; }
+@media (max-width: 760px) {
+  .conversation-failure { margin: 12px; padding: 16px; }
+  .conversation-failure .button-row { flex-direction: column; }
+}

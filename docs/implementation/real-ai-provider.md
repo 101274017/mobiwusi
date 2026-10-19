@@ -1,0 +1,39 @@
+# 桌面真实模型与无演示运行时
+
+## 接入范围
+
+- 用户指定网关：`https://api.openai-next.com/v1`；模型标识保持 `gpt-6.1-sol`，不自动换模型、不向其他网关探测凭证。这是第三方网关的模型标识，不据此声称官方型号或能力已认证。
+- `apps/desktop/ai-provider.cjs` 只在主进程请求固定的 `/chat/completions` 路径，禁止重定向。支持文字与已经通过本机检测、脱敏的 PNG；无自动重试、自动重连或固定回答回退。
+- 管理端文字、图片端口、桌宠普通文字提问、智能查询与桌宠教学共享配置，但授权互不替代。智能查询复用同一模型实例，无需 AnySearch 密钥；当前没有网页检索工具，回答明确标注未联网核验，不伪造来源。图片需单次确认，教学仍需选屏、当次观察许可与另行上云同意；未提供画面时的桌宠文字问答不会开启屏幕或麦克风。
+- 模型没有鼠标、键盘、命令执行或任意 IPC 权限。教学返回值必须通过结构、目标、代次与新帧核验；用户亲手操作，模型自称完成不会直接判定成功。
+
+## 密钥配置
+
+密钥不得进入仓库、前端环境变量、URL、构建产物或日志。当前 Windows 用户可运行：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/configure-ai-provider.ps1 -BaseUrl https://api.openai-next.com/v1 -Model gpt-6.1-sol
+```
+
+按隐藏提示输入密钥。脚本用 Windows DPAPI CurrentUser 加密，保存到 `%LOCALAPPDATA%\Nuanban\ai-provider.json`；主进程通过隐藏的本机解密进程读取。模型、网关和密钥仅用于主进程请求，不返回普通页面；服务状态 IPC 与预加载都只保留 `{ available: boolean }` 白名单，内部报错不透传。设置页只显示“智能服务”的配置状态，并保留云端发送和图片单次确认说明；已配置不代表请求一定成功。配置文件不属于项目仓库，复制给其他 Windows 用户不能直接解密。
+
+自动部署可通过受信进程环境提供完整的 `NUANBAN_AI_BASE_URL`、`NUANBAN_AI_MODEL`、`NUANBAN_AI_API_KEY` 三项，优先于加密文件。不要把这些值写入 `VITE_*`。部分环境配置、损坏文件或解密失败都会关闭模型功能，而非回退演示。更新配置后需要正常退出并重启桌面客户端；使用 `pnpm desktop` 会先构建管理端。
+
+密钥曾直接贴入聊天时，应到供应商控制台轮换，再通过上述隐藏输入更新本机配置。
+
+## 移除产品 Mock
+
+- 默认业务模式为 `local`：真实 IndexedDB 仓储与空白初始资料，没有预置笔记、待办、家属、冲突或账号。
+- `VITE_API_MODE=mock` 和 `VITE_MOCK_SCENARIO` 被拒绝；旧 URL 场景参数不再切换业务。
+- 产品不再导入 `@nuanban/mocks`。模拟对话、登录认领、邀请接听、重连、假手机核验及生成任务入口已移除；有关合成实现仅保留于 `tests/fixtures`，不会编入管理端。
+- 账号认证、远程协助、生成供应未连接时明确不可用，不以假凭证、假进度或假成功替代。本机画稿和已有 3D 模型功能保持不变。
+- 新本机资料使用 `local-owner` 命名空间，不再读取旧演示账号。为避免误删用户原画和真实手工资料，旧数据不做批量破坏性删除；数据库的历史名称与旧记录兼容字段不代表仍在运行 Mock。
+- 测试替身、故障注入和历史实施文档保留，用于证明失败关闭与停止隔离，而不是产品功能或正式供应证据。
+
+## 当前验证边界
+
+已完成指定模型的最小文字与合成空白 PNG 网关连通性请求；未向网关发送用户屏幕、用户附件或音频。文字与图片回执仅证明这次接口请求成功，不证明所有调用、图像理解或教学效果均可用。
+
+安全策略不放宽：未知、敏感、检测失败、失效帧、关闭授权和停止后的结果继续失败关闭。真实外部软件、端到端脱敏、设备兼容、登录、远程协助、生成与正式发布均需独立验收；不能用这些本机测试改写 D07 或发布结论。
+
+相关测试：`tests/provider/desktop-ai-provider.test.ts`、`tests/platform/desktop-text-question.test.ts`、`tests/platform/desktop-provider-analysis.test.ts`、`tests/domain/text-question.test.ts`、`tests/integration/no-runtime-mocks.test.ts`，以及更新后的管理端界面回归。测试使用合成数据，不需要真实密钥。

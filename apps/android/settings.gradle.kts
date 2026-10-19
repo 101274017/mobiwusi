@@ -3,3 +3,4 @@ dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_P
 rootProject.name = "Nuanban"
 include(":app")
 include(":native-lab")
+include(":standalone")

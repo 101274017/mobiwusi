@@ -1,0 +1,25 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <application android:label="暖伴 · 独立桌宠验证" android:allowBackup="false" android:usesCleartextTraffic="false" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <service android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery" tools:node="remove" />
+        <activity android:name=".nativehost.PetControlActivity" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity>
+        <activity android:name=".MainActivity" android:exported="false" />
+        <activity android:name=".nativehost.GuidanceConnectionActivity" android:exported="false" />
+        <activity android:name=".nativehost.NativeCaptureControlActivity" android:exported="false" />
+        <service android:name=".nativehost.PetRuntimeService" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started visible floating companion and native stop/input controls; no capture or microphone in this service." />
+        </service>
+        <service android:name=".nativehost.NativeCaptureService" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="mediaProjection" />
+        <receiver android:name=".nativehost.PetStopReceiver" android:exported="false" />
+        <receiver android:name=".ReminderAlarmReceiver" android:exported="false" />
+    </application>
+</manifest>

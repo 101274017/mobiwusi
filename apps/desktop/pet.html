@@ -3,36 +3,178 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.xingyun3d.com; connect-src blob: data: https://*.xingyun3d.com wss://*.xingyun3d.com; worker-src 'self' blob:; media-src blob: data: https://*.xingyun3d.com; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>暖伴桌宠</title>
   <link rel="stylesheet" href="./pet.css">
   <script defer src="./pet.js"></script>
+  <script defer src="./pet-artwork.js"></script>
+  <script type="module" src="./model-runtime/model-renderer.js"></script>
+  <script defer src="./pet-search.js"></script>
+  <script type="module" src="./library-runtime/pet-library.js"></script>
+  <script type="module" src="./avatar-runtime/xingyun-renderer.js"></script>
 </head>
 <body>
   <main id="pet-window" class="pet-window" aria-label="暖伴独立桌宠">
     <section id="pet-panel" class="pet-panel" aria-labelledby="panel-title" hidden>
       <header class="panel-header">
-        <div><span class="eyebrow">一步一步，陪你学会</span><h1 id="panel-title">和暖暖一起做</h1></div>
-        <button id="collapse-panel" class="icon-button" type="button" aria-label="收起面板，桌宠继续运行" title="收起面板（Esc）">−</button>
+        <div><span id="panel-eyebrow" class="eyebrow">所有陪伴，从暖暖开始</span><h1 id="panel-title">暖暖的功能小屋</h1></div>
+        <div class="header-actions"><button id="stop-observation" class="danger-button" type="button" disabled>停止观察</button><button id="collapse-panel" class="icon-button" type="button" aria-label="收起面板，桌宠继续运行" title="收起面板（Esc）">−</button></div>
       </header>
-      <div class="panel-body">
+      <nav class="panel-navigation" aria-label="桌宠功能导航"><button id="view-features" type="button" aria-label="全部功能" aria-controls="feature-home">全部功能</button><button id="view-guidance" type="button" aria-controls="lesson-card">光标指引</button><button id="view-voice" type="button" aria-controls="voice-section">语音陪伴</button></nav>
+      <div id="panel-body" class="panel-body">
         <section id="error-notice" class="error-notice" role="alert" hidden>
           <p id="error-text"></p>
           <div class="button-row"><button id="retry-action" type="button">重试</button><button id="dismiss-error" class="text-button" type="button">关闭提示</button></div>
         </section>
-        <section class="status-card" aria-label="观察与分析状态">
+        <div id="privacy-notice" class="privacy-notice" role="status" hidden>
+          <strong id="privacy-title">共享已暂停</strong>
+          <p id="privacy-detail">只有你本人继续共享并通过检查后，才可恢复。</p>
+          <button id="resume-sharing" class="primary-button" type="button" disabled>本人继续共享</button>
+        </div>
+        <section id="feature-home" class="feature-home" aria-labelledby="features-title" tabindex="-1">
+          <div class="section-heading"><span class="eyebrow">暖暖一直在这里</span><span class="feature-tag">桌宠是主入口</span></div>
+          <h2 id="features-title">今天，想一起做点什么？</h2>
+          <p class="muted">直接在桌宠提问、教学和复习。绘画、图片等会打开暖暖的工具窗，不必先进入客户端。</p>
+          <button id="feature-guidance" class="feature-guide" type="button" aria-controls="lesson-card"><span class="feature-icon" aria-hidden="true">↖</span><span><strong>光标指引 · 教我操作</strong><small>高亮真实软件中的目标，你亲手完成每一步</small><span id="feature-guidance-status" class="feature-state" role="status">先了解指引，再由本人开启观察</span></span><span aria-hidden="true">→</span></button>
+          <h3 class="feature-group-title">陪你问，陪你学</h3>
+          <div class="feature-grid">
+            <button id="feature-question" class="feature-button" type="button"><strong>桌宠提问</strong><small>说说想学的软件操作</small></button>
+            <button class="feature-button" type="button" data-tool="/chat/new"><strong>文字与图片问答</strong><small>聊天、选图并按需提问</small></button>
+            <button id="feature-search" class="feature-button" type="button"><strong>智能查询</strong><small>现有模型回答，无需额外密钥</small></button>
+            <button id="feature-voice" class="feature-button" type="button" disabled><strong>面对面语音</strong><small>收起小屋，和桌宠用气泡聊天</small></button>
+            <button id="feature-dictation" class="feature-button" type="button"><strong>语音输入</strong><small>本地听写，只填草稿不发送</small></button>
+            <button id="feature-observation" class="feature-button" type="button"><strong>本地观察与脱敏</strong><small>选择屏幕、授权与共享状态</small></button>
+            <button id="feature-learning" class="feature-button" type="button"><strong>桌宠学习记录</strong><small>教学笔记、掌握状态与复习</small></button>
+            <button id="feature-archive" class="feature-button" type="button" aria-controls="archive-view"><strong>学习档案</strong><small>在桌宠里整理笔记、记录掌握</small></button>
+            <button id="feature-todos" class="feature-button" type="button" aria-controls="todos-view"><strong>待办与复习</strong><small>在桌宠里安排时间、完成复习</small></button>
+            <button class="feature-button" type="button" data-tool="/family"><strong>亲情陪伴</strong><small>远程亲情服务尚未接通</small></button>
+          </div>
+          <h3 class="feature-group-title">装扮你的小伙伴</h3>
+          <div class="feature-grid">
+            <button class="feature-button" type="button" data-tool="/pets"><strong>我的桌宠</strong><small>选择形象、颜色与陪伴方式</small></button>
+            <button class="feature-button" type="button" data-tool="/pets/draw"><strong>画一画</strong><small>亲手画，应用为桌宠原画</small></button>
+            <button class="feature-button" type="button" data-tool="/pets/import-3d"><strong>本地 3D 桌宠</strong><small>导入并验证本机模型</small></button>
+            <button id="feature-avatar" class="feature-button avatar-feature" type="button" aria-controls="avatar-view"><strong>默认小猴子 · 3D</strong><small>默认形象，授权后连接实时 3D</small></button>
+            <button class="feature-button" type="button" disabled><strong>AI 生成桌宠</strong><small>生成服务未接通，不提供假结果</small></button>
+          </div>
+          <h3 class="feature-group-title">按你的习惯陪伴</h3>
+          <div class="feature-grid">
+            <button id="feature-captions" class="feature-button" type="button"><strong>大字字幕</strong><small>当前讲解的字幕开关</small></button>
+            <button id="feature-wake" class="feature-button" type="button"><strong>本地语音唤醒</strong><small>离线能力与独立授权</small></button>
+            <button class="feature-button" type="button" data-tool="/onboarding/mode"><strong>陪伴与无障碍模式</strong><small>长辈、儿童、字体与讲解设置</small></button>
+            <button class="feature-button" type="button" data-tool="/settings"><strong>设置与隐私</strong><small>权限、资料导出与本机清理</small></button>
+            <button class="feature-button" type="button" data-tool="/settings/status"><strong>接口与能力状态</strong><small>哪些已接通，哪些仍待验证</small></button>
+            <button class="feature-button" type="button" data-tool="/onboarding/login"><strong>账号与设备</strong><small>远程账号未接入，不收集秘密</small></button>
+            <button class="feature-button" type="button" data-tool="/sync/conflicts"><strong>资料冲突处理</strong><small>比较并保留本机资料修改</small></button>
+            <button id="feature-management" class="feature-button" type="button"><strong>管理与退出</strong><small>可选管理窗口、关闭桌宠</small></button>
+          </div>
+          <p class="fine-print feature-footnote">打开功能不代表开启采集或上云。未接通的能力如实说明；右上角始终保留停止入口。</p>
+        </section>
+        <section id="avatar-view" class="function-page avatar-page" aria-labelledby="avatar-title" tabindex="-1" hidden>
+          <div class="section-heading"><span class="eyebrow">小猴子，默认陪在这里</span><span class="feature-tag">产品默认桌宠</span></div>
+          <h2 id="avatar-title">默认小伙伴 · 小猴子</h2>
+          <p class="page-lead">独立悬浮、右键功能和已有语音入口都保留。仅替换桌宠形象，不需要打开客户端。</p>
+          <div class="avatar-service-card"><img class="avatar-monogram" src="./assets/xingyun-monkey-preview.png" alt=""><div><strong>小猴子 · 默认 3D 形象</strong><p id="avatar-application" class="muted">正在读取本机配置</p></div></div>
+          <p id="avatar-status" class="avatar-status" role="status">正在读取本机形象配置…</p>
+          <progress id="avatar-progress" max="100" value="0" aria-label="小猴子资源加载进度" hidden></progress><p id="avatar-download" class="fine-print" aria-live="polite"></p>
+          <label class="avatar-consent"><input id="avatar-consent" type="checkbox"><span>我同意连接星云形象服务，连接期间可能按星云平台规则计费。</span></label>
+          <div class="avatar-actions"><button id="avatar-start" class="primary-button" type="button" disabled>启用小猴子</button><button id="avatar-stop" type="button" disabled>停止并恢复原桌宠</button></div>
+          <div class="avatar-boundaries"><h3>默认形象，不默认开启采集或计费连接</h3><p>未联网时，显示从你提供的截图中裁出的同款小猴子静态预览；它不是可离线旋转或说话的 3D 模型。本人授权后才请求星云实时形象服务。</p><p>只向星云建立形象会话、下载形象资源和发送 SDK 必需的设备/性能信息。不自动开麦、不采集屏幕，也不把已有问答发给星云。</p><p>断网或加载失败会恢复本机形象；不自动重连。已有原画和本地模型不删除。收起面板不等于停止服务，请点击“停止”结束云端会话。</p><p>App Secret 仅由本机主进程解密和代签，不进入页面。应用与小猴子造型以星云后台的已发布配置为准。</p></div>
+        </section>
+        <section id="archive-view" class="function-page library-page" aria-labelledby="archive-title" tabindex="-1" hidden>
+          <div class="section-heading"><span class="eyebrow">学过的，一起收好</span><span class="feature-tag">桌宠内完成</span></div>
+          <h2 id="archive-title">学习档案</h2>
+          <p class="page-lead">整理自己的学习要点，是否掌握由你亲手确认。无需打开客户端。</p>
+          <div class="button-row"><button id="archive-add" type="button">＋ 记一条笔记</button><button id="archive-refresh" class="text-button" type="button">刷新资料</button><button id="archive-learning" class="text-button" type="button">查看教学记录</button></div>
+          <p id="archive-status" class="library-status" role="status">正在读取本机笔记…</p>
+          <p id="archive-error" class="library-error" role="alert" hidden></p>
+          <details id="archive-editor" class="library-editor" hidden>
+            <summary id="archive-editor-title">记下这次学到的</summary>
+            <form id="archive-form" class="library-form">
+              <label for="archive-question">问题或标题</label><input id="archive-question" type="text" maxlength="500" required placeholder="例如：怎样把网页加入收藏夹">
+              <label for="archive-summary">我想记住的要点</label><textarea id="archive-summary" rows="4" maxlength="6000" required placeholder="用自己的话，记下下次还用得上的步骤"></textarea>
+              <div class="button-row"><button id="archive-save" class="primary-button" type="submit">保存笔记</button><button id="archive-cancel" type="button">取消编辑</button></div>
+            </form>
+          </details>
+          <div class="library-filters"><label for="archive-search">搜索学习笔记</label><input id="archive-search" type="search" maxlength="200" placeholder="按问题、标题或要点查找"><label for="archive-filter">掌握状态</label><select id="archive-filter"><option value="all">全部笔记</option><option value="unmastered">还想再练</option><option value="mastered">本人已掌握</option></select></div>
+          <p id="archive-count" class="fine-print"></p>
+          <ul id="archive-list" class="library-list" aria-label="学习笔记列表"></ul>
+          <p class="fine-print library-privacy">这些笔记保存在本机 IndexedDB，不会自动上云，请勿填写身份秘密。教学过程的加密记录保留在“桌宠学习记录”，不会自动复制到这里。</p>
+        </section>
+        <section id="todos-view" class="function-page library-page" aria-labelledby="todos-title" tabindex="-1" hidden>
+          <div class="section-heading"><span class="eyebrow">一点一点，安排好</span><span class="feature-tag">桌宠内完成</span></div>
+          <h2 id="todos-title">待办与复习</h2>
+          <p class="page-lead">亲手安排提醒时间，在这里查看、完成待办和复习，不跳转客户端。</p>
+          <div class="button-row"><button id="todos-add" type="button">＋ 添加待办</button><button id="todos-refresh" class="text-button" type="button">刷新资料</button><button id="todos-archive" class="text-button" type="button">学习档案</button></div>
+          <p id="todos-status" class="library-status" role="status">正在读取本机待办…</p>
+          <p id="todos-error" class="library-error" role="alert" hidden></p>
+          <details id="todo-editor" class="library-editor" hidden>
+            <summary id="todo-editor-title">添加一个温暖提醒</summary>
+            <form id="todo-form" class="library-form">
+              <label for="todo-title">提醒标题</label><input id="todo-title" type="text" maxlength="120" required placeholder="例如：再练习一次保存文件">
+              <label for="todo-time">什么时候提醒</label><input id="todo-time" type="datetime-local" required>
+              <label for="todo-repeat">重复方式</label><select id="todo-repeat"><option value="none">只提醒这一次</option><option value="daily">每天同一时间</option><option value="weekly">每周同一天</option></select>
+              <label for="todo-note">关联学习笔记（可选）</label><select id="todo-note"><option value="">不关联笔记</option></select>
+              <p id="todo-timezone" class="fine-print"></p>
+              <div id="todo-confirmation" class="library-confirmation" role="status" hidden><strong>请再核对一次</strong><p id="todo-confirmation-text"></p></div>
+              <div class="button-row"><button id="todo-save" class="primary-button" type="submit">下一步：核对提醒时间</button><button id="todo-cancel" type="button">取消编辑</button></div>
+            </form>
+          </details>
+          <div class="library-tabs" role="group" aria-label="待办状态筛选"><button id="todos-pending" type="button" aria-pressed="true">待完成</button><button id="todos-due" type="button" aria-pressed="false">已到期</button><button id="todos-completed" type="button" aria-pressed="false">已完成</button></div>
+          <p id="todos-count" class="fine-print"></p>
+          <ul id="todos-list" class="library-list" aria-label="待办与复习列表"></ul>
+          <p class="fine-print library-privacy">桌宠运行时会在下方显示到期待办入口；关闭后不会提供后台提醒，也不会自动申请系统通知。记录复习或完成待办，不会自动改变掌握状态。</p>
+        </section>
+        <section id="question-view" class="function-page" aria-labelledby="question-title" tabindex="-1" hidden>
+          <span class="eyebrow">只聊眼前这一件事</span>
+          <h2 id="question-title">有什么想问暖暖的？</h2>
+          <p class="page-lead">在下方写下问题，回复会留在这里。不用进入客户端，也不会因为打开本页就开启屏幕观察。</p>
+          <p class="fine-print">问题只有在你点击“问暖暖”后才会发送给已配置的模型。没有接通或请求失败时，会如实显示运行提示。</p>
+        </section>
+        <section id="dictation-view" class="function-page" aria-labelledby="dictation-title" tabindex="-1" hidden>
+          <span class="eyebrow">把想说的话，先变成文字</span>
+          <h2 id="dictation-title">本地听写，你确认后再发送</h2>
+          <ol class="view-checklist"><li>点击下方“语音输入”，确认本次使用麦克风。</li><li>看到听写提示后说一句话，结束后自动关闭麦克风。</li><li>检查输入框中的文字，再亲手点击“问暖暖”。</li></ol>
+          <p class="fine-print">仅在本机转写，音频不上传、不保存；进入这个页面不会自动开始听写。</p>
+        </section>
+        <div id="search-view" hidden>
+        <section id="search-panel" class="search-card" aria-labelledby="search-title" tabindex="-1" hidden>
+          <div class="section-heading"><span class="eyebrow">用你已有的模型，帮你解答</span><button id="hide-search" class="text-button" type="button">收起搜索</button></div>
+          <h2 id="search-title">帮你查一查</h2>
+          <p id="search-configuration" class="muted" role="status">正在读取已有模型配置。</p>
+          <form id="search-form" class="search-form">
+            <label for="search-query">你想查什么问题？</label>
+            <textarea id="search-query" rows="2" maxlength="500" placeholder="比如：怎样养好一盆茉莉花？" aria-describedby="search-privacy"></textarea>
+            <label class="search-consent"><input id="search-consent" type="checkbox">我同意将这里输入的问题发送给已配置的模型</label>
+            <p id="search-privacy" class="fine-print">搜索不读取屏幕、麦克风或教学记录。请不要填写密码、验证码、个人号码等隐私信息。</p>
+            <div class="button-row"><button id="submit-search" class="primary-button" type="submit" disabled>请模型回答</button><button id="cancel-search" type="button" disabled>停止查询</button></div>
+          </form>
+          <p id="search-progress" class="search-progress" role="status" aria-live="polite"></p>
+          <p id="search-error" class="learning-error" role="alert" hidden></p>
+          <section id="search-answer" class="search-answer" aria-labelledby="search-answer-title" hidden><h3 id="search-answer-title">模型回答 · 未联网核验</h3><p id="search-answer-content"></p></section>
+          <ol id="search-results" class="search-results" aria-label="搜索结果" hidden></ol>
+          <p class="fine-print">本页复用已有模型，不需要 AnySearch 密钥。当前未接入网页检索，模型回答不代表已核实最新信息；医疗、法律、金融问题请另行咨询专业人士。</p>
+        </section>
+        </div>
+        <section id="voice-section" class="status-card" aria-label="面对面实时语音" tabindex="-1" hidden>
+          <div class="section-heading"><span class="eyebrow">不用打字，直接聊</span><span class="muted">纯语音，不开摄像头</span></div>
+          <h2>和暖暖面对面聊一聊</h2>
+          <p id="voice-chat-status" class="fine-print" role="status">本人确认后自动收起功能小屋，直接在桌宠头顶显示对话气泡，不弹出聊天窗口。</p>
+          <button id="start-voice-chat" class="primary-button" type="button" disabled>和暖暖面对面语音</button>
+        </section>
+        <section id="observation-section" class="status-card" aria-label="观察与分析状态" tabindex="-1" hidden>
+          <span class="eyebrow">观察范围，由你决定</span>
+          <h2>只观察你选定的范围</h2>
           <div class="status-row"><span id="observation-status" class="status-badge" role="status">观察状态待确认</span><span id="analysis-status" class="analysis-status" role="status">云分析待确认</span></div>
           <p id="observation-detail">默认不开启屏幕观察或麦克风，等待运行核心确认。</p>
           <p id="analysis-detail" class="muted" hidden></p>
-          <div id="privacy-notice" class="privacy-notice" role="status" hidden>
-            <strong id="privacy-title">共享已暂停</strong>
-            <p id="privacy-detail">只有你本人继续共享并通过检查后，才可恢复。</p>
-            <button id="resume-sharing" class="primary-button" type="button" disabled>本人继续共享</button>
-          </div>
-          <div class="button-row"><button id="start-observation" type="button" disabled>开启本地观察</button><button id="stop-observation" class="danger-button" type="button" disabled>停止观察</button></div>
+          <div class="button-row"><button id="start-observation" type="button" disabled>开启本地观察</button><button id="view-search" class="text-button" type="button">智能查询</button><button id="view-learning" class="text-button" type="button">本机学习记录 ↓</button></div>
           <p class="fine-print">开启时由系统让你选择共享来源并确认用途。需要云分析时，仅按需发送通过本地检查与脱敏的内容。</p>
         </section>
-        <section id="lesson-card" class="lesson-card" aria-labelledby="step-title">
+        <section id="lesson-card" class="lesson-card" aria-labelledby="guidance-title" tabindex="-1" hidden>
+          <h2 id="guidance-title">光标指引 · 真实软件教学</h2>
+          <p class="fine-print">先亲手打开目标软件，再在桌宠开启本地观察并单独选择是否允许按需脱敏上云，最后在下方提问。暖暖只绘制高亮和箭头，不移动系统鼠标、不代点或代输。</p>
+          <button id="guidance-observation" class="text-button" type="button" aria-controls="observation-section">前往观察与授权 →</button>
           <div class="section-heading"><span class="eyebrow">这一步</span><span id="task-status" class="muted" role="status">等待教学状态</span></div>
           <p id="presentation-note" class="candidate-note" hidden>可能是这里 · 请先核对，再亲手操作</p>
           <h2 id="step-title">你想学什么？</h2>
@@ -41,32 +183,86 @@
           <div class="lesson-actions"><button id="verify-step" class="primary-button" type="button" disabled>我点好了，请核验</button><button id="repeat-step" type="button" disabled>再讲一遍</button><button id="finish-lesson" class="text-button" type="button" disabled>结束教学</button></div>
           <p class="fine-print">“我点好了”只请求新画面核验，不代表已完成，也不会替你点击或输入。</p>
         </section>
-        <section id="conversation" class="conversation" aria-label="最近的问答" hidden><ol id="message-list" aria-live="polite" aria-relevant="additions text"></ol></section>
-        <details class="more-options">
-          <summary>字幕、语音与管理</summary>
+        <div id="conversation-view" hidden>
+        <section id="conversation" class="conversation" aria-label="最近的问答" tabindex="-1" hidden><h2>最近问答</h2><ol id="message-list" aria-live="polite" aria-relevant="additions text"></ol></section>
+        </div>
+        <div id="learning-view" hidden>
+        <section id="learning-summary" class="learning-summary" aria-labelledby="learning-title" tabindex="-1" hidden>
+          <div class="section-heading"><span class="eyebrow">只由你确认</span><span class="muted">本机学习记录</span></div>
+          <h2 id="learning-title">学过的，慢慢记下来</h2>
+          <p id="learning-error" class="learning-error" role="alert" hidden></p>
+          <p id="learning-navigation" class="learning-navigation" role="status" hidden></p>
+          <p id="learning-empty" class="muted">运行核心尚未提供学习记录，不能确认已保存。</p>
+          <article id="learning-note" class="learning-note" tabindex="-1" hidden>
+            <h3 id="learning-question"></h3><p id="learning-note-summary"></p>
+            <div class="learning-meta"><span id="learning-result"></span><span id="mastery-status" role="status"></span></div>
+            <div class="button-row"><button id="mark-mastered" type="button" disabled>我学会了</button><button id="mark-unmastered" type="button" disabled>还没掌握</button></div>
+            <p class="fine-print">教学完成不等于已掌握。只有你本人点击，才会请求更新掌握状态。</p>
+          </article>
+          <article id="review-card" class="review-card" aria-label="本人确认复习建议" hidden>
+            <h3>要不要找个时间再练一次？</h3>
+            <p><time id="review-time"></time><span id="review-timezone" class="review-timezone"></span></p>
+            <p id="review-reason" class="muted"></p><p id="review-status" role="status"></p>
+            <div id="review-actions" class="button-row" hidden><button id="confirm-review" type="button" disabled>本人确认复习</button><button id="decline-review" class="text-button" type="button" disabled>暂不安排</button></div>
+            <p class="fine-print">未确认不建提醒。确认仅代表接受建议，不代表已经调度或送达。</p>
+          </article>
+          <article id="due-reviews" class="due-reviews" aria-labelledby="due-reviews-title" hidden>
+            <div class="section-heading"><span class="eyebrow">桌宠内提示</span><span class="muted">无需系统通知权限</span></div>
+            <h3 id="due-reviews-title">到期复习</h3>
+            <ol id="due-reviews-list" aria-live="polite" aria-relevant="additions text"></ol>
+            <p class="fine-print">运行核心报告为本人已确认且到期的复习。这里只是桌宠内提示，不代表系统通知已送达；不会自动新建或顺延提醒。</p>
+          </article>
+          <details id="recent-notes" class="recent-notes" hidden><summary id="recent-notes-title">最近的学习记录</summary><ol id="recent-notes-list"></ol></details>
+        </section>
+        </div>
+        <section id="captions-view" class="function-page" aria-labelledby="captions-title" tabindex="-1" hidden>
+          <span class="eyebrow">讲解，也可以看得更清楚</span>
+          <h2 id="captions-title">大字字幕</h2>
+          <p class="page-lead">单独控制当前讲解的悬浮字幕。开启字幕不会开启麦克风或屏幕观察。</p>
+          <button id="toggle-captions" type="button" aria-pressed="false" disabled>字幕状态待确认</button>
+        </section>
+        <section id="wake-view" class="function-page" aria-labelledby="wake-title" tabindex="-1" hidden>
+          <span class="eyebrow">想叫我时，再由你开启</span>
+          <h2 id="wake-title">本地语音唤醒</h2>
+          <p id="wake-status" class="muted">语音唤醒待确认，默认关闭。</p>
+          <button id="toggle-wake" type="button" disabled>启用本地语音唤醒</button>
+          <p class="fine-print">使用麦克风需单独授权。未唤醒音频不持续上传，进入本页不会自动监听。</p>
+        </section>
+        <details id="accessibility-section" class="more-options" tabindex="-1" hidden>
+          <summary>管理与退出</summary>
           <div class="options-body">
-            <button id="toggle-captions" type="button" aria-pressed="false" disabled>字幕状态待确认</button>
-            <p id="wake-status" class="muted">语音唤醒待确认，默认关闭。</p>
-            <button id="toggle-wake" type="button" disabled>启用本地语音唤醒</button>
-            <p class="fine-print">语音需单独授权。未唤醒音频不持续上传。</p>
+            <p class="fine-print">常用功能都能从桌宠进入。只有需要高级管理时，才打开可选的管理窗口。</p>
             <nav class="management-links" aria-label="按需打开管理窗口">
-              <button type="button" data-route="/settings">设置与隐私 ↗</button><button type="button" data-route="/pets/draw">画一画 ↗</button><button type="button" data-route="/notes">学习档案 ↗</button><button type="button" data-route="/todos">待办与复习 ↗</button>
+              <button type="button" data-route="/">高级管理窗口（可选） ↗</button>
             </nav>
-            <button id="close-pet" class="text-button danger-button" type="button">退出桌宠</button>
-            <div id="exit-confirmation" class="exit-confirmation" hidden><p>退出会结束桌宠并由运行核心清理观察任务。只想收起？请点击右上角的“−”。</p><div class="button-row"><button id="confirm-exit" class="danger-button" type="button">确认退出桌宠</button><button id="cancel-exit" type="button">暂不退出</button></div></div>
+            <button id="close-pet" class="text-button danger-button" type="button">关闭桌宠</button>
+            <div id="exit-confirmation" class="exit-confirmation" hidden><p>关闭会先停止观察和语音。客户端仍打开时，可从左侧“打开桌宠”重新显示；否则将退出暖伴。只想收起面板？请点击右上角的“−”。</p><div class="button-row"><button id="confirm-exit" class="danger-button" type="button">确认关闭桌宠</button><button id="cancel-exit" type="button">暂不关闭</button></div></div>
           </div>
         </details>
       </div>
-      <form id="question-form" class="question-form" aria-label="直接向桌宠提问">
+      <form id="question-form" class="question-form" aria-label="直接向桌宠提问" hidden>
         <label for="question">说说你想做什么</label>
-        <textarea id="question" name="question" rows="2" maxlength="2000" placeholder="例如：教我在浏览器里收藏网页" aria-describedby="question-hint" disabled></textarea>
-        <div class="composer-footer"><span id="question-hint">Enter 发送 · Shift + Enter 换行</span><button id="send-question" class="primary-button" type="submit" disabled>问暖暖 <span aria-hidden="true">↗</span></button></div>
+        <textarea id="question" name="question" rows="2" maxlength="500" placeholder="例如：教我在浏览器里收藏网页" aria-describedby="question-hint" disabled></textarea>
+        <p id="dictation-status" class="muted" role="status">点击语音输入，本人确认后直接说话；识别文字仅填入，不自动发送。</p>
+        <p id="dictation-result" class="muted" hidden></p>
+        <button id="view-conversation" class="text-button" type="button" aria-controls="conversation" hidden>查看最近问答 ↑</button>
+        <div class="composer-footer"><span id="question-hint">Enter 发送 · Shift + Enter 换行</span><div class="button-row"><button id="start-dictation" type="button" disabled>语音输入</button><button id="cancel-dictation" type="button" hidden>取消听写</button><button id="send-question" class="primary-button" type="submit" disabled>问暖暖 <span aria-hidden="true">↗</span></button></div></div>
       </form>
     </section>
+    <button id="pet-due-todos" class="pet-due-todos" type="button" aria-controls="todos-view" hidden>到期待办</button>
     <p id="caption-line" class="caption-line" role="status" hidden></p>
+    <p id="artwork-status" class="caption-line" role="status" hidden></p>
+    <p id="model-status" class="caption-line" role="status" hidden></p>
+    <section id="pet-voice-bubble" class="pet-voice-bubble" aria-label="桌宠面对面语音气泡" hidden>
+      <div class="voice-bubble-heading"><span class="voice-presence-dot" aria-hidden="true"></span><span id="pet-voice-state" role="status">正在准备语音</span><span class="voice-bubble-name">暖暖在身边</span></div>
+      <p id="pet-voice-you" class="voice-bubble-you" hidden></p>
+      <p id="pet-voice-text" class="voice-bubble-text" role="status" aria-live="polite" aria-atomic="true"></p>
+      <p id="pet-voice-note" class="voice-bubble-note"></p>
+    </section>
     <div class="pet-dock">
       <button id="pet-toggle" class="pet-stage" type="button" aria-label="展开暖暖面板" aria-controls="pet-panel" aria-expanded="false" title="点击或按 Enter 提问；右键打开功能菜单">
-      <svg class="pet" viewBox="0 0 240 260" role="img" aria-label="小橘猫暖暖">
+      <img id="builtin-pet" class="pet default-pet" src="./assets/xingyun-monkey-preview.png" alt="默认桌宠：小猴子（本地静态预览）" draggable="false" data-avatar-id="xingyun-monkey">
+      <svg id="fallback-cat-pet" class="pet" viewBox="0 0 240 260" role="img" aria-label="备用小橘猫暖暖" hidden>
         <ellipse cx="122" cy="241" rx="68" ry="11" fill="#503A23" opacity=".08"/>
         <path d="M165 204c60 6 43-77 18-52" fill="none" stroke="#D98347" stroke-width="23" stroke-linecap="round"/>
         <path d="M75 146q-24 78 9 92h75q33-17 7-92" fill="#D98347"/>
@@ -90,8 +286,18 @@
         <path d="m83 159 36 13 40-13-9 18-31 1-32-1Z" fill="#6C8172"/>
         <circle cx="120" cy="180" r="7" fill="#EAC966"/>
       </svg>
+      <img id="custom-pet" class="pet custom-pet" alt="你的原画桌宠" draggable="false" hidden>
+      <span id="model-pet" class="pet model-pet" hidden></span>
+      <span id="xingyun-pet" class="pet xingyun-pet" role="img" aria-label="星云小猴子 3D 桌宠" hidden><span id="xingyun-canvas" class="xingyun-canvas"></span></span>
+      <span id="avatar-display-state" class="avatar-display-state" aria-live="polite">默认小猴子 · 本地静态预览</span>
       </button>
-      <div class="dock-copy"><p id="message" role="status">我在这里，点我聊聊</p><div class="dock-tools"><span class="drag-handle" aria-hidden="true" title="仅按住此处拖动桌宠">⠿ 移动</span><button id="pet-menu" type="button" title="打开原生菜单；位置调整由桌面宿主提供">功能与位置</button></div></div>
+      <div class="dock-copy"><p id="message" role="status">我在这里，点我聊聊</p><div class="dock-tools"><span class="drag-handle" aria-hidden="true" title="仅按住此处拖动桌宠">⠿ 移动</span><button id="pet-voice" type="button" title="单独授权后直接与暖暖语音聊天" disabled>语音聊聊</button><button id="pet-search" type="button" title="使用已配置的模型回答问题">搜索</button><button id="pet-menu" type="button" title="打开原生菜单；位置调整由桌面宿主提供">功能与位置</button></div></div>
+    </div>
+    <div id="pet-voice-controls" class="pet-voice-controls" aria-label="面对面语音控制" hidden>
+      <span class="drag-handle voice-drag-handle" aria-hidden="true" title="按住这里移动桌宠">⠿</span>
+      <button id="pet-voice-mute" type="button" aria-pressed="false" disabled>静音麦克风</button>
+      <button id="pet-voice-interrupt" type="button" aria-label="打断暖暖" disabled>打断</button>
+      <button id="pet-voice-end" class="voice-end-button" type="button" aria-label="结束面对面语音">结束</button>
     </div>
   </main>
 </body>

@@ -10,7 +10,7 @@ import ts from 'typescript';
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const packageScope = pathToFileURL(path.join(root, 'packages') + path.sep).href;
+const packageScope = pathToFileURL(root + path.sep).href;
 const taskIds = ['F07', 'F08', 'F09', 'F10', 'F11', 'F12'];
 const faultNames = ['encoder', 'storage-loss', 'high-risk', 'missing-consent', 'feedback-link', 'unsafe-training'];
 const localLimits = { minimumSamples: 100, riskP95Ms: 200, failureRate: 0, duplicateSideEffects: 0, dataLoss: 0 };
@@ -64,9 +64,11 @@ async function loadActualModules() {
   });
   try {
     const names = ['privacy', 'media-relay', 'guidance-engine', 'reminder-engine', 'local-data',
-      'platform-ports', 'api-client', 'contracts', 'domain', 'mocks', 'quality-gates', 'flow-library', 'accessibility-assets'];
+      'platform-ports', 'api-client', 'contracts', 'domain', 'quality-gates', 'flow-library', 'accessibility-assets'];
     const entries = [];
     for (const name of names) entries.push([name, await import(pathToFileURL(path.join(root, 'packages', name, 'src/index.ts')).href)]);
+    entries.push(['mocks', await import(pathToFileURL(path.join(root, 'tests/fixtures/business-scenarios.ts')).href)]);
+    entries.push(['accountDemo', await import(pathToFileURL(path.join(root, 'tests/fixtures/account-demo.ts')).href)]);
     return Object.fromEntries(entries);
   } finally {
     hooks.deregister();
@@ -74,7 +76,8 @@ async function loadActualModules() {
 }
 
 function coverage(name, symbols) {
-  const module = 'packages/' + name + '/src/index.ts';
+  const module = name === 'mocks' ? 'tests/fixtures/business-scenarios.ts'
+    : name === 'accountDemo' ? 'tests/fixtures/account-demo.ts' : 'packages/' + name + '/src/index.ts';
   return { module, sha256: digest(readFileSync(path.join(root, module))), symbols, execution: 'direct_module_call', fixture: 'synthetic' };
 }
 
@@ -454,7 +457,7 @@ async function assetFlowQualityChecks(modules) {
 }
 
 async function consentAndSupportChecks(modules, faults) {
-  const { accountDemoEligibility, accountDemoReducer, initialAccountDemo } = modules.domain;
+  const { accountDemoEligibility, accountDemoReducer, initialAccountDemo } = modules.accountDemo;
   const childInput = { method: 'family', platform: 'android', subject: 'child', hasSim: false, bound: false,
     operatorAuthorized: true, purposeAccepted: true, outcome: 'success' };
   const eligibility = accountDemoEligibility(childInput);
@@ -697,7 +700,7 @@ async function main() {
         [coverage('quality-gates', ['auditModelArtifact', 'redactAuditLog', 'hasReleaseBlockingFinding']), coverage('flow-library', ['LocalFlowLibrary', 'signFlowBundle']), coverage('accessibility-assets', ['validateAssetRevision', 'createAccessibilityPatch'])],
         () => assetFlowQualityChecks(modules));
       const f09Consent = await check('F09-consent-observation', ['AT-18', 'AT-24'],
-        [coverage('domain', ['accountDemoEligibility', 'accountDemoReducer'])], () => consentAndSupportChecks(modules, faults));
+        [coverage('accountDemo', ['accountDemoEligibility', 'accountDemoReducer'])], () => consentAndSupportChecks(modules, faults));
       const f12Training = await check('F12-training-revision', ['AT-15', 'AT-20', 'AT-24'],
         [coverage('flow-library', ['LocalFlowLibrary', 'signFlowBundle']), coverage('accessibility-assets', ['validateAssetRevision', 'createAccessibilityPatch']), coverage('privacy', ['FrameSafetyGate', 'evaluateLocalFrame'])],
         () => trainingRevision(modules, faults));

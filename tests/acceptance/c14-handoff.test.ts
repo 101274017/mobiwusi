@@ -19,7 +19,9 @@ describe('C14 契约交接证据审计', () => {
     expect(report.backendStarted).toBe(false);
     expect(report.generatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T.*Z$/);
     expect(report.generatedTimeZone).toBe('Asia/Shanghai');
-    expect(report.sourceInventory).toHaveLength(6);
+    expect(report).toMatchObject({ operations: 61, definitions: 127 });
+    expect(report.checks).toContainEqual(expect.objectContaining({ name: 'standalone current-frame guidance and owner-confirmed review boundary', passed: true }));
+    expect(report.sourceInventory).toHaveLength(7);
     expect(report.sourceInventory.every((source: { exists: boolean; contentSha256: string }) => source.exists && /^[0-9a-f]{64}$/.test(source.contentSha256))).toBe(true);
     expect(report.blockerRefs.map((ref: { code: string }) => ref.code)).toEqual([
       'A02_INDEPENDENT_REVIEW',

@@ -6,7 +6,7 @@ import {
   assistInviteTimeoutMs,
   assistInviteTimeoutState,
   resolveAssistFixture,
-} from '../../apps/web/src/assist-fixture';
+} from '../fixtures/assist';
 
 describe('前端亲情协助验收夹具', () => {
   it('默认走正常接听路径，显式夹具可选择无人接听或过期', () => {

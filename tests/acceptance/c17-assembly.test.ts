@@ -40,12 +40,18 @@ describe('C17 共享仓储与桥接装配预备审计', { timeout: 30_000 }, () 
     expect(report.auditPassed).toBe(true);
     expect(report.checks).toHaveLength(9);
     expect(report.checks.every(check => check.status === 'passed')).toBe(true);
-    for (const file of ['scripts/check-c17-assembly.mjs', 'packages/privacy/src/index.ts', 'packages/media-relay/src/index.ts', 'packages/provider-sandbox/src/index.ts', 'packages/config/src/index.ts']) {
+    for (const file of ['scripts/check-c17-assembly.mjs', 'packages/privacy/src/index.ts', 'packages/media-relay/src/index.ts', 'packages/provider-sandbox/src/index.ts', 'packages/config/src/index.ts',
+      'apps/desktop/standalone-host.cjs', 'apps/desktop/runtime-coordinator.cjs', 'apps/desktop/observation/controlled-screen-capture.cjs',
+      'apps/desktop/wake/windows-local-wake.cjs', 'apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/PetSessions.kt',
+      ...['AndroidLocalScreenDetector', 'AndroidGuidanceRuntime', 'StandaloneGuidanceClient', 'AndroidCaptureGeometry']
+        .map(name => `apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/${name}.kt`), 'apps/android/check-standalone-packaging.ps1']) {
       expect(report.evidenceInventory.find(item => item.file === file)).toMatchObject({ exists: true, contentSha256: expect.stringMatching(/^[0-9a-f]{64}$/) });
     }
     expect(report.commandResults[0]).toMatchObject({ passed: true, exitCode: 0 });
     expect(report.commandResults[0].command).toContain('tests/privacy/c03-gate.test.ts');
     expect(report.commandResults[0].command).toContain('tests/privacy/c04-media-relay.test.ts');
+    expect(report.commandResults[0].command).toContain('tests/platform/desktop-standalone-host.test.ts');
+    expect(report.commandResults[0].command).toContain('tests/platform/android-standalone-runtime.test.ts');
   });
 
   it('只报告合成预备层，不把 IndexedDB 或消息模拟当作真实平台验收', () => {

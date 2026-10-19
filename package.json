@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "pnpm --filter @nuanban/web dev",
     "server:dev": "pnpm --filter @nuanban/server start",
-    "build": "pnpm typecheck && pnpm --filter @nuanban/web build",
+    "build": "pnpm typecheck && pnpm --filter @nuanban/web build && pnpm desktop:avatar:build",
+    "desktop:avatar:build": "vite build --config apps/desktop/vite.avatar.config.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:evidence": "node scripts/run-unit-evidence.mjs",
@@ -22,6 +23,8 @@
     "contracts:check": "node scripts/generate-contracts.mjs --check && node scripts/validate-contracts.mjs",
     "contracts:kotlin:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-kotlin-contracts.ps1",
     "desktop": "pnpm build && pnpm --filter @nuanban/desktop start",
+    "desktop:artwork:check": "node scripts/check-local-artwork-desktop.mjs",
+    "desktop:model:check": "node scripts/check-local-model-desktop.mjs",
     "desktop:package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/desktop-package.ps1",
     "desktop:lab": "node scripts/desktop-lab.mjs --open",
     "desktop:lab:check": "node scripts/desktop-lab.mjs --self-test",

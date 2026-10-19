@@ -1,6 +1,4 @@
 export type Mode = 'elder' | 'child' | 'accessible';
-export { accountDemoEligibility, accountDemoReducer, initialAccountDemo } from './account-demo';
-export type { AccountDemoInput, AccountDemoMethod } from './account-demo';
 export { conflictSelection } from './conflicts';
 export type { LocalConflict, ConflictChoice } from './conflicts';
 export type Mastery = 'unmastered' | 'mastered';

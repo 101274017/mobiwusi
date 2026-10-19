@@ -27,7 +27,7 @@ test('内置伙伴先预览确认再应用，刷新可撤回', async ({ page }) 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test('未保存的微调可以放弃，保存冲突不替换伙伴', async ({ page }) => {
+test('未保存微调可放弃，旧冲突参数不再干预本机应用', async ({ page }) => {
   await page.goto('/#/pets?scenario=version-conflict');
   await page.getByLabel('眼睛', { exact: true }).selectOption('happy');
   await page.getByRole('button', { name: '放弃预览，读取当前设置' }).click();
@@ -36,9 +36,7 @@ test('未保存的微调可以放弃，保存冲突不替换伙伴', async ({ pa
   await page.getByRole('button', { name: '预览满意，确认应用' }).click();
   const dialog = page.getByRole('dialog', { name: '确认应用内置桌宠微调？' });
   await dialog.getByRole('button', { name: '确认应用到本机' }).click();
-  await expect(dialog.getByRole('alert')).toBeVisible();
-  await expect(dialog).toBeVisible();
-  await dialog.getByRole('button', { name: '暂不更改', exact: true }).click();
-  await expect(page.getByRole('region', { name: '桌宠微调预览' }).getByRole('img').first()).toHaveAttribute('aria-label', '小橘猫暖暖');
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole('region', { name: '桌宠微调预览' }).getByRole('img').first()).toHaveAttribute('aria-label', '小兔子暖暖');
   await expect(page.getByRole('button', { name: '小白兔', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });

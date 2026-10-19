@@ -206,110 +206,128 @@ internal object GeneratedContractRules {
         "ProvisioningResponseItemResultsItemReason" to rule395(),
         "VoiceTicketRequest" to rule397(),
         "VoiceTicketResponse" to rule399(),
-        "NormalizedRect" to rule402(),
-        "ServiceStreamEvent" to rule407(),
-        "ServiceStreamEventResponseStarted" to rule408(),
-        "ServiceStreamEventResponseStartedPayload" to rule412(),
-        "ServiceStreamEventCaptionSegment" to rule413(),
-        "ServiceStreamEventCaptionSegmentPayload" to rule415(),
-        "ServiceStreamEventResponseCompleted" to rule418(),
-        "ServiceStreamEventResponseCompletedPayload" to rule420(),
-        "ServiceStreamEventResponseCancelled" to rule422(),
-        "ServiceStreamEventResponseCancelledPayload" to rule424(),
-        "ServiceStreamEventResponseCancelledPayloadReason" to rule425(),
-        "ServiceStreamEventResponseFailed" to rule426(),
-        "ServiceStreamEventResponseFailedPayload" to rule428(),
-        "ServiceStreamEventResponseFailedPayloadCode" to rule429(),
-        "ServiceStreamEventGuidanceStep" to rule430(),
-        "ServiceStreamEventGuidanceStepPayload" to rule432(),
-        "ServiceStreamEventGuidanceStepPayloadTarget" to rule402(),
-        "ServiceStreamEventGuidanceRisk" to rule435(),
-        "ServiceStreamEventGuidanceRiskPayload" to rule437(),
-        "ServiceStreamEventGuidanceRiskPayloadRisk" to rule438(),
-        "ServiceStreamEventGuidanceRiskPayloadAction" to rule439(),
-        "ServiceStreamEventGuidanceLowConfidence" to rule440(),
-        "ServiceStreamEventGuidanceLowConfidencePayload" to rule442(),
-        "ServiceStreamEventGuidanceCompleted" to rule444(),
-        "ServiceStreamEventGuidanceCompletedPayload" to rule446(),
-        "ServiceStreamEventPetJobProgress" to rule447(),
-        "ServiceStreamEventPetJobProgressPayload" to rule449(),
-        "ServiceStreamEventPetJobProgressPayloadStatus" to rule450(),
-        "ServiceStreamEventPetJobSucceeded" to rule452(),
-        "ServiceStreamEventPetJobSucceededPayload" to rule454(),
-        "ServiceStreamEventPetJobFailed" to rule457(),
-        "ServiceStreamEventPetJobFailedPayload" to rule459(),
-        "ServiceStreamEventPetJobFailedPayloadCode" to rule460(),
-        "AssistSignal" to rule461(),
-        "AssistSignalInvite" to rule462(),
-        "AssistSignalInvitePayload" to rule464(),
-        "AssistSignalAccept" to rule466(),
-        "AssistSignalAcceptPayload" to rule468(),
-        "AssistSignalOffer" to rule470(),
-        "AssistSignalOfferPayload" to rule472(),
-        "AssistSignalAnswer" to rule475(),
-        "AssistSignalAnswerPayload" to rule477(),
-        "AssistSignalIce" to rule480(),
-        "AssistSignalIcePayload" to rule482(),
-        "AssistSignalRiskPause" to rule485(),
-        "AssistSignalRiskPausePayload" to rule487(),
-        "AssistSignalRiskPausePayloadReason" to rule490(),
-        "AssistSignalConsentRevoked" to rule491(),
-        "AssistSignalConsentRevokedPayload" to rule493(),
-        "AssistSignalEnd" to rule495(),
-        "AssistSignalEndPayload" to rule497(),
-        "AssistSignalEndPayloadReason" to rule498(),
-        "VoiceFrameHeader" to rule499(),
-        "VoiceFrameHeaderCodec" to rule502(),
-        "BridgeRequestV1" to rule505(),
-        "BridgeRequestV1CapabilitiesGet" to rule506(),
-        "BridgeRequestV1CapabilitiesGetParams" to rule510(),
-        "BridgeRequestV1PermissionsRequest" to rule511(),
-        "BridgeRequestV1PermissionsRequestParams" to rule515(),
-        "BridgeRequestV1PermissionsRequestParamsPermission" to rule516(),
-        "BridgeRequestV1CaptureStart" to rule518(),
-        "BridgeRequestV1CaptureStartParams" to rule522(),
-        "BridgeRequestV1CaptureStartParamsPurpose" to rule523(),
-        "BridgeRequestV1CaptureStop" to rule524(),
-        "BridgeRequestV1CaptureStopParams" to rule528(),
-        "BridgeRequestV1CameraStart" to rule529(),
-        "BridgeRequestV1CameraStartParams" to rule533(),
-        "BridgeRequestV1CameraStop" to rule534(),
-        "BridgeRequestV1CameraStopParams" to rule538(),
-        "BridgeRequestV1AudioStart" to rule539(),
-        "BridgeRequestV1AudioStartParams" to rule543(),
-        "BridgeRequestV1AudioStartParamsPurpose" to rule544(),
-        "BridgeRequestV1AudioStop" to rule545(),
-        "BridgeRequestV1AudioStopParams" to rule549(),
-        "BridgeRequestV1OverlayPresent" to rule550(),
-        "BridgeRequestV1OverlayPresentParams" to rule554(),
-        "BridgeRequestV1OverlayPresentParamsTarget" to rule402(),
-        "BridgeRequestV1OverlayClear" to rule556(),
-        "BridgeRequestV1OverlayClearParams" to rule560(),
-        "BridgeRequestV1NotificationsSchedule" to rule561(),
-        "BridgeRequestV1NotificationsScheduleParams" to rule565(),
-        "BridgeRequestV1NotificationsCancel" to rule567(),
-        "BridgeRequestV1NotificationsCancelParams" to rule571(),
-        "BridgeRequestV1StorageNotesRead" to rule572(),
-        "BridgeRequestV1StorageNotesReadParams" to rule576(),
-        "BridgeRequestV1StorageDrawingRead" to rule577(),
-        "BridgeRequestV1StorageDrawingReadParams" to rule581(),
-        "BridgeRequestV1AssetsImport" to rule582(),
-        "BridgeRequestV1AssetsImportParams" to rule586(),
-        "BridgeRequestV1AssetsImportParamsKind" to rule587(),
-        "BridgeRequestV1AssetsPreview" to rule588(),
-        "BridgeRequestV1AssetsPreviewParams" to rule592(),
-        "BridgeReplyV1" to rule593(),
-        "BridgeReplyV1True" to rule594(),
-        "BridgeReplyV1TrueResult" to rule597(),
-        "BridgeReplyV1TrueResultState" to rule598(),
-        "BridgeReplyV1False" to rule601(),
-        "BridgeReplyV1FalseError" to rule604(),
-        "BridgeReplyV1FalseErrorCode" to rule605(),
-        "ServiceErrorCode" to rule607(),
-        "ErrorEnvelope" to rule608(),
-        "ErrorEnvelopeError" to rule609(),
-        "ErrorEnvelopeErrorCode" to rule610(),
-        "ErrorEnvelopeErrorDetails" to rule613()
+        "StandaloneGuidanceRect" to rule402(),
+        "StandaloneGuidanceElement" to rule407(),
+        "StandaloneGuidanceImage" to rule411(),
+        "StandaloneGuidancePreviousStep" to rule414(),
+        "StandaloneGuidanceReviewProposal" to rule418(),
+        "StandaloneGuidanceAnalyzeRequest" to rule422(),
+        "StandaloneGuidanceAnalyzeRequestTriggerReason" to rule425(),
+        "StandaloneGuidanceResult" to rule439(),
+        "StandaloneGuidanceResultVariant1" to rule440(),
+        "StandaloneGuidanceResultVariant1Presentation" to rule443(),
+        "StandaloneGuidanceResultVariant2" to rule444(),
+        "StandaloneGuidanceResultVariant3" to rule450(),
+        "StandaloneGuidanceResultVariant4" to rule453(),
+        "StandaloneGuidanceErrorCode" to rule456(),
+        "NormalizedRect" to rule457(),
+        "ServiceStreamEvent" to rule462(),
+        "ServiceStreamEventResponseStarted" to rule463(),
+        "ServiceStreamEventResponseStartedPayload" to rule467(),
+        "ServiceStreamEventCaptionSegment" to rule468(),
+        "ServiceStreamEventCaptionSegmentPayload" to rule470(),
+        "ServiceStreamEventResponseCompleted" to rule473(),
+        "ServiceStreamEventResponseCompletedPayload" to rule475(),
+        "ServiceStreamEventResponseCancelled" to rule477(),
+        "ServiceStreamEventResponseCancelledPayload" to rule479(),
+        "ServiceStreamEventResponseCancelledPayloadReason" to rule480(),
+        "ServiceStreamEventResponseFailed" to rule481(),
+        "ServiceStreamEventResponseFailedPayload" to rule483(),
+        "ServiceStreamEventResponseFailedPayloadCode" to rule484(),
+        "ServiceStreamEventGuidanceStep" to rule485(),
+        "ServiceStreamEventGuidanceStepPayload" to rule487(),
+        "ServiceStreamEventGuidanceStepPayloadTarget" to rule457(),
+        "ServiceStreamEventGuidanceRisk" to rule490(),
+        "ServiceStreamEventGuidanceRiskPayload" to rule492(),
+        "ServiceStreamEventGuidanceRiskPayloadRisk" to rule493(),
+        "ServiceStreamEventGuidanceRiskPayloadAction" to rule494(),
+        "ServiceStreamEventGuidanceLowConfidence" to rule495(),
+        "ServiceStreamEventGuidanceLowConfidencePayload" to rule497(),
+        "ServiceStreamEventGuidanceCompleted" to rule499(),
+        "ServiceStreamEventGuidanceCompletedPayload" to rule501(),
+        "ServiceStreamEventPetJobProgress" to rule502(),
+        "ServiceStreamEventPetJobProgressPayload" to rule504(),
+        "ServiceStreamEventPetJobProgressPayloadStatus" to rule505(),
+        "ServiceStreamEventPetJobSucceeded" to rule507(),
+        "ServiceStreamEventPetJobSucceededPayload" to rule509(),
+        "ServiceStreamEventPetJobFailed" to rule512(),
+        "ServiceStreamEventPetJobFailedPayload" to rule514(),
+        "ServiceStreamEventPetJobFailedPayloadCode" to rule515(),
+        "AssistSignal" to rule516(),
+        "AssistSignalInvite" to rule517(),
+        "AssistSignalInvitePayload" to rule519(),
+        "AssistSignalAccept" to rule521(),
+        "AssistSignalAcceptPayload" to rule523(),
+        "AssistSignalOffer" to rule525(),
+        "AssistSignalOfferPayload" to rule527(),
+        "AssistSignalAnswer" to rule530(),
+        "AssistSignalAnswerPayload" to rule532(),
+        "AssistSignalIce" to rule535(),
+        "AssistSignalIcePayload" to rule537(),
+        "AssistSignalRiskPause" to rule540(),
+        "AssistSignalRiskPausePayload" to rule542(),
+        "AssistSignalRiskPausePayloadReason" to rule545(),
+        "AssistSignalConsentRevoked" to rule546(),
+        "AssistSignalConsentRevokedPayload" to rule548(),
+        "AssistSignalEnd" to rule550(),
+        "AssistSignalEndPayload" to rule552(),
+        "AssistSignalEndPayloadReason" to rule553(),
+        "VoiceFrameHeader" to rule554(),
+        "VoiceFrameHeaderCodec" to rule557(),
+        "BridgeRequestV1" to rule560(),
+        "BridgeRequestV1CapabilitiesGet" to rule561(),
+        "BridgeRequestV1CapabilitiesGetParams" to rule565(),
+        "BridgeRequestV1PermissionsRequest" to rule566(),
+        "BridgeRequestV1PermissionsRequestParams" to rule570(),
+        "BridgeRequestV1PermissionsRequestParamsPermission" to rule571(),
+        "BridgeRequestV1CaptureStart" to rule573(),
+        "BridgeRequestV1CaptureStartParams" to rule577(),
+        "BridgeRequestV1CaptureStartParamsPurpose" to rule578(),
+        "BridgeRequestV1CaptureStop" to rule579(),
+        "BridgeRequestV1CaptureStopParams" to rule583(),
+        "BridgeRequestV1CameraStart" to rule584(),
+        "BridgeRequestV1CameraStartParams" to rule588(),
+        "BridgeRequestV1CameraStop" to rule589(),
+        "BridgeRequestV1CameraStopParams" to rule593(),
+        "BridgeRequestV1AudioStart" to rule594(),
+        "BridgeRequestV1AudioStartParams" to rule598(),
+        "BridgeRequestV1AudioStartParamsPurpose" to rule599(),
+        "BridgeRequestV1AudioStop" to rule600(),
+        "BridgeRequestV1AudioStopParams" to rule604(),
+        "BridgeRequestV1OverlayPresent" to rule605(),
+        "BridgeRequestV1OverlayPresentParams" to rule609(),
+        "BridgeRequestV1OverlayPresentParamsTarget" to rule457(),
+        "BridgeRequestV1OverlayClear" to rule611(),
+        "BridgeRequestV1OverlayClearParams" to rule615(),
+        "BridgeRequestV1NotificationsSchedule" to rule616(),
+        "BridgeRequestV1NotificationsScheduleParams" to rule620(),
+        "BridgeRequestV1NotificationsCancel" to rule622(),
+        "BridgeRequestV1NotificationsCancelParams" to rule626(),
+        "BridgeRequestV1StorageNotesRead" to rule627(),
+        "BridgeRequestV1StorageNotesReadParams" to rule631(),
+        "BridgeRequestV1StorageDrawingRead" to rule632(),
+        "BridgeRequestV1StorageDrawingReadParams" to rule636(),
+        "BridgeRequestV1AssetsImport" to rule637(),
+        "BridgeRequestV1AssetsImportParams" to rule641(),
+        "BridgeRequestV1AssetsImportParamsKind" to rule642(),
+        "BridgeRequestV1AssetsPreview" to rule643(),
+        "BridgeRequestV1AssetsPreviewParams" to rule647(),
+        "BridgeReplyV1" to rule648(),
+        "BridgeReplyV1True" to rule649(),
+        "BridgeReplyV1TrueResult" to rule652(),
+        "BridgeReplyV1TrueResultState" to rule653(),
+        "BridgeReplyV1False" to rule656(),
+        "BridgeReplyV1FalseError" to rule659(),
+        "BridgeReplyV1FalseErrorCode" to rule660(),
+        "ServiceErrorCode" to rule662(),
+        "ErrorEnvelope" to rule663(),
+        "ErrorEnvelopeError" to rule664(),
+        "ErrorEnvelopeErrorCode" to rule665(),
+        "ErrorEnvelopeErrorDetails" to rule668(),
+        "StandaloneGuidanceErrorEnvelope" to rule671(),
+        "StandaloneGuidanceErrorEnvelopeError" to rule664(),
+        "StandaloneGuidanceErrorEnvelopeErrorCode" to rule665(),
+        "StandaloneGuidanceErrorEnvelopeErrorDetails" to rule668()
     ) }
     private fun rule0(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
     private fun rule1(): ContractRule = ContractRule(kind = "string", choices = listOf("elder", "child", "accessible"))
@@ -714,217 +732,274 @@ internal object GeneratedContractRules {
     private fun rule400(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 2048)
     private fun rule401(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 256, pattern = "^/v1/ws/[a-zA-Z0-9/_-]+\$")
     private fun rule402(): ContractRule = ContractRule(kind = "object", properties = mapOf("x" to rule403(), "y" to rule404(), "width" to rule405(), "height" to rule406()), required = setOf("x", "y", "width", "height"), additionalProperties = false)
-    private fun rule403(): ContractRule = ContractRule(kind = "number", minimum = 0.0, maximum = 1.0)
-    private fun rule404(): ContractRule = ContractRule(kind = "number", minimum = 0.0, maximum = 1.0)
-    private fun rule405(): ContractRule = ContractRule(kind = "number", exclusiveMinimum = 0.0, maximum = 1.0)
-    private fun rule406(): ContractRule = ContractRule(kind = "number", exclusiveMinimum = 0.0, maximum = 1.0)
-    private fun rule407(): ContractRule = ContractRule(oneOf = listOf(rule408(), rule413(), rule418(), rule422(), rule426(), rule430(), rule435(), rule440(), rule444(), rule447(), rule452(), rule457()))
-    private fun rule408(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule411(), "payload" to rule412()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule409(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule410(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule411(): ContractRule = ContractRule(constant = WireConstant("response.started"))
-    private fun rule412(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
-    private fun rule413(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule414(), "payload" to rule415()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule414(): ContractRule = ContractRule(constant = WireConstant("caption.segment"))
-    private fun rule415(): ContractRule = ContractRule(kind = "object", properties = mapOf("segment_id" to rule15(), "index" to rule416(), "text" to rule417()), required = setOf("segment_id", "index", "text"), additionalProperties = false)
-    private fun rule416(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule417(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 4000)
-    private fun rule418(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule419(), "payload" to rule420()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule419(): ContractRule = ContractRule(constant = WireConstant("response.completed"))
-    private fun rule420(): ContractRule = ContractRule(kind = "object", properties = mapOf("final_segment_count" to rule421()), required = setOf("final_segment_count"), additionalProperties = false)
-    private fun rule421(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 1000.0)
-    private fun rule422(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule423(), "payload" to rule424()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule423(): ContractRule = ContractRule(constant = WireConstant("response.cancelled"))
-    private fun rule424(): ContractRule = ContractRule(kind = "object", properties = mapOf("reason" to rule425()), required = setOf("reason"), additionalProperties = false)
-    private fun rule425(): ContractRule = ContractRule(kind = "string", choices = listOf("user_stop", "risk", "permission_revoked", "consent_revoked"))
-    private fun rule426(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule427(), "payload" to rule428()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule427(): ContractRule = ContractRule(constant = WireConstant("response.failed"))
-    private fun rule428(): ContractRule = ContractRule(kind = "object", properties = mapOf("code" to rule429(), "retryable" to rule9()), required = setOf("code", "retryable"), additionalProperties = false)
-    private fun rule429(): ContractRule = ContractRule(kind = "string", choices = listOf("TIMEOUT", "RATE_LIMITED", "PROVIDER_UNAVAILABLE"))
-    private fun rule430(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule431(), "payload" to rule432()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule431(): ContractRule = ContractRule(constant = WireConstant("guidance.step"))
-    private fun rule432(): ContractRule = ContractRule(kind = "object", properties = mapOf("step_id" to rule15(), "instruction" to rule433(), "frame_context" to rule434(), "target" to rule402(), "expires_at" to rule23()), required = setOf("step_id", "instruction", "frame_context", "target", "expires_at"), additionalProperties = false)
-    private fun rule433(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 500)
-    private fun rule434(): ContractRule = ContractRule(reference = "FrameContextDto")
-    private fun rule435(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule436(), "payload" to rule437()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule436(): ContractRule = ContractRule(constant = WireConstant("guidance.risk"))
-    private fun rule437(): ContractRule = ContractRule(kind = "object", properties = mapOf("risk" to rule438(), "action" to rule439()), required = setOf("risk", "action"), additionalProperties = false)
-    private fun rule438(): ContractRule = ContractRule(kind = "string", choices = listOf("private", "transaction", "unknown", "detector_failure"))
-    private fun rule439(): ContractRule = ContractRule(kind = "string", choices = listOf("pause_all_related", "stop_teaching_and_media"))
-    private fun rule440(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule441(), "payload" to rule442()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule441(): ContractRule = ContractRule(constant = WireConstant("guidance.low_confidence"))
-    private fun rule442(): ContractRule = ContractRule(kind = "object", properties = mapOf("action" to rule443()), required = setOf("action"), additionalProperties = false)
-    private fun rule443(): ContractRule = ContractRule(constant = WireConstant("request_help"))
-    private fun rule444(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule445(), "payload" to rule446()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule445(): ContractRule = ContractRule(constant = WireConstant("guidance.completed"))
-    private fun rule446(): ContractRule = ContractRule(kind = "object", properties = mapOf("verification_id" to rule15()), required = setOf("verification_id"), additionalProperties = false)
-    private fun rule447(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule448(), "payload" to rule449()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule448(): ContractRule = ContractRule(constant = WireConstant("pet_job.progress"))
-    private fun rule449(): ContractRule = ContractRule(kind = "object", properties = mapOf("status" to rule450(), "progress" to rule451()), required = setOf("status", "progress"), additionalProperties = false)
-    private fun rule450(): ContractRule = ContractRule(kind = "string", choices = listOf("queued", "processing"))
-    private fun rule451(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 99.0)
-    private fun rule452(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule453(), "payload" to rule454()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule453(): ContractRule = ContractRule(constant = WireConstant("pet_job.succeeded"))
-    private fun rule454(): ContractRule = ContractRule(kind = "object", properties = mapOf("assets" to rule455()), required = setOf("assets"), additionalProperties = false)
-    private fun rule455(): ContractRule = ContractRule(kind = "array", items = rule456(), minItems = 1, maxItems = 8)
-    private fun rule456(): ContractRule = ContractRule(reference = "AssetDto")
-    private fun rule457(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule458(), "payload" to rule459()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule458(): ContractRule = ContractRule(constant = WireConstant("pet_job.failed"))
-    private fun rule459(): ContractRule = ContractRule(kind = "object", properties = mapOf("code" to rule460()), required = setOf("code"), additionalProperties = false)
-    private fun rule460(): ContractRule = ContractRule(kind = "string", choices = listOf("PROVIDER_UNAVAILABLE", "RATE_LIMITED", "CANCELLED"))
-    private fun rule461(): ContractRule = ContractRule(oneOf = listOf(rule462(), rule466(), rule470(), rule475(), rule480(), rule485(), rule491(), rule495()))
-    private fun rule462(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule463(), "payload" to rule464()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule463(): ContractRule = ContractRule(constant = WireConstant("invite"))
-    private fun rule464(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "expires_at" to rule23(), "grant_revision" to rule465()), required = setOf("assist_id", "expires_at", "grant_revision"), additionalProperties = false)
-    private fun rule465(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
-    private fun rule466(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule467(), "payload" to rule468()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule467(): ContractRule = ContractRule(constant = WireConstant("accept"))
-    private fun rule468(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "grant_revision" to rule469()), required = setOf("assist_id", "grant_revision"), additionalProperties = false)
-    private fun rule469(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
-    private fun rule470(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule471(), "payload" to rule472()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule471(): ContractRule = ContractRule(constant = WireConstant("offer"))
-    private fun rule472(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "sdp" to rule473(), "grant_revision" to rule474()), required = setOf("assist_id", "sdp", "grant_revision"), additionalProperties = false)
-    private fun rule473(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 65536, pattern = "^v=0\\r?\\n")
-    private fun rule474(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
-    private fun rule475(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule476(), "payload" to rule477()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule476(): ContractRule = ContractRule(constant = WireConstant("answer"))
-    private fun rule477(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "sdp" to rule478(), "grant_revision" to rule479()), required = setOf("assist_id", "sdp", "grant_revision"), additionalProperties = false)
-    private fun rule478(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 65536, pattern = "^v=0\\r?\\n")
-    private fun rule479(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
-    private fun rule480(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule481(), "payload" to rule482()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule481(): ContractRule = ContractRule(constant = WireConstant("ice"))
-    private fun rule482(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "candidate" to rule483(), "grant_revision" to rule484()), required = setOf("assist_id", "candidate", "grant_revision"), additionalProperties = false)
-    private fun rule483(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 2048, pattern = "^candidate:")
-    private fun rule484(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
-    private fun rule485(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule486(), "payload" to rule487()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule486(): ContractRule = ContractRule(constant = WireConstant("risk.pause"))
-    private fun rule487(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "screen_paused" to rule488(), "audio_paused" to rule489(), "reason" to rule490()), required = setOf("assist_id", "screen_paused", "audio_paused", "reason"), additionalProperties = false)
-    private fun rule488(): ContractRule = ContractRule(constant = WireConstant(true))
-    private fun rule489(): ContractRule = ContractRule(constant = WireConstant(true))
-    private fun rule490(): ContractRule = ContractRule(kind = "string", choices = listOf("transaction", "private", "unknown", "detector_failure"))
-    private fun rule491(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule492(), "payload" to rule493()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule492(): ContractRule = ContractRule(constant = WireConstant("consent.revoked"))
-    private fun rule493(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "consent_id" to rule15(), "grant_revision" to rule494()), required = setOf("assist_id", "consent_id", "grant_revision"), additionalProperties = false)
-    private fun rule494(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
-    private fun rule495(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule409(), "generation" to rule410(), "type" to rule496(), "payload" to rule497()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
-    private fun rule496(): ContractRule = ContractRule(constant = WireConstant("end"))
-    private fun rule497(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "reason" to rule498()), required = setOf("assist_id", "reason"), additionalProperties = false)
-    private fun rule498(): ContractRule = ContractRule(kind = "string", choices = listOf("user_stop", "expired", "permission_revoked", "consent_revoked", "disconnected"))
-    private fun rule499(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "generation" to rule500(), "seq" to rule501(), "codec" to rule502(), "byte_length" to rule503(), "duration_ms" to rule504()), required = setOf("request_id", "generation", "seq", "codec", "byte_length", "duration_ms"), additionalProperties = false)
-    private fun rule500(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule501(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule502(): ContractRule = ContractRule(kind = "string", choices = listOf("opus", "pcm_s16le"))
-    private fun rule503(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 65536.0)
-    private fun rule504(): ContractRule = ContractRule(kind = "integer", minimum = 20.0, maximum = 40.0)
-    private fun rule505(): ContractRule = ContractRule(oneOf = listOf(rule506(), rule511(), rule518(), rule524(), rule529(), rule534(), rule539(), rule545(), rule550(), rule556(), rule561(), rule567(), rule572(), rule577(), rule582(), rule588()))
-    private fun rule506(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule507(), "request_id" to rule15(), "generation" to rule508(), "method" to rule509(), "params" to rule510()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule507(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule508(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule509(): ContractRule = ContractRule(constant = WireConstant("capabilities.get"))
-    private fun rule510(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
-    private fun rule511(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule512(), "request_id" to rule15(), "generation" to rule513(), "method" to rule514(), "params" to rule515()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule512(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule513(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule514(): ContractRule = ContractRule(constant = WireConstant("permissions.request"))
-    private fun rule515(): ContractRule = ContractRule(kind = "object", properties = mapOf("permission" to rule516(), "purpose" to rule517()), required = setOf("permission", "purpose"), additionalProperties = false)
-    private fun rule516(): ContractRule = ContractRule(kind = "string", choices = listOf("screen_capture", "camera", "microphone", "overlay", "notifications"))
-    private fun rule517(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 200)
-    private fun rule518(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule519(), "request_id" to rule15(), "generation" to rule520(), "method" to rule521(), "params" to rule522()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule519(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule520(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule521(): ContractRule = ContractRule(constant = WireConstant("capture.start"))
-    private fun rule522(): ContractRule = ContractRule(kind = "object", properties = mapOf("purpose" to rule523(), "consent_id" to rule15()), required = setOf("purpose", "consent_id"), additionalProperties = false)
-    private fun rule523(): ContractRule = ContractRule(kind = "string", choices = listOf("teaching", "assistance"))
-    private fun rule524(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule525(), "request_id" to rule15(), "generation" to rule526(), "method" to rule527(), "params" to rule528()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule525(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule526(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule527(): ContractRule = ContractRule(constant = WireConstant("capture.stop"))
-    private fun rule528(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
-    private fun rule529(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule530(), "request_id" to rule15(), "generation" to rule531(), "method" to rule532(), "params" to rule533()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule530(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule531(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule532(): ContractRule = ContractRule(constant = WireConstant("camera.start"))
-    private fun rule533(): ContractRule = ContractRule(kind = "object", properties = mapOf("consent_id" to rule15()), required = setOf("consent_id"), additionalProperties = false)
-    private fun rule534(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule535(), "request_id" to rule15(), "generation" to rule536(), "method" to rule537(), "params" to rule538()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule535(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule536(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule537(): ContractRule = ContractRule(constant = WireConstant("camera.stop"))
-    private fun rule538(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
-    private fun rule539(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule540(), "request_id" to rule15(), "generation" to rule541(), "method" to rule542(), "params" to rule543()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule540(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule541(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule542(): ContractRule = ContractRule(constant = WireConstant("audio.start"))
-    private fun rule543(): ContractRule = ContractRule(kind = "object", properties = mapOf("purpose" to rule544(), "consent_id" to rule15()), required = setOf("purpose", "consent_id"), additionalProperties = false)
-    private fun rule544(): ContractRule = ContractRule(kind = "string", choices = listOf("question", "assistance"))
-    private fun rule545(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule546(), "request_id" to rule15(), "generation" to rule547(), "method" to rule548(), "params" to rule549()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule546(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule547(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule548(): ContractRule = ContractRule(constant = WireConstant("audio.stop"))
-    private fun rule549(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
-    private fun rule550(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule551(), "request_id" to rule15(), "generation" to rule552(), "method" to rule553(), "params" to rule554()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule551(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule552(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule553(): ContractRule = ContractRule(constant = WireConstant("overlay.present"))
-    private fun rule554(): ContractRule = ContractRule(kind = "object", properties = mapOf("step_id" to rule15(), "safe_handle" to rule15(), "frame_context" to rule555(), "target" to rule402(), "expires_at" to rule23()), required = setOf("step_id", "safe_handle", "frame_context", "target", "expires_at"), additionalProperties = false)
-    private fun rule555(): ContractRule = ContractRule(reference = "FrameContextDto")
-    private fun rule556(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule557(), "request_id" to rule15(), "generation" to rule558(), "method" to rule559(), "params" to rule560()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule557(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule558(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule559(): ContractRule = ContractRule(constant = WireConstant("overlay.clear"))
-    private fun rule560(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
+    private fun rule403(): ContractRule = ContractRule(kind = "number", minimum = 0.0, maximum = 4096.0)
+    private fun rule404(): ContractRule = ContractRule(kind = "number", minimum = 0.0, maximum = 4096.0)
+    private fun rule405(): ContractRule = ContractRule(kind = "number", exclusiveMinimum = 0.0, maximum = 4096.0)
+    private fun rule406(): ContractRule = ContractRule(kind = "number", exclusiveMinimum = 0.0, maximum = 4096.0)
+    private fun rule407(): ContractRule = ContractRule(kind = "object", properties = mapOf("id" to rule408(), "label" to rule409(), "rect" to rule410()), required = setOf("id", "label", "rect"), additionalProperties = false)
+    private fun rule408(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 128, pattern = "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\$")
+    private fun rule409(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 48, pattern = "\\S")
+    private fun rule410(): ContractRule = ContractRule(reference = "StandaloneGuidanceRect")
+    private fun rule411(): ContractRule = ContractRule(kind = "object", properties = mapOf("mime" to rule412(), "base64" to rule413()), required = setOf("mime", "base64"), additionalProperties = false)
+    private fun rule412(): ContractRule = ContractRule(constant = WireConstant("image/png"))
+    private fun rule413(): ContractRule = ContractRule(kind = "string", minLength = 76, maxLength = 2700000, pattern = "^(?=iVBORw0KGgo)(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/][AQgw]==|[A-Za-z0-9+/]{2}[AEIMQUYcgkosw048]=)?\$")
+    private fun rule414(): ContractRule = ContractRule(kind = "object", properties = mapOf("instruction" to rule415(), "expected_labels" to rule416()), required = setOf("instruction", "expected_labels"), additionalProperties = false)
+    private fun rule415(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 600, pattern = "\\S")
+    private fun rule416(): ContractRule = ContractRule(kind = "array", items = rule417(), minItems = 0, maxItems = 16)
+    private fun rule417(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 48, pattern = "\\S")
+    private fun rule418(): ContractRule = ContractRule(kind = "object", properties = mapOf("remind_at" to rule419(), "timezone" to rule420(), "reason" to rule421()), required = setOf("remind_at", "timezone", "reason"), additionalProperties = false)
+    private fun rule419(): ContractRule = ContractRule(kind = "string", pattern = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?(?:Z|[+-](?:(?:0\\d|1[0-3]):[0-5]\\d|14:00))\$", format = "date-time")
+    private fun rule420(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 64, format = "iana-timezone")
+    private fun rule421(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 240, pattern = "\\S")
+    private fun rule422(): ContractRule = ContractRule(kind = "object", properties = mapOf("observation_id" to rule408(), "guide_id" to rule408(), "observation_generation" to rule423(), "task_generation" to rule424(), "trigger_id" to rule408(), "frame_id" to rule408(), "trigger_reason" to rule425(), "frame_hash" to rule426(), "sanitized_sha256" to rule426(), "captured_at" to rule419(), "image" to rule427(), "redaction_profile" to rule428(), "local_safety" to rule429(), "question" to rule430(), "elements" to rule431(), "previous_step" to rule433()), required = setOf("observation_id", "guide_id", "observation_generation", "task_generation", "trigger_id", "frame_id", "trigger_reason", "frame_hash", "sanitized_sha256", "captured_at", "image", "redaction_profile", "local_safety", "question", "elements"), additionalProperties = false, anyOf = listOf(rule434(), rule437()))
+    private fun rule423(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
+    private fun rule424(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
+    private fun rule425(): ContractRule = ContractRule(kind = "string", choices = listOf("question", "page_changed", "verification"))
+    private fun rule426(): ContractRule = ContractRule(kind = "string", minLength = 64, maxLength = 64, pattern = "^[a-fA-F0-9]{64}\$")
+    private fun rule427(): ContractRule = ContractRule(reference = "StandaloneGuidanceImage")
+    private fun rule428(): ContractRule = ContractRule(constant = WireConstant("all_text_and_faces_v1"))
+    private fun rule429(): ContractRule = ContractRule(constant = WireConstant("safe"))
+    private fun rule430(): ContractRule = ContractRule(kind = "string", minLength = 0, maxLength = 2000)
+    private fun rule431(): ContractRule = ContractRule(kind = "array", items = rule432(), minItems = 0, maxItems = 80)
+    private fun rule432(): ContractRule = ContractRule(reference = "StandaloneGuidanceElement")
+    private fun rule433(): ContractRule = ContractRule(reference = "StandaloneGuidancePreviousStep")
+    private fun rule434(): ContractRule = ContractRule(kind = "object", properties = mapOf("trigger_reason" to rule435(), "question" to rule436()), required = setOf("trigger_reason", "question"))
+    private fun rule435(): ContractRule = ContractRule(constant = WireConstant("question"))
+    private fun rule436(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 2000, pattern = "\\S")
+    private fun rule437(): ContractRule = ContractRule(kind = "object", properties = mapOf("trigger_reason" to rule438()), required = setOf("trigger_reason"))
+    private fun rule438(): ContractRule = ContractRule(kind = "string", choices = listOf("page_changed", "verification"))
+    private fun rule439(): ContractRule = ContractRule(oneOf = listOf(rule440(), rule444(), rule450(), rule453()))
+    private fun rule440(): ContractRule = ContractRule(kind = "object", properties = mapOf("observation_id" to rule408(), "guide_id" to rule408(), "observation_generation" to rule423(), "task_generation" to rule424(), "trigger_id" to rule408(), "frame_id" to rule408(), "kind" to rule441(), "instruction" to rule442(), "target_id" to rule408(), "presentation" to rule443(), "expected_labels" to rule416(), "evidence_labels" to rule416()), required = setOf("observation_id", "guide_id", "observation_generation", "task_generation", "trigger_id", "frame_id", "kind", "instruction"), additionalProperties = false, dependentRequired = mapOf("target_id" to setOf("presentation"), "presentation" to setOf("target_id")))
+    private fun rule441(): ContractRule = ContractRule(constant = WireConstant("step"))
+    private fun rule442(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 600, pattern = "\\S")
+    private fun rule443(): ContractRule = ContractRule(kind = "string", choices = listOf("confirmed", "uncertain_candidate"))
+    private fun rule444(): ContractRule = ContractRule(kind = "object", properties = mapOf("observation_id" to rule408(), "guide_id" to rule408(), "observation_generation" to rule423(), "task_generation" to rule424(), "trigger_id" to rule408(), "frame_id" to rule408(), "kind" to rule445(), "instruction" to rule446(), "evidence_labels" to rule447(), "review_proposal" to rule449()), required = setOf("observation_id", "guide_id", "observation_generation", "task_generation", "trigger_id", "frame_id", "kind", "instruction", "evidence_labels"), additionalProperties = false)
+    private fun rule445(): ContractRule = ContractRule(constant = WireConstant("completed"))
+    private fun rule446(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 600, pattern = "\\S")
+    private fun rule447(): ContractRule = ContractRule(kind = "array", items = rule448(), minItems = 1, maxItems = 16)
+    private fun rule448(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 48, pattern = "\\S")
+    private fun rule449(): ContractRule = ContractRule(reference = "StandaloneGuidanceReviewProposal")
+    private fun rule450(): ContractRule = ContractRule(kind = "object", properties = mapOf("observation_id" to rule408(), "guide_id" to rule408(), "observation_generation" to rule423(), "task_generation" to rule424(), "trigger_id" to rule408(), "frame_id" to rule408(), "kind" to rule451(), "instruction" to rule452()), required = setOf("observation_id", "guide_id", "observation_generation", "task_generation", "trigger_id", "frame_id", "kind", "instruction"), additionalProperties = false)
+    private fun rule451(): ContractRule = ContractRule(constant = WireConstant("clarify"))
+    private fun rule452(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 600, pattern = "\\S")
+    private fun rule453(): ContractRule = ContractRule(kind = "object", properties = mapOf("observation_id" to rule408(), "guide_id" to rule408(), "observation_generation" to rule423(), "task_generation" to rule424(), "trigger_id" to rule408(), "frame_id" to rule408(), "kind" to rule454(), "instruction" to rule455()), required = setOf("observation_id", "guide_id", "observation_generation", "task_generation", "trigger_id", "frame_id", "kind", "instruction"), additionalProperties = false)
+    private fun rule454(): ContractRule = ContractRule(constant = WireConstant("unsupported"))
+    private fun rule455(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 600, pattern = "\\S")
+    private fun rule456(): ContractRule = ContractRule(kind = "string", choices = listOf("GUIDANCE_AUTH_REQUIRED", "GUIDANCE_INVALID_REQUEST", "GUIDANCE_UNSAFE_REQUEST", "GUIDANCE_UNAVAILABLE", "GUIDANCE_PROVIDER_FAILURE", "GUIDANCE_INVALID_PROVIDER_RESPONSE", "GUIDANCE_UNSAFE_PROVIDER_RESPONSE", "GUIDANCE_ABORTED", "GUIDANCE_TIMEOUT"))
+    private fun rule457(): ContractRule = ContractRule(kind = "object", properties = mapOf("x" to rule458(), "y" to rule459(), "width" to rule460(), "height" to rule461()), required = setOf("x", "y", "width", "height"), additionalProperties = false)
+    private fun rule458(): ContractRule = ContractRule(kind = "number", minimum = 0.0, maximum = 1.0)
+    private fun rule459(): ContractRule = ContractRule(kind = "number", minimum = 0.0, maximum = 1.0)
+    private fun rule460(): ContractRule = ContractRule(kind = "number", exclusiveMinimum = 0.0, maximum = 1.0)
+    private fun rule461(): ContractRule = ContractRule(kind = "number", exclusiveMinimum = 0.0, maximum = 1.0)
+    private fun rule462(): ContractRule = ContractRule(oneOf = listOf(rule463(), rule468(), rule473(), rule477(), rule481(), rule485(), rule490(), rule495(), rule499(), rule502(), rule507(), rule512()))
+    private fun rule463(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule466(), "payload" to rule467()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule464(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule465(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule466(): ContractRule = ContractRule(constant = WireConstant("response.started"))
+    private fun rule467(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
+    private fun rule468(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule469(), "payload" to rule470()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule469(): ContractRule = ContractRule(constant = WireConstant("caption.segment"))
+    private fun rule470(): ContractRule = ContractRule(kind = "object", properties = mapOf("segment_id" to rule15(), "index" to rule471(), "text" to rule472()), required = setOf("segment_id", "index", "text"), additionalProperties = false)
+    private fun rule471(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule472(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 4000)
+    private fun rule473(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule474(), "payload" to rule475()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule474(): ContractRule = ContractRule(constant = WireConstant("response.completed"))
+    private fun rule475(): ContractRule = ContractRule(kind = "object", properties = mapOf("final_segment_count" to rule476()), required = setOf("final_segment_count"), additionalProperties = false)
+    private fun rule476(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 1000.0)
+    private fun rule477(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule478(), "payload" to rule479()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule478(): ContractRule = ContractRule(constant = WireConstant("response.cancelled"))
+    private fun rule479(): ContractRule = ContractRule(kind = "object", properties = mapOf("reason" to rule480()), required = setOf("reason"), additionalProperties = false)
+    private fun rule480(): ContractRule = ContractRule(kind = "string", choices = listOf("user_stop", "risk", "permission_revoked", "consent_revoked"))
+    private fun rule481(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule482(), "payload" to rule483()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule482(): ContractRule = ContractRule(constant = WireConstant("response.failed"))
+    private fun rule483(): ContractRule = ContractRule(kind = "object", properties = mapOf("code" to rule484(), "retryable" to rule9()), required = setOf("code", "retryable"), additionalProperties = false)
+    private fun rule484(): ContractRule = ContractRule(kind = "string", choices = listOf("TIMEOUT", "RATE_LIMITED", "PROVIDER_UNAVAILABLE"))
+    private fun rule485(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule486(), "payload" to rule487()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule486(): ContractRule = ContractRule(constant = WireConstant("guidance.step"))
+    private fun rule487(): ContractRule = ContractRule(kind = "object", properties = mapOf("step_id" to rule15(), "instruction" to rule488(), "frame_context" to rule489(), "target" to rule457(), "expires_at" to rule23()), required = setOf("step_id", "instruction", "frame_context", "target", "expires_at"), additionalProperties = false)
+    private fun rule488(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 500)
+    private fun rule489(): ContractRule = ContractRule(reference = "FrameContextDto")
+    private fun rule490(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule491(), "payload" to rule492()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule491(): ContractRule = ContractRule(constant = WireConstant("guidance.risk"))
+    private fun rule492(): ContractRule = ContractRule(kind = "object", properties = mapOf("risk" to rule493(), "action" to rule494()), required = setOf("risk", "action"), additionalProperties = false)
+    private fun rule493(): ContractRule = ContractRule(kind = "string", choices = listOf("private", "transaction", "unknown", "detector_failure"))
+    private fun rule494(): ContractRule = ContractRule(kind = "string", choices = listOf("pause_all_related", "stop_teaching_and_media"))
+    private fun rule495(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule496(), "payload" to rule497()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule496(): ContractRule = ContractRule(constant = WireConstant("guidance.low_confidence"))
+    private fun rule497(): ContractRule = ContractRule(kind = "object", properties = mapOf("action" to rule498()), required = setOf("action"), additionalProperties = false)
+    private fun rule498(): ContractRule = ContractRule(constant = WireConstant("request_help"))
+    private fun rule499(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule500(), "payload" to rule501()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule500(): ContractRule = ContractRule(constant = WireConstant("guidance.completed"))
+    private fun rule501(): ContractRule = ContractRule(kind = "object", properties = mapOf("verification_id" to rule15()), required = setOf("verification_id"), additionalProperties = false)
+    private fun rule502(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule503(), "payload" to rule504()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule503(): ContractRule = ContractRule(constant = WireConstant("pet_job.progress"))
+    private fun rule504(): ContractRule = ContractRule(kind = "object", properties = mapOf("status" to rule505(), "progress" to rule506()), required = setOf("status", "progress"), additionalProperties = false)
+    private fun rule505(): ContractRule = ContractRule(kind = "string", choices = listOf("queued", "processing"))
+    private fun rule506(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 99.0)
+    private fun rule507(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule508(), "payload" to rule509()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule508(): ContractRule = ContractRule(constant = WireConstant("pet_job.succeeded"))
+    private fun rule509(): ContractRule = ContractRule(kind = "object", properties = mapOf("assets" to rule510()), required = setOf("assets"), additionalProperties = false)
+    private fun rule510(): ContractRule = ContractRule(kind = "array", items = rule511(), minItems = 1, maxItems = 8)
+    private fun rule511(): ContractRule = ContractRule(reference = "AssetDto")
+    private fun rule512(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule513(), "payload" to rule514()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule513(): ContractRule = ContractRule(constant = WireConstant("pet_job.failed"))
+    private fun rule514(): ContractRule = ContractRule(kind = "object", properties = mapOf("code" to rule515()), required = setOf("code"), additionalProperties = false)
+    private fun rule515(): ContractRule = ContractRule(kind = "string", choices = listOf("PROVIDER_UNAVAILABLE", "RATE_LIMITED", "CANCELLED"))
+    private fun rule516(): ContractRule = ContractRule(oneOf = listOf(rule517(), rule521(), rule525(), rule530(), rule535(), rule540(), rule546(), rule550()))
+    private fun rule517(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule518(), "payload" to rule519()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule518(): ContractRule = ContractRule(constant = WireConstant("invite"))
+    private fun rule519(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "expires_at" to rule23(), "grant_revision" to rule520()), required = setOf("assist_id", "expires_at", "grant_revision"), additionalProperties = false)
+    private fun rule520(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
+    private fun rule521(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule522(), "payload" to rule523()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule522(): ContractRule = ContractRule(constant = WireConstant("accept"))
+    private fun rule523(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "grant_revision" to rule524()), required = setOf("assist_id", "grant_revision"), additionalProperties = false)
+    private fun rule524(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
+    private fun rule525(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule526(), "payload" to rule527()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule526(): ContractRule = ContractRule(constant = WireConstant("offer"))
+    private fun rule527(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "sdp" to rule528(), "grant_revision" to rule529()), required = setOf("assist_id", "sdp", "grant_revision"), additionalProperties = false)
+    private fun rule528(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 65536, pattern = "^v=0\\r?\\n")
+    private fun rule529(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
+    private fun rule530(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule531(), "payload" to rule532()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule531(): ContractRule = ContractRule(constant = WireConstant("answer"))
+    private fun rule532(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "sdp" to rule533(), "grant_revision" to rule534()), required = setOf("assist_id", "sdp", "grant_revision"), additionalProperties = false)
+    private fun rule533(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 65536, pattern = "^v=0\\r?\\n")
+    private fun rule534(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
+    private fun rule535(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule536(), "payload" to rule537()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule536(): ContractRule = ContractRule(constant = WireConstant("ice"))
+    private fun rule537(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "candidate" to rule538(), "grant_revision" to rule539()), required = setOf("assist_id", "candidate", "grant_revision"), additionalProperties = false)
+    private fun rule538(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 2048, pattern = "^candidate:")
+    private fun rule539(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
+    private fun rule540(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule541(), "payload" to rule542()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule541(): ContractRule = ContractRule(constant = WireConstant("risk.pause"))
+    private fun rule542(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "screen_paused" to rule543(), "audio_paused" to rule544(), "reason" to rule545()), required = setOf("assist_id", "screen_paused", "audio_paused", "reason"), additionalProperties = false)
+    private fun rule543(): ContractRule = ContractRule(constant = WireConstant(true))
+    private fun rule544(): ContractRule = ContractRule(constant = WireConstant(true))
+    private fun rule545(): ContractRule = ContractRule(kind = "string", choices = listOf("transaction", "private", "unknown", "detector_failure"))
+    private fun rule546(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule547(), "payload" to rule548()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule547(): ContractRule = ContractRule(constant = WireConstant("consent.revoked"))
+    private fun rule548(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "consent_id" to rule15(), "grant_revision" to rule549()), required = setOf("assist_id", "consent_id", "grant_revision"), additionalProperties = false)
+    private fun rule549(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
+    private fun rule550(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "session_id" to rule15(), "event_id" to rule15(), "seq" to rule464(), "generation" to rule465(), "type" to rule551(), "payload" to rule552()), required = setOf("request_id", "session_id", "event_id", "seq", "generation", "type", "payload"), additionalProperties = false)
+    private fun rule551(): ContractRule = ContractRule(constant = WireConstant("end"))
+    private fun rule552(): ContractRule = ContractRule(kind = "object", properties = mapOf("assist_id" to rule15(), "reason" to rule553()), required = setOf("assist_id", "reason"), additionalProperties = false)
+    private fun rule553(): ContractRule = ContractRule(kind = "string", choices = listOf("user_stop", "expired", "permission_revoked", "consent_revoked", "disconnected"))
+    private fun rule554(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "generation" to rule555(), "seq" to rule556(), "codec" to rule557(), "byte_length" to rule558(), "duration_ms" to rule559()), required = setOf("request_id", "generation", "seq", "codec", "byte_length", "duration_ms"), additionalProperties = false)
+    private fun rule555(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule556(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule557(): ContractRule = ContractRule(kind = "string", choices = listOf("opus", "pcm_s16le"))
+    private fun rule558(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 65536.0)
+    private fun rule559(): ContractRule = ContractRule(kind = "integer", minimum = 20.0, maximum = 40.0)
+    private fun rule560(): ContractRule = ContractRule(oneOf = listOf(rule561(), rule566(), rule573(), rule579(), rule584(), rule589(), rule594(), rule600(), rule605(), rule611(), rule616(), rule622(), rule627(), rule632(), rule637(), rule643()))
     private fun rule561(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule562(), "request_id" to rule15(), "generation" to rule563(), "method" to rule564(), "params" to rule565()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
     private fun rule562(): ContractRule = ContractRule(constant = WireConstant("1.0"))
     private fun rule563(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule564(): ContractRule = ContractRule(constant = WireConstant("notifications.schedule"))
-    private fun rule565(): ContractRule = ContractRule(kind = "object", properties = mapOf("todo_id" to rule15(), "instance_id" to rule15(), "planned_at" to rule23(), "schedule_revision" to rule566()), required = setOf("todo_id", "instance_id", "planned_at", "schedule_revision"), additionalProperties = false)
-    private fun rule566(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
-    private fun rule567(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule568(), "request_id" to rule15(), "generation" to rule569(), "method" to rule570(), "params" to rule571()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule568(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule569(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule570(): ContractRule = ContractRule(constant = WireConstant("notifications.cancel"))
-    private fun rule571(): ContractRule = ContractRule(kind = "object", properties = mapOf("instance_id" to rule15()), required = setOf("instance_id"), additionalProperties = false)
-    private fun rule572(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule573(), "request_id" to rule15(), "generation" to rule574(), "method" to rule575(), "params" to rule576()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule573(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule574(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule575(): ContractRule = ContractRule(constant = WireConstant("storage.notes.read"))
-    private fun rule576(): ContractRule = ContractRule(kind = "object", properties = mapOf("account_partition" to rule15()), required = setOf("account_partition"), additionalProperties = false)
-    private fun rule577(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule578(), "request_id" to rule15(), "generation" to rule579(), "method" to rule580(), "params" to rule581()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule578(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule579(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule580(): ContractRule = ContractRule(constant = WireConstant("storage.drawing.read"))
-    private fun rule581(): ContractRule = ContractRule(kind = "object", properties = mapOf("draft_id" to rule15()), required = setOf("draft_id"), additionalProperties = false)
-    private fun rule582(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule583(), "request_id" to rule15(), "generation" to rule584(), "method" to rule585(), "params" to rule586()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule583(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule584(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule585(): ContractRule = ContractRule(constant = WireConstant("assets.import"))
-    private fun rule586(): ContractRule = ContractRule(kind = "object", properties = mapOf("local_file_handle" to rule15(), "kind" to rule587()), required = setOf("local_file_handle", "kind"), additionalProperties = false)
-    private fun rule587(): ContractRule = ContractRule(kind = "string", choices = listOf("vrm", "fbx", "glb"))
-    private fun rule588(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule589(), "request_id" to rule15(), "generation" to rule590(), "method" to rule591(), "params" to rule592()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
-    private fun rule589(): ContractRule = ContractRule(constant = WireConstant("1.0"))
-    private fun rule590(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule591(): ContractRule = ContractRule(constant = WireConstant("assets.preview"))
-    private fun rule592(): ContractRule = ContractRule(kind = "object", properties = mapOf("asset_handle" to rule15()), required = setOf("asset_handle"), additionalProperties = false)
-    private fun rule593(): ContractRule = ContractRule(oneOf = listOf(rule594(), rule601()))
-    private fun rule594(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "generation" to rule595(), "ok" to rule596(), "result" to rule597()), required = setOf("request_id", "generation", "ok", "result"), additionalProperties = false)
-    private fun rule595(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule596(): ContractRule = ContractRule(constant = WireConstant(true))
-    private fun rule597(): ContractRule = ContractRule(kind = "object", properties = mapOf("state" to rule598(), "safe_handle" to rule599()), required = setOf("state", "safe_handle"), additionalProperties = false)
-    private fun rule598(): ContractRule = ContractRule(kind = "string", choices = listOf("system_pending", "stopped", "unsupported", "ready"))
-    private fun rule599(): ContractRule = ContractRule(anyOf = listOf(rule15(), rule600()))
-    private fun rule600(): ContractRule = ContractRule(kind = "null")
-    private fun rule601(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "generation" to rule602(), "ok" to rule603(), "error" to rule604()), required = setOf("request_id", "generation", "ok", "error"), additionalProperties = false)
+    private fun rule564(): ContractRule = ContractRule(constant = WireConstant("capabilities.get"))
+    private fun rule565(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
+    private fun rule566(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule567(), "request_id" to rule15(), "generation" to rule568(), "method" to rule569(), "params" to rule570()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule567(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule568(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule569(): ContractRule = ContractRule(constant = WireConstant("permissions.request"))
+    private fun rule570(): ContractRule = ContractRule(kind = "object", properties = mapOf("permission" to rule571(), "purpose" to rule572()), required = setOf("permission", "purpose"), additionalProperties = false)
+    private fun rule571(): ContractRule = ContractRule(kind = "string", choices = listOf("screen_capture", "camera", "microphone", "overlay", "notifications"))
+    private fun rule572(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 200)
+    private fun rule573(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule574(), "request_id" to rule15(), "generation" to rule575(), "method" to rule576(), "params" to rule577()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule574(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule575(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule576(): ContractRule = ContractRule(constant = WireConstant("capture.start"))
+    private fun rule577(): ContractRule = ContractRule(kind = "object", properties = mapOf("purpose" to rule578(), "consent_id" to rule15()), required = setOf("purpose", "consent_id"), additionalProperties = false)
+    private fun rule578(): ContractRule = ContractRule(kind = "string", choices = listOf("teaching", "assistance"))
+    private fun rule579(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule580(), "request_id" to rule15(), "generation" to rule581(), "method" to rule582(), "params" to rule583()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule580(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule581(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule582(): ContractRule = ContractRule(constant = WireConstant("capture.stop"))
+    private fun rule583(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
+    private fun rule584(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule585(), "request_id" to rule15(), "generation" to rule586(), "method" to rule587(), "params" to rule588()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule585(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule586(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule587(): ContractRule = ContractRule(constant = WireConstant("camera.start"))
+    private fun rule588(): ContractRule = ContractRule(kind = "object", properties = mapOf("consent_id" to rule15()), required = setOf("consent_id"), additionalProperties = false)
+    private fun rule589(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule590(), "request_id" to rule15(), "generation" to rule591(), "method" to rule592(), "params" to rule593()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule590(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule591(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule592(): ContractRule = ContractRule(constant = WireConstant("camera.stop"))
+    private fun rule593(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
+    private fun rule594(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule595(), "request_id" to rule15(), "generation" to rule596(), "method" to rule597(), "params" to rule598()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule595(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule596(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule597(): ContractRule = ContractRule(constant = WireConstant("audio.start"))
+    private fun rule598(): ContractRule = ContractRule(kind = "object", properties = mapOf("purpose" to rule599(), "consent_id" to rule15()), required = setOf("purpose", "consent_id"), additionalProperties = false)
+    private fun rule599(): ContractRule = ContractRule(kind = "string", choices = listOf("question", "assistance"))
+    private fun rule600(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule601(), "request_id" to rule15(), "generation" to rule602(), "method" to rule603(), "params" to rule604()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule601(): ContractRule = ContractRule(constant = WireConstant("1.0"))
     private fun rule602(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
-    private fun rule603(): ContractRule = ContractRule(constant = WireConstant(false))
-    private fun rule604(): ContractRule = ContractRule(kind = "object", properties = mapOf("code" to rule605(), "message" to rule606()), required = setOf("code", "message"), additionalProperties = false)
-    private fun rule605(): ContractRule = ContractRule(kind = "string", choices = listOf("PERMISSION_DENIED", "CANCELLED", "TARGET_STALE", "PROVIDER_UNAVAILABLE"))
-    private fun rule606(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 320)
-    private fun rule607(): ContractRule = ContractRule(kind = "string", choices = listOf("AUTH_FAILED", "AUTH_EXPIRED", "SCOPE_DENIED", "CONSENT_REQUIRED", "PERMISSION_DENIED", "RISK_PAUSED", "TARGET_STALE", "LOW_CONFIDENCE", "NEED_TIME_CONFIRMATION", "VERSION_CONFLICT", "RATE_LIMITED", "PROVIDER_UNAVAILABLE", "CANCELLED", "TIMEOUT", "NETWORK_OFFLINE", "STREAM_INTERRUPTED", "INVALID_REQUEST", "PARTIAL_FAILURE", "INVITE_EXPIRED"))
-    private fun rule608(): ContractRule = ContractRule(kind = "object", properties = mapOf("error" to rule609(), "request_id" to rule15(), "schema_version" to rule615()), required = setOf("error", "request_id", "schema_version"), additionalProperties = false)
-    private fun rule609(): ContractRule = ContractRule(kind = "object", properties = mapOf("code" to rule610(), "message" to rule611(), "retryable" to rule612(), "details" to rule613()), required = setOf("code", "message", "retryable"), additionalProperties = false)
-    private fun rule610(): ContractRule = ContractRule(kind = "string", choices = listOf("AUTH_FAILED", "AUTH_EXPIRED", "SCOPE_DENIED", "CONSENT_REQUIRED", "PERMISSION_DENIED", "RISK_PAUSED", "TARGET_STALE", "LOW_CONFIDENCE", "NEED_TIME_CONFIRMATION", "VERSION_CONFLICT", "RATE_LIMITED", "PROVIDER_UNAVAILABLE", "CANCELLED", "TIMEOUT", "NETWORK_OFFLINE", "STREAM_INTERRUPTED", "INVALID_REQUEST", "PARTIAL_FAILURE", "INVITE_EXPIRED"))
-    private fun rule611(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 320)
-    private fun rule612(): ContractRule = ContractRule(kind = "boolean")
-    private fun rule613(): ContractRule = ContractRule(kind = "object", properties = mapOf("current_version" to rule614(), "conflict_id" to rule15()), required = setOf("current_version", "conflict_id"), additionalProperties = false)
-    private fun rule614(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
-    private fun rule615(): ContractRule = ContractRule(constant = WireConstant("0.2.0"))
+    private fun rule603(): ContractRule = ContractRule(constant = WireConstant("audio.stop"))
+    private fun rule604(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
+    private fun rule605(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule606(), "request_id" to rule15(), "generation" to rule607(), "method" to rule608(), "params" to rule609()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule606(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule607(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule608(): ContractRule = ContractRule(constant = WireConstant("overlay.present"))
+    private fun rule609(): ContractRule = ContractRule(kind = "object", properties = mapOf("step_id" to rule15(), "safe_handle" to rule15(), "frame_context" to rule610(), "target" to rule457(), "expires_at" to rule23()), required = setOf("step_id", "safe_handle", "frame_context", "target", "expires_at"), additionalProperties = false)
+    private fun rule610(): ContractRule = ContractRule(reference = "FrameContextDto")
+    private fun rule611(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule612(), "request_id" to rule15(), "generation" to rule613(), "method" to rule614(), "params" to rule615()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule612(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule613(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule614(): ContractRule = ContractRule(constant = WireConstant("overlay.clear"))
+    private fun rule615(): ContractRule = ContractRule(kind = "object", properties = mapOf(), additionalProperties = false)
+    private fun rule616(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule617(), "request_id" to rule15(), "generation" to rule618(), "method" to rule619(), "params" to rule620()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule617(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule618(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule619(): ContractRule = ContractRule(constant = WireConstant("notifications.schedule"))
+    private fun rule620(): ContractRule = ContractRule(kind = "object", properties = mapOf("todo_id" to rule15(), "instance_id" to rule15(), "planned_at" to rule23(), "schedule_revision" to rule621()), required = setOf("todo_id", "instance_id", "planned_at", "schedule_revision"), additionalProperties = false)
+    private fun rule621(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
+    private fun rule622(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule623(), "request_id" to rule15(), "generation" to rule624(), "method" to rule625(), "params" to rule626()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule623(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule624(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule625(): ContractRule = ContractRule(constant = WireConstant("notifications.cancel"))
+    private fun rule626(): ContractRule = ContractRule(kind = "object", properties = mapOf("instance_id" to rule15()), required = setOf("instance_id"), additionalProperties = false)
+    private fun rule627(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule628(), "request_id" to rule15(), "generation" to rule629(), "method" to rule630(), "params" to rule631()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule628(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule629(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule630(): ContractRule = ContractRule(constant = WireConstant("storage.notes.read"))
+    private fun rule631(): ContractRule = ContractRule(kind = "object", properties = mapOf("account_partition" to rule15()), required = setOf("account_partition"), additionalProperties = false)
+    private fun rule632(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule633(), "request_id" to rule15(), "generation" to rule634(), "method" to rule635(), "params" to rule636()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule633(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule634(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule635(): ContractRule = ContractRule(constant = WireConstant("storage.drawing.read"))
+    private fun rule636(): ContractRule = ContractRule(kind = "object", properties = mapOf("draft_id" to rule15()), required = setOf("draft_id"), additionalProperties = false)
+    private fun rule637(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule638(), "request_id" to rule15(), "generation" to rule639(), "method" to rule640(), "params" to rule641()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule638(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule639(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule640(): ContractRule = ContractRule(constant = WireConstant("assets.import"))
+    private fun rule641(): ContractRule = ContractRule(kind = "object", properties = mapOf("local_file_handle" to rule15(), "kind" to rule642()), required = setOf("local_file_handle", "kind"), additionalProperties = false)
+    private fun rule642(): ContractRule = ContractRule(kind = "string", choices = listOf("vrm", "fbx", "glb"))
+    private fun rule643(): ContractRule = ContractRule(kind = "object", properties = mapOf("bridge_version" to rule644(), "request_id" to rule15(), "generation" to rule645(), "method" to rule646(), "params" to rule647()), required = setOf("bridge_version", "request_id", "generation", "method", "params"), additionalProperties = false)
+    private fun rule644(): ContractRule = ContractRule(constant = WireConstant("1.0"))
+    private fun rule645(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule646(): ContractRule = ContractRule(constant = WireConstant("assets.preview"))
+    private fun rule647(): ContractRule = ContractRule(kind = "object", properties = mapOf("asset_handle" to rule15()), required = setOf("asset_handle"), additionalProperties = false)
+    private fun rule648(): ContractRule = ContractRule(oneOf = listOf(rule649(), rule656()))
+    private fun rule649(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "generation" to rule650(), "ok" to rule651(), "result" to rule652()), required = setOf("request_id", "generation", "ok", "result"), additionalProperties = false)
+    private fun rule650(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule651(): ContractRule = ContractRule(constant = WireConstant(true))
+    private fun rule652(): ContractRule = ContractRule(kind = "object", properties = mapOf("state" to rule653(), "safe_handle" to rule654()), required = setOf("state", "safe_handle"), additionalProperties = false)
+    private fun rule653(): ContractRule = ContractRule(kind = "string", choices = listOf("system_pending", "stopped", "unsupported", "ready"))
+    private fun rule654(): ContractRule = ContractRule(anyOf = listOf(rule15(), rule655()))
+    private fun rule655(): ContractRule = ContractRule(kind = "null")
+    private fun rule656(): ContractRule = ContractRule(kind = "object", properties = mapOf("request_id" to rule15(), "generation" to rule657(), "ok" to rule658(), "error" to rule659()), required = setOf("request_id", "generation", "ok", "error"), additionalProperties = false)
+    private fun rule657(): ContractRule = ContractRule(kind = "integer", minimum = 0.0, maximum = 9007199254740991.0)
+    private fun rule658(): ContractRule = ContractRule(constant = WireConstant(false))
+    private fun rule659(): ContractRule = ContractRule(kind = "object", properties = mapOf("code" to rule660(), "message" to rule661()), required = setOf("code", "message"), additionalProperties = false)
+    private fun rule660(): ContractRule = ContractRule(kind = "string", choices = listOf("PERMISSION_DENIED", "CANCELLED", "TARGET_STALE", "PROVIDER_UNAVAILABLE"))
+    private fun rule661(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 320)
+    private fun rule662(): ContractRule = ContractRule(kind = "string", choices = listOf("AUTH_FAILED", "AUTH_EXPIRED", "SCOPE_DENIED", "CONSENT_REQUIRED", "PERMISSION_DENIED", "RISK_PAUSED", "TARGET_STALE", "LOW_CONFIDENCE", "NEED_TIME_CONFIRMATION", "VERSION_CONFLICT", "RATE_LIMITED", "PROVIDER_UNAVAILABLE", "CANCELLED", "TIMEOUT", "NETWORK_OFFLINE", "STREAM_INTERRUPTED", "INVALID_REQUEST", "PARTIAL_FAILURE", "INVITE_EXPIRED", "GUIDANCE_AUTH_REQUIRED", "GUIDANCE_INVALID_REQUEST", "GUIDANCE_UNSAFE_REQUEST", "GUIDANCE_UNAVAILABLE", "GUIDANCE_PROVIDER_FAILURE", "GUIDANCE_INVALID_PROVIDER_RESPONSE", "GUIDANCE_UNSAFE_PROVIDER_RESPONSE", "GUIDANCE_ABORTED", "GUIDANCE_TIMEOUT"))
+    private fun rule663(): ContractRule = ContractRule(kind = "object", properties = mapOf("error" to rule664(), "request_id" to rule15(), "schema_version" to rule670()), required = setOf("error", "request_id", "schema_version"), additionalProperties = false)
+    private fun rule664(): ContractRule = ContractRule(kind = "object", properties = mapOf("code" to rule665(), "message" to rule666(), "retryable" to rule667(), "details" to rule668()), required = setOf("code", "message", "retryable"), additionalProperties = false)
+    private fun rule665(): ContractRule = ContractRule(kind = "string", choices = listOf("AUTH_FAILED", "AUTH_EXPIRED", "SCOPE_DENIED", "CONSENT_REQUIRED", "PERMISSION_DENIED", "RISK_PAUSED", "TARGET_STALE", "LOW_CONFIDENCE", "NEED_TIME_CONFIRMATION", "VERSION_CONFLICT", "RATE_LIMITED", "PROVIDER_UNAVAILABLE", "CANCELLED", "TIMEOUT", "NETWORK_OFFLINE", "STREAM_INTERRUPTED", "INVALID_REQUEST", "PARTIAL_FAILURE", "INVITE_EXPIRED", "GUIDANCE_AUTH_REQUIRED", "GUIDANCE_INVALID_REQUEST", "GUIDANCE_UNSAFE_REQUEST", "GUIDANCE_UNAVAILABLE", "GUIDANCE_PROVIDER_FAILURE", "GUIDANCE_INVALID_PROVIDER_RESPONSE", "GUIDANCE_UNSAFE_PROVIDER_RESPONSE", "GUIDANCE_ABORTED", "GUIDANCE_TIMEOUT"))
+    private fun rule666(): ContractRule = ContractRule(kind = "string", minLength = 1, maxLength = 320)
+    private fun rule667(): ContractRule = ContractRule(kind = "boolean")
+    private fun rule668(): ContractRule = ContractRule(kind = "object", properties = mapOf("current_version" to rule669(), "conflict_id" to rule15()), required = setOf("current_version", "conflict_id"), additionalProperties = false)
+    private fun rule669(): ContractRule = ContractRule(kind = "integer", minimum = 1.0, maximum = 9007199254740991.0)
+    private fun rule670(): ContractRule = ContractRule(constant = WireConstant("0.2.0"))
+    private fun rule671(): ContractRule = ContractRule(kind = "object", properties = mapOf("error" to rule664(), "request_id" to rule408(), "schema_version" to rule672()), required = setOf("error", "request_id", "schema_version"), additionalProperties = false)
+    private fun rule672(): ContractRule = ContractRule(constant = WireConstant("0.2.0"))
 }

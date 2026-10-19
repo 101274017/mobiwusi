@@ -75,8 +75,8 @@ const checks = [
     { file: 'tests/contract/active-bridge.test.ts', text: '活动桥协议独立于未来宽桥草案' },
   ]),
   check('C17-06', '组合根不把真实服务或系统权限伪装成已接入', [
-    { file: 'packages/config/src/index.ts', text: "if (production && apiMode === 'mock')" },
-    { file: 'apps/web/src/composition.ts', text: 'UnconnectedRepository' },
+    { file: 'packages/config/src/index.ts', text: "if (!['local', 'real'].includes(apiMode))" },
+    { file: 'apps/web/src/composition.ts', text: 'new DesktopConversation()' },
     { file: 'packages/platform-ports/README.md', text: '真实锁屏、撤权、进程终止' },
     { file: 'packages/contracts/README.md', text: '不等于 Android WebView/系统生命周期真机通过' },
   ]),
@@ -133,7 +133,7 @@ const inventoryPaths = [
   'packages/guidance-engine/src/index.ts',
   'packages/provider-sandbox/src/index.ts',
   'packages/config/src/index.ts',
-  'packages/config/src/scenarios.ts',
+  'apps/web/src/local-snapshot.ts',
   'tests/privacy/c03-gate.test.ts',
   'tests/privacy/c04-media-relay.test.ts',
   'tests/domain/guidance-platform.test.ts',
@@ -148,6 +148,17 @@ const inventoryPaths = [
   'apps/desktop/reminder-notification-bridge.cjs',
   'apps/desktop/main.cjs',
   'apps/desktop/preload.cjs',
+  'apps/desktop/forge.config.cjs',
+  'apps/desktop/external-script-path.cjs',
+  ...['standalone-host.cjs', 'runtime-coordinator.cjs', 'runtime-learning-store.cjs', 'analysis-client.cjs', 'observation-policy.cjs',
+    'pet-preload.cjs', 'pet.js', 'pet.html', 'pet.css', 'guide-preload.cjs', 'guide.js', 'guide.html', 'guide.css',
+    'caption-preload.cjs', 'caption.js', 'caption.html', 'caption.css'].map(file => `apps/desktop/${file}`),
+  ...['windows-observation-source.cjs', 'windows-local-detector.cjs', 'windows-local-analysis.ps1', 'windows-helper-process.cjs',
+    'observation-common.cjs', 'controlled-screen-capture.cjs', 'capture-worker.js', 'capture-worker.html', 'capture-worker-preload.cjs'].map(file => `apps/desktop/observation/${file}`),
+  ...['windows-local-wake.cjs', 'windows-local-wake.ps1'].map(file => `apps/desktop/wake/${file}`),
+  'apps/server/src/standalone-guidance.ts',
+  'apps/server/src/http.ts',
+  'apps/server/src/main.ts',
   'apps/android/app/build.gradle.kts',
   'apps/android/app/src/main/AndroidManifest.xml',
   'apps/android/app/src/main/java/org/nuanban/assistant/data/ReminderEntity.kt',
@@ -157,6 +168,24 @@ const inventoryPaths = [
   'apps/android/app/src/main/java/org/nuanban/assistant/ReminderNotificationScheduler.kt',
   'apps/android/app/src/main/java/org/nuanban/assistant/ReminderAlarmReceiver.kt',
   'apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt',
+  'apps/android/standalone/build.gradle.kts',
+  'apps/android/standalone/src/main/AndroidManifest.xml',
+  'apps/android/app/src/normal/java/org/nuanban/assistant/nativehost/AndroidHostRuntime.kt',
+  ...['AndroidHostRuntime', 'CaptureSession', 'LocalFrameGate', 'NativeCaptureControlActivity', 'NativeCaptureRuntime', 'NativeCaptureService',
+    'PetControlActivity', 'PetManagementBoundary', 'PetRuntime', 'PetRuntimeService', 'PetSessions', 'AndroidScreenPolicy', 'AndroidLocalScreenDetector',
+    'AndroidCaptureGeometry', 'AndroidTeachingState', 'AndroidGuidanceAdapter', 'AndroidGuidanceConnection', 'AndroidGuidanceRuntime',
+    'AndroidGuidanceOverlay', 'StandaloneGuidanceProtocol', 'StandaloneGuidanceClient']
+    .map(name => `apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/${name}.kt`),
+  'apps/android/check-standalone.ps1',
+  'apps/android/check-standalone-packaging.ps1',
+  'apps/android/standalone-tests/PetSessionChecks.kt',
+  ...['AndroidScreenPolicyChecks', 'AndroidCaptureGeometryChecks', 'AndroidTeachingStateChecks', 'AndroidGuidanceAdapterChecks', 'StandaloneGuidanceProtocolChecks']
+    .map(name => `apps/android/standalone-tests/${name}.kt`),
+  ...['desktop-standalone-host', 'desktop-runtime-coordinator', 'desktop-runtime-learning-store', 'desktop-observation-policy',
+    'desktop-observation-source', 'desktop-analysis-client', 'desktop-local-wake', 'desktop-pet-ui', 'desktop-external-script', 'android-standalone-runtime'].map(name => `tests/platform/${name}.test.ts`),
+  '暖伴AI公益助手-产品需求文档-独立桌宠版.md',
+  '暖伴AI公益助手-技术与实施方案-独立桌宠版.md',
+  '暖伴AI公益助手-项目实施计划-独立桌宠四机并发版.md',
   'packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ActiveBridgeProtocol.kt',
   'tests/integration/local-data.test.ts',
   'tests/platform/android-message-host.test.ts',
@@ -186,6 +215,8 @@ function runLocalCommand() {
     'tests/contract/active-bridge.test.ts',
     'tests/platform/desktop-notification-adapter.test.ts',
     'tests/platform/desktop-reminder-bridge.test.ts',
+    ...['desktop-standalone-host', 'desktop-runtime-coordinator', 'desktop-runtime-learning-store', 'desktop-observation-policy',
+      'desktop-observation-source', 'desktop-analysis-client', 'desktop-local-wake', 'desktop-pet-ui', 'desktop-external-script', 'android-standalone-runtime'].map(name => `tests/platform/${name}.test.ts`),
   ];
   const vitest = path.join(root, 'node_modules', 'vitest', 'vitest.mjs');
   const arguments_ = [vitest, 'run', ...testFiles, '--reporter=dot', '--maxWorkers=2', '--no-file-parallelism'];
@@ -217,12 +248,14 @@ function writeGeneratedReport(file, report) {
 export function runC17AssemblyCheck({ evidencePath, mode = 'development', runCommands = true } = {}) {
   assertGateMode(mode);
   const commandResults = runCommands ? [runLocalCommand()] : [];
-  const auditPassed = checks.every(item => item.status === 'passed');
-  const commandFailures = commandResults.filter(item => !item.passed).map(item => ({
+  const auditPassed = checks.every(item => item.status === 'passed') && inventoryPaths.every(item => item.exists);
+  const commandFailures = [...inventoryPaths.filter(item => !item.exists).map(item => ({
+    id: 'C17_REQUIRED_SOURCE_MISSING', reason: `Required assembly source missing: ${item.file}`, kind: 'code',
+  })), ...commandResults.filter(item => !item.passed).map(item => ({
     id: 'C17_LOCAL_COMMAND',
     reason: `${item.command} exited with ${item.exitCode}`,
     kind: 'code',
-  }));
+  }))];
   const externalPending = [
     {
       id: 'C17_WEBVIEW_DEVICE',

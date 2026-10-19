@@ -1,6 +1,6 @@
 # C17 共享仓储与桥接装配开发验证
 
-更新日期：2026-10-17（Asia/Shanghai）。本文件按实施计划 V1.2 区分本机装配、自动检查与外部验证；不代表真实平台权限、设备验收或正式发布完成。
+更新日期：2026-10-18（Asia/Shanghai）。本文件按实施计划双门禁与独立桌宠改版区分本机装配、自动检查与外部验证；不代表真实平台权限、设备验收或正式发布完成。
 
 ## 实施范围
 
@@ -12,6 +12,8 @@
 - `apps/desktop/reminder-store.cjs` 在 Electron 主进程提供 SQLite 本地提醒仓储，`main.cjs`/`preload.cjs` 只通过受信任主窗口 IPC 暴露明确的排程和状态方法；`apps/desktop/notification-adapter.cjs` 与 `apps/desktop/reminder-notification-bridge.cjs` 提供显式能力/权限门控的通知预备层；主进程当前将权限报告为 `unknown`，只做受限装配、独立仓储测试和合成通知/桥接测试。
 
 ## 检查命令
+
+独立桌宠改版额外将 Windows runtime、选定源隔离 worker、本地检测/脱敏、本地离线唤醒、加密学习仓储、真实分析端口，以及 Android standalone 模块、原生状态机和对应合成/JVM 测试纳入源指纹与实际专项命令。必需源码缺失属于代码失败。ASAR 辅助脚本真实解包测试也在范围内；不把这些测试称为外部软件、真机或正式发布通过。
 
 ```text
 pnpm c17:assembly:check

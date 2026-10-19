@@ -111,7 +111,8 @@ try {
     }
 } catch {
     $failureStatus = if ($phase -in @('winrt_load', 'ocr_create', 'face_create')) { 'unavailable' } else { 'failed' }
-    $reply = @{ protocol = 1; status = $failureStatus; reason = ('{0}:{1}:0x{2:X8}' -f $phase, $_.Exception.GetType().Name, $_.Exception.HResult); ocrStatus = 'unavailable'; faceStatus = 'unavailable' }
+    $cause = $_.Exception.GetBaseException()
+    $reply = @{ protocol = 1; status = $failureStatus; reason = ('{0}:{1}:0x{2:X8}' -f $phase, $cause.GetType().Name, $cause.HResult); ocrStatus = 'unavailable'; faceStatus = 'unavailable' }
 } finally {
     if ($null -ne $faceBitmap) { $faceBitmap.Dispose() }
     if ($null -ne $bitmap) { $bitmap.Dispose() }

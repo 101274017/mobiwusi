@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
-import { createDrawingJob, transitionDrawingJob, validDrawing, type DrawingJob, type DrawingStroke } from '@nuanban/pet-engine';
+import { validDrawing, type DrawingJob, type DrawingStroke } from '@nuanban/pet-engine';
+import { createDrawingJob, transitionDrawingJob } from '../fixtures/drawing-job';
 import { IndexedDbDrawing, IndexedDbDrawingJobs, IndexedDbRepository } from '@nuanban/local-data';
-import { createScenarioSnapshot } from '@nuanban/mocks';
+import { createScenarioSnapshot } from '../fixtures/business-scenarios';
 
 const now = '2026-10-15T01:00:00.000Z';
 const strokes: DrawingStroke[] = [{ color: '#A64B2A', width: 9, eraser: false, points: [{ x: 40, y: 70 }] }];

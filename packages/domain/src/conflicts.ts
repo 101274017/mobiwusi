@@ -1,6 +1,6 @@
 import type { Note, Todo } from './index';
 
-interface ConflictBase { id: string; ownerId: string; baseVersion: number; createdAt: string; source: 'mock'; }
+interface ConflictBase { id: string; ownerId: string; baseVersion: number; createdAt: string; source: 'local'; }
 export type LocalConflict = ConflictBase & ({ entityType: 'note'; local: Note; other: Note } | { entityType: 'todo'; local: Todo; other: Todo });
 export type ConflictChoice = 'local' | 'other';
 

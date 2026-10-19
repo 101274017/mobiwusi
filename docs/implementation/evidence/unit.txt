@@ -1,137 +1,535 @@
 
  RUN  v5.0.4 C:/Users/33864/Desktop/nuanban
 
- ✓ tests/acceptance/f-development-delivery-execution.test.ts (3 tests) 31982ms
+ ❯ tests/acceptance/f-development-dependencies.test.ts (2 tests | 2 failed) 486ms
+   ❯ F01-F24 自动开发依赖矩阵 (2)
+     × 按自动开发决定保留 24 项依赖与 D07 正式阻断 255ms
+     × 每项仍有可追踪 blocker，并关闭真实能力 230ms
+ ❯ tests/acceptance/f-development-runner.test.ts (2 tests | 2 failed) 507ms
+   ❯ F 自动开发门禁本机运行器 (2)
+     × 兼容旧 bypass 参数但仍需实际自动开发门禁通过 257ms
+     × V1.2 无需额外 bypass 即可执行本地开发检查 248ms
+ ❯ tests/acceptance/d07-decision.test.ts (9 tests | 3 failed) 191ms
+   ❯ D07 开发与正式发布双门禁 (9)
+     ✓ 源码变化或删除使旧安全证据失效，不能复用旧 ready 19ms
+     ✓ 哈希缺失或损坏不算来源版本已验证 14ms
+     ✓ 原缺失外部输入新增时必须重新审计，而非继续引用缺失快照 2ms
+     × 没有人工决策也能依据自动证据继续开发，但不得正式发布 37ms
+     ✓ release 模式不使用 development go 代替真实批准 18ms
+     ✓ 自动证据幂等落盘，重复检查不改决定文件或报告 55ms
+     × 不覆盖人工或用户自有证据，损坏人工字段不造成异常放行 23ms
+     ✓ 拒绝未知门禁模式 3ms
+     × 校验自动决定 Schema，不让损坏状态或伪造生产就绪通过 20ms
+ ❯ tests/acceptance/c17-assembly.test.ts (3 tests | 3 failed) 71050ms
+   ❯ C17 共享仓储与桥接装配预备审计 (3)
+     × 静态组合根、仓储隔离和桥接安全边界全部可追踪 23393ms
+     × 只报告合成预备层，不把 IndexedDB 或消息模拟当作真实平台验收 23797ms
+     × 明确不能正式发布并保留设备外部待项，不能全局阻断开发 23859ms
+ ✓ tests/acceptance/f-development-delivery-execution.test.ts (3 tests) 16933ms
    ✓ F13-F24 本机开发级交付/证据执行器 (3)
-     ✓ 输出离线、合成、development_only 报告并保留正式阻塞 10302ms
-     ✓ 覆盖 F13-F24、契约审计、候选包边界和备份恢复回滚夹具 10772ms
-     ✓ 只读运行，不修改 D07、F13/F24 任务卡或既有 F 运行器 10904ms
- ✓ tests/acceptance/c17-assembly.test.ts (3 tests) 22125ms
-   ✓ C17 共享仓储与桥接装配预备审计 (3)
-     ✓ 静态组合根、仓储隔离和桥接安全边界全部可追踪 7264ms
-     ✓ 只报告合成预备层，不把 IndexedDB 或消息模拟当作真实平台验收 7392ms
-     ✓ 明确不能正式发布并保留设备外部待项，不能全局阻断开发 7465ms
- ✓ tests/acceptance/ef-execution-card-generator.test.ts (19 tests) 11772ms
+     ✓ 输出离线、合成、development_only 报告并保留正式阻塞 5856ms
+     ✓ 覆盖 F13-F24、契约审计、候选包边界和备份恢复回滚夹具 5478ms
+     ✓ 只读运行，不修改 D07、F13/F24 任务卡或既有 F 运行器 5597ms
+ ✓ tests/platform/android-standalone-runtime.test.ts (13 tests) 9121ms
+   ✓ Android 独立桌宠原生安全闭环 (13)
+     ✓ 实际执行 Kotlin 会话、门控、资源清理及管理停止隔离用例，不冒充设备测试 9114ms
+ ✓ tests/acceptance/ef-execution-card-generator.test.ts (19 tests) 7228ms
    ✓ E/F V1.2 双状态任务卡生成器 (19)
-     ✓ 从当前根计划生成 50 张卡和索引，引用既有开发证据但不改变正式状态 450ms
-     ✓ 默认拒绝覆盖，--check-only 和 --refresh --check-only 均不写入 1583ms
-     ✓ --refresh 重新读取计划并完整备份旧生成物，不覆盖追加执行记录 2585ms
-     ✓ 安全迁移仓库旧生成卡、预备检查和索引，保留历史原字节 369ms
-     ✓ 拒绝刷新被人工改动的 docs/execution/tasks/E01.md，预检失败无部分覆盖 1701ms
-     ✓ 拒绝刷新被人工改动的 docs/execution/checks/F24-prep.md，预检失败无部分覆盖 1646ms
-     ✓ 拒绝刷新被人工改动的 docs/execution/tasks/EF-index.md，预检失败无部分覆盖 1577ms
-     ✓ CLI --root 在临时目录运行，未知参数失败且不回退工作区 630ms
- ✓ tests/acceptance/f-development-runner.test.ts (2 tests) 7307ms
-   ✓ F 自动开发门禁本机运行器 (2)
-     ✓ 兼容旧 bypass 参数但仍需实际自动开发门禁通过 6460ms
-     ✓ V1.2 无需额外 bypass 即可执行本地开发检查 843ms
- ✓ tests/acceptance/d03-candidate.test.ts (4 tests) 4018ms
+     ✓ 默认拒绝覆盖，--check-only 和 --refresh --check-only 均不写入 1012ms
+     ✓ --refresh 重新读取计划并完整备份旧生成物，不覆盖追加执行记录 1279ms
+     ✓ 拒绝刷新被人工改动的 docs/execution/tasks/E01.md，预检失败无部分覆盖 882ms
+     ✓ 拒绝刷新被人工改动的 docs/execution/checks/F24-prep.md，预检失败无部分覆盖 965ms
+     ✓ 拒绝刷新被人工改动的 docs/execution/tasks/EF-index.md，预检失败无部分覆盖 1515ms
+     ✓ CLI --root 在临时目录运行，未知参数失败且不回退工作区 390ms
+ ✓ tests/platform/desktop-runtime-coordinator.test.ts (89 tests) 4524ms
+ ❯ tests/acceptance/release-readiness.test.ts (25 tests | 25 failed) 211ms
+   ❯ 一次性外部能力清单与发布就绪（全部变更仅在临时目录） (25)
+     × 缺设备/供应/同意仍可开发，但正式发布必须 EXTERNAL_PENDING 17ms
+     × 按正文识别任意文件名 V1.2 并记录实际来源路径与 hash 8ms
+     × 只在临时目录移除计划，缺计划应开发阻断而非伪通过 6ms
+     × root/docs 同版内容冲突不能静默选择一个计划 9ms
+     × 相同的 docs 副本可以发现，根目录无固定文件名也不阻断 9ms
+     × 误启 Windows 采集会让关闭检查失败，而非归到普通外部待项 7ms
+     × 实际隐私拒绝路径被移除时不能沿用旧 ready 标志 6ms
+     × network 适配器拒绝失效会失败，测试替身从不调用网络 6ms
+     × D07 当前本地失败不能冒充外部资源缺失 6ms
+     × 独立桌宠端口必须真实默认拒绝，不能用直接放行替代配置检查 8ms
+     × 允许已审计的独立视觉工厂不等于允许默认装配远端媒体模块 10ms
+     × 损坏/缺失证据不能通过：{ broken 6ms
+     × 损坏/缺失证据不能通过：null 7ms
+     × 生产配置和开发 go 不能把 Mock 供应证明升级为正式验收 7ms
+     × 不读取 secret 环境键、不输出端点/凭据/未知模式原值 9ms
+     × 公开配置按实际优先级计算而不是读取 .env.example 当正式配置 9ms
+     × 未知/危险配置按本地代码失败处理：{"VITE_API_MODE":"real","VITE_API_BASE_URL":"https://unverified.invalid"} 13ms
+     × 未知/危险配置按本地代码失败处理：{"VITE_API_MODE":"mock","VITE_DEPLOYMENT":"production"} 11ms
+     × 未知/危险配置按本地代码失败处理：{"VITE_PLATFORM_MODE":"unknown"} 10ms
+     × 同样输入有相同指纹，真实本地源变更必须改变指纹 8ms
+     × CLI 默认仅写清单/报告，release --no-write 退出 1 且不修改任何输入 9ms
+     × CLI 拒绝未知/缺参数 "--mode" 而不写证据 7ms
+     × CLI 拒绝未知/缺参数 "--mode" 而不写证据 9ms
+     × CLI 拒绝未知/缺参数 "--evidence" 而不写证据 7ms
+     × CLI 拒绝未知/缺参数 "--unknown" 而不写证据 8ms
+ ✓ tests/acceptance/d03-candidate.test.ts (4 tests) 2797ms
    ✓ D03 候选包一致性 (4)
-     ✓ 同一套 UI 字节通过检查，并保存可复核结果但不代表验收 1287ms
-     ✓ 包中缺少当前 UI 文件时拒绝通过 909ms
-     ✓ 当前文件内容不同时拒绝通过 932ms
-     ✓ 包中残留额外旧 UI 文件时拒绝通过 885ms
- ✓ tests/acceptance/release-readiness.test.ts (23 tests) 5062ms
-   ✓ 一次性外部能力清单与发布就绪（全部变更仅在临时目录） (23)
-     ✓ 缺设备/供应/同意仍可开发，但正式发布必须 EXTERNAL_PENDING 520ms
-     ✓ 按正文识别任意文件名 V1.2 并记录实际来源路径与 hash 315ms
-     ✓ 同样输入有相同指纹，真实本地源变更必须改变指纹 612ms
-     ✓ CLI 默认仅写清单/报告，release --no-write 退出 1 且不修改任何输入 442ms
- ✓ tests/acceptance/c14-handoff.test.ts (1 test) 3105ms
-   ✓ C14 契约交接证据审计 (1)
-     ✓ 自动技术冻结允许本地开发，独立评审和真实供应另记发布待项 3102ms
- ✓ tests/acceptance/c16-decision-readiness.test.ts (32 tests) 2280ms
-   ✓ C16 V1.2 自动开发与正式决策分离 (32)
-     ✓ 自动覆盖五个 Q 项但不代替正式确认 307ms
-     ✓ 开发专用命令只写入两个候选产物，不刷新正式结果文件 305ms
-     ✓ --no-write 对已有证据和候选文件均无写入，即使同时传入写入参数 562ms
- ✓ tests/contract/kotlin-generation.test.ts (9 tests) 1986ms
- ✓ tests/acceptance/f-development-recovery.test.ts (8 tests) 2002ms
+     ✓ 同一套 UI 字节通过检查，并保存可复核结果但不代表验收 875ms
+     ✓ 包中缺少当前 UI 文件时拒绝通过 669ms
+     ✓ 当前文件内容不同时拒绝通过 571ms
+     ✓ 包中残留额外旧 UI 文件时拒绝通过 679ms
+ ✓ tests/platform/desktop-runtime-learning-store.test.ts (43 tests) 1989ms
+ ✓ tests/acceptance/f-development-recovery.test.ts (8 tests) 2093ms
    ✓ F19 真实模块 SQLite 恢复边界，严格 offline/synthetic/development_only (8)
-     ✓ 最新关闭快照可按实际字节恢复，并在 NoteService/AuthService 中保留 tombstone 和撤权 319ms
-     ✓ 使用保留安全检查点合并旧备份，保留删除/撤权并停止待执行副作用 303ms
-     ✓ 拒绝坏 schema、跨环境和活动文件路径，保持目标库未变 307ms
- ✓ tests/acceptance/acceptance-bundle.test.ts (3 tests) 1109ms
-   ✓ FE-13 前端验收交接包预检 (3)
-     ✓ release 和未知模式不能静默返回开发通过 571ms
- ✓ tests/acceptance/d-gate-readiness.test.ts (4 tests) 1131ms
-   ✓ D 关口预备审计 (4)
-     ✓ 覆盖 D01-D08 并保持未准入状态 304ms
- ✓ tests/acceptance/c15-nv-readiness.test.ts (4 tests) 1140ms
-   ✓ C15 NV 证据准入审计 (4)
-     ✓ 覆盖 NV-01 到 NV-12，并将当前真实准入保持为阻塞 302ms
- ✓ tests/contract/services.test.ts (186 tests) 950ms
-   ✓ 全量服务契约与可重放合成夹具 (186)
-     ✓ 操作 ID 与路由无重复，生成物没有漂移 377ms
- ✓ tests/acceptance/f-development-dependencies.test.ts (2 tests) 1025ms
-   ✓ F01-F24 自动开发依赖矩阵 (2)
-     ✓ 按自动开发决定保留 24 项依赖与 D07 正式阻断 506ms
-     ✓ 每项仍有可追踪 blocker，并关闭真实能力 516ms
- ✓ tests/platform/desktop-reminder-store.test.ts (10 tests) 684ms
- ✓ tests/acceptance/f-development-early.test.ts (2 tests) 561ms
- ✓ tests/platform/desktop-reminder-bridge.test.ts (5 tests) 444ms
- ✓ tests/acceptance/d07-decision.test.ts (9 tests) 335ms
- ✓ tests/server/f17-client-contract.test.ts (6 tests) 300ms
- ✓ tests/acceptance/f-development-delivery.test.ts (1 test) 266ms
- ✓ tests/server/http.test.ts (6 tests) 165ms
- ✓ tests/contract/remote-api-client.test.ts (7 tests) 147ms
- ✓ tests/contract/remote-adapters.test.ts (2 tests) 125ms
- ✓ tests/sync/sqlite-store.test.ts (3 tests) 141ms
- ✓ tests/server/sqlite.test.ts (2 tests) 167ms
- ✓ tests/contract/mappers.test.ts (11 tests) 149ms
- ✓ tests/integration/scenarios.test.ts (16 tests) 69ms
- ✓ tests/integration/c07-c08-reminder-store.test.ts (4 tests) 68ms
- ✓ tests/acceptance/implementation-plan.test.ts (4 tests) 49ms
- ✓ tests/domain/reminder-engine.test.ts (8 tests) 42ms
- ✓ tests/sync/sync-engine.test.ts (12 tests) 41ms
- ✓ tests/integration/conflicts.test.ts (7 tests) 50ms
- ✓ tests/domain/pet-job.test.ts (8 tests) 41ms
- ✓ tests/provider/e08-e12.test.ts (10 tests) 50ms
- ✓ tests/domain/reminder-dispatch.test.ts (6 tests) 72ms
- ✓ tests/integration/pet-appearance.test.ts (4 tests) 40ms
- ✓ tests/platform/android-message-host.test.ts (21 tests) 56ms
- ✓ tests/assets/asset-service.test.ts (6 tests) 30ms
- ✓ tests/integration/local-data.test.ts (14 tests) 23ms
- ✓ tests/platform/reminder-runtime.test.ts (4 tests) 18ms
- ✓ tests/native/desktop-lab.test.ts (74 tests) 17ms
- ✓ tests/domain/guidance.test.ts (19 tests) 33ms
- ✓ tests/acceptance/project-gate.test.ts (8 tests) 15ms
- ✓ tests/media-session/f18-lifecycle.test.ts (5 tests) 14ms
- ✓ tests/platform/native-host.test.ts (6 tests) 12ms
- ✓ tests/media-session/media-session.test.ts (5 tests) 18ms
- ✓ tests/platform/lifecycle-engine.test.ts (15 tests) 15ms
- ✓ tests/privacy/c04-media-relay.test.ts (15 tests) 15ms
- ✓ tests/domain/three-d-asset-preflight.test.ts (10 tests) 12ms
- ✓ tests/server/auth.test.ts (5 tests) 9ms
- ✓ tests/domain/account-demo.test.ts (9 tests) 12ms
- ✓ tests/security/provider/provider-safety.test.ts (6 tests) 10ms
- ✓ tests/domain/conversation.test.ts (14 tests) 13ms
- ✓ tests/contract/conversation.test.ts (33 tests) 8ms
- ✓ tests/server/family.test.ts (6 tests) 10ms
- ✓ tests/platform/desktop-lifecycle.test.ts (4 tests) 6ms
- ✓ tests/platform/desktop-notification-adapter.test.ts (5 tests) 8ms
- ✓ tests/flows/e24-e26.test.ts (3 tests) 10ms
- ✓ tests/privacy/c03-gate.test.ts (52 tests) 11ms
- ✓ tests/domain/pet-asset-quality.test.ts (6 tests) 8ms
+     ✓ 旧快照负向探针暴露删除与撤权复活，不将文件拷贝冒充安全恢复通过 484ms
+ ✓ tests/acceptance/c14-handoff.test.ts (1 test) 1539ms
+   ✓ C14 契约交接证据审计 (1)
+     ✓ 自动技术冻结允许本地开发，独立评审和真实供应另记发布待项 1538ms
+ ✓ tests/acceptance/c16-decision-readiness.test.ts (32 tests) 1124ms
+ ✓ tests/contract/kotlin-generation.test.ts (9 tests) 1079ms
+ ✓ tests/platform/desktop-observation-source.test.ts (100 tests) 699ms
+   ✓ 隔离媒体 worker 的单屏权限与生命周期 (26)
+     ✓ 初始化失败也清理窗口与上下文，必须显式列举才能重新启动 509ms
+ ❯ tests/acceptance/acceptance-bundle.test.ts (3 tests | 3 failed) 525ms
+   ❯ FE-13 前端验收交接包预检 (3)
+     × 检查文档、自动验证、预备证据和桌面包内容 196ms
+     × 保留真实设备与独立复核限制，不把交接包升级为 D 验收 157ms
+     × release 和未知模式不能静默返回开发通过 172ms
+ ✓ tests/acceptance/c15-nv-readiness.test.ts (4 tests) 702ms
+ ❯ tests/acceptance/d-gate-readiness.test.ts (4 tests | 4 failed) 665ms
+   ❯ D 关口预备审计 (4)
+     × 覆盖 D01-D08 并保持未准入状态 149ms
+     × 保留 C15/C16 和人工签收前置条件 141ms
+     × 不把未接真实后端误列为 D02 冻结前置 206ms
+     × 不把缺字段的人工签收或独立评审文件当作有效证据 167ms
+ ✓ tests/platform/desktop-reminder-store.test.ts (10 tests) 524ms
+ ✓ tests/contract/services.test.ts (196 tests) 670ms
+ ✓ tests/platform/desktop-standalone-host.test.ts (26 tests) 473ms
+ ✓ tests/platform/desktop-pet-ui.test.ts (81 tests) 480ms
+ ✓ tests/platform/desktop-reminder-bridge.test.ts (5 tests) 364ms
+ ✓ tests/contract/standalone-guidance.test.ts (68 tests) 325ms
+ ✓ tests/platform/desktop-image-question.test.ts (21 tests) 311ms
+ ✓ tests/acceptance/f-development-early.test.ts (2 tests) 251ms
+ ✓ tests/platform/desktop-local-artwork.test.ts (14 tests) 205ms
+ ✓ tests/server/standalone-guidance.test.ts (178 tests) 225ms
+ ✓ tests/contract/lazy-validation.test.ts (1 test) 231ms
+ ✓ tests/platform/desktop-local-model.test.ts (18 tests) 203ms
+ ✓ tests/platform/desktop-anysearch.test.ts (47 tests) 170ms
+ ✓ tests/server/f17-client-contract.test.ts (6 tests) 182ms
+ ✓ tests/platform/desktop-observation-policy.test.ts (16 tests) 140ms
+ ✓ tests/sync/sqlite-store.test.ts (3 tests) 120ms
+ ✓ tests/contract/remote-api-client.test.ts (7 tests) 143ms
+ ✓ tests/platform/desktop-analysis-client.test.ts (6 tests) 145ms
+ ✓ tests/contract/remote-adapters.test.ts (2 tests) 141ms
+ ✓ tests/server/standalone-guidance-http.test.ts (9 tests) 140ms
+ ✓ tests/acceptance/f-development-delivery.test.ts (1 test) 144ms
+ ✓ tests/server/http.test.ts (6 tests) 114ms
+ ✓ tests/platform/desktop-provider-analysis.test.ts (7 tests) 97ms
+ ✓ tests/server/sqlite.test.ts (2 tests) 118ms
+ ✓ tests/platform/desktop-external-script.test.ts (2 tests) 108ms
+ ✓ tests/contract/mappers.test.ts (11 tests) 99ms
+ ✓ tests/domain/image-question.test.ts (10 tests) 72ms
+ ✓ tests/platform/desktop-realtime-voice-session.test.ts (12 tests) 72ms
+ ✓ tests/domain/text-question.test.ts (11 tests) 77ms
+ ✓ tests/server/desktop-voice.test.ts (16 tests) 76ms
+ ✓ tests/provider/desktop-ai-provider.test.ts (18 tests) 82ms
+ ✓ tests/platform/desktop-local-wake.test.ts (93 tests) 62ms
+ ✓ tests/platform/desktop-anysearch-settings.test.ts (11 tests) 36ms
+ ✓ tests/integration/scenarios.test.ts (16 tests) 32ms
+ ✓ tests/acceptance/implementation-plan.test.ts (4 tests) 27ms
+ ✓ tests/provider/e08-e12.test.ts (10 tests) 60ms
+ ✓ tests/domain/reminder-engine.test.ts (8 tests) 28ms
+ ✓ tests/integration/conflicts.test.ts (7 tests) 28ms
+ ✓ tests/domain/reminder-dispatch.test.ts (6 tests) 26ms
+ ✓ tests/platform/android-message-host.test.ts (21 tests) 22ms
+ ✓ tests/privacy/c04-media-relay.test.ts (15 tests) 10ms
+ ✓ tests/integration/c07-c08-reminder-store.test.ts (4 tests) 42ms
+ ✓ tests/sync/sync-engine.test.ts (12 tests) 30ms
+ ✓ tests/platform/desktop-realtime-voice-client.test.ts (10 tests) 40ms
+ ✓ tests/integration/pet-appearance.test.ts (4 tests) 24ms
+ ✓ tests/domain/pet-job.test.ts (8 tests) 28ms
+ ✓ tests/media-session/f18-lifecycle.test.ts (5 tests) 19ms
+ ✓ tests/domain/guidance.test.ts (19 tests) 17ms
+ ✓ tests/assets/asset-service.test.ts (6 tests) 22ms
+ ✓ tests/platform/desktop-management-voice.test.ts (17 tests) 15ms
+ ✓ tests/integration/local-data.test.ts (14 tests) 27ms
+ ✓ tests/native/desktop-lab.test.ts (74 tests) 21ms
+ ✓ tests/platform/desktop-realtime-voice-host.test.ts (10 tests) 20ms
+ ✓ tests/platform/reminder-runtime.test.ts (4 tests) 13ms
+ ✓ tests/platform/management-observation-bridge.test.ts (12 tests) 12ms
+ ✓ tests/platform/desktop-model-validator.test.ts (4 tests) 14ms
+ ✓ tests/platform/desktop-text-question.test.ts (10 tests) 8ms
+ ❯ tests/acceptance/project-gate.test.ts (8 tests | 1 failed) 14ms
+   ❯ 共享开发/发布判定反例 (8)
+     ✓ 外部待项不阻断已通过的本机开发检查，也不会放行发布 2ms
+     ✓ 未验证能力误启用属于真实代码阻断，不能归为普通 external_pending 0ms
+     ✓ 缺报告或空检查集不能被当作自动工程证据 2ms
+     ✓ c14 的真实失败优先于过期的 ready 标记 2ms
+     ✓ c17 的真实失败优先于过期的 ready 标记 2ms
+     ✓ C16 默认方案审计或候选损坏不能被旧 auditPassed 覆盖 1ms
+     ✓ 开发决定 go 不冒充正式 Go，F 交付缺开发证据时失败关闭 0ms
+     × 开发执行需要完整自动决定，不能只凭 go 或手动 override 4ms
+ ✓ tests/platform/desktop-dictation-bridge.test.ts (19 tests) 11ms
+ ✓ tests/platform/lifecycle-engine.test.ts (15 tests) 10ms
+ ✓ tests/domain/guidance-platform.test.ts (9 tests) 7ms
+ ✓ tests/platform/native-host.test.ts (6 tests) 9ms
  ✓ tests/contract/active-bridge.test.ts (20 tests) 13ms
- ✓ tests/contract/schema.test.ts (5 tests) 7ms
- ✓ tests/native/android-lab.test.ts (5 tests) 9ms
- ✓ tests/accessibility/e21.test.ts (3 tests) 10ms
- ✓ tests/domain/guidance-platform.test.ts (9 tests) 15ms
- ✓ tests/privacy/gates.test.ts (19 tests) 7ms
- ✓ tests/provider/provider-sandbox.test.ts (14 tests) 11ms
- ✓ tests/platform/desktop-native-runtime.test.ts (4 tests) 6ms
- ✓ tests/native/android-reminder-receiver.test.ts (3 tests) 8ms
+ ✓ tests/media-session/media-session.test.ts (5 tests) 15ms
+ ✓ tests/privacy/c03-gate.test.ts (52 tests) 12ms
+ ✓ tests/domain/conversation.test.ts (14 tests) 9ms
+ ✓ tests/privacy/gates.test.ts (19 tests) 5ms
+ ✓ tests/provider/provider-sandbox.test.ts (14 tests) 7ms
+ ✓ tests/platform/desktop-notification-adapter.test.ts (5 tests) 7ms
+ ✓ tests/domain/three-d-asset-preflight.test.ts (10 tests) 7ms
+ ✓ tests/server/auth.test.ts (5 tests) 8ms
+ ✓ tests/contract/conversation.test.ts (42 tests) 7ms
+ ✓ tests/domain/account-demo.test.ts (9 tests) 7ms
+ ✓ tests/platform/desktop-lifecycle.test.ts (4 tests) 6ms
+ ✓ tests/security/provider/provider-safety.test.ts (6 tests) 6ms
+ ✓ tests/server/family.test.ts (6 tests) 6ms
+ ✓ tests/domain/pet-asset-quality.test.ts (6 tests) 9ms
+ ✓ tests/native/android-lab.test.ts (5 tests) 12ms
+ ✓ tests/platform/desktop-native-runtime.test.ts (4 tests) 4ms
  ✓ tests/quality/e22-e23.test.ts (3 tests) 6ms
+ ✓ tests/native/android-reminder-receiver.test.ts (3 tests) 6ms
+ ✓ tests/integration/no-runtime-mocks.test.ts (2 tests) 23ms
+ ✓ tests/contract/schema.test.ts (5 tests) 8ms
+ ✓ tests/flows/e24-e26.test.ts (3 tests) 7ms
+ ✓ tests/accessibility/e21.test.ts (3 tests) 5ms
+ ✓ tests/integration/assist-fixture.test.ts (3 tests) 2ms
  ✓ tests/domain/speech.test.ts (1 test) 3ms
- ✓ tests/integration/assist-fixture.test.ts (3 tests) 5ms
 
- Test Files  73 passed (73)
-      Tests  880 passed (880)
-   Start at  23:53:19
-   Duration  137.79s (tests 89%, import 6%, setup 3%, transform 2%)
+⎯⎯⎯⎯⎯⎯ Failed Tests 43 ⎯⎯⎯⎯⎯⎯⎯
 
-    Isolate  73 workers spawned · ~311ms startup each (spawn + environment, per file)
-             at least ~22.41s faster with isolate: false — reuses workers across files instead of one per file
+ FAIL  tests/acceptance/acceptance-bundle.test.ts > FE-13 前端验收交接包预检 > 检查文档、自动验证、预备证据和桌面包内容
+Error: Command failed: E:\7\新建文件夹\node.exe scripts/check-acceptance-bundle.mjs --no-write
+ ❯ runAcceptanceBundle tests/acceptance/acceptance-bundle.test.ts:14:18
+     12|
+     13| function runAcceptanceBundle(): AcceptanceBundleReport {
+     14|   const output = execFileSync(process.execPath, ['scripts/check-accept…
+       |                  ^
+     15|     cwd: process.cwd(),
+     16|     encoding: 'utf8',
+ ❯ tests/acceptance/acceptance-bundle.test.ts:23:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/43]⎯
+
+ FAIL  tests/acceptance/acceptance-bundle.test.ts > FE-13 前端验收交接包预检 > 保留真实设备与独立复核限制，不把交接包升级为 D 验收
+Error: Command failed: E:\7\新建文件夹\node.exe scripts/check-acceptance-bundle.mjs --no-write
+ ❯ runAcceptanceBundle tests/acceptance/acceptance-bundle.test.ts:14:18
+     12|
+     13| function runAcceptanceBundle(): AcceptanceBundleReport {
+     14|   const output = execFileSync(process.execPath, ['scripts/check-accept…
+       |                  ^
+     15|     cwd: process.cwd(),
+     16|     encoding: 'utf8',
+ ❯ tests/acceptance/acceptance-bundle.test.ts:60:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/43]⎯
+
+ FAIL  tests/acceptance/acceptance-bundle.test.ts > FE-13 前端验收交接包预检 > release 和未知模式不能静默返回开发通过
+AssertionError: expected { verdict: 'BLOCKED', …(4) } to match object { ready: false, …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ready": false,
+-   "verdict": "EXTERNAL_PENDING",
++   "verdict": "BLOCKED",
+  }
+
+ ❯ tests/acceptance/acceptance-bundle.test.ts:73:48
+     71|     const release = spawnSync(process.execPath, ['scripts/check-accept…
+     72|     expect(release.status).toBe(1);
+     73|     expect(JSON.parse(release.stdout).release).toMatchObject({ ready: …
+       |                                                ^
+     74|     const invalid = spawnSync(process.execPath, ['scripts/check-accept…
+     75|     expect(invalid.status).not.toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/43]⎯
+
+ FAIL  tests/acceptance/c17-assembly.test.ts > C17 共享仓储与桥接装配预备审计 > 静态组合根、仓储隔离和桥接安全边界全部可追踪
+Error: Command failed: E:\7\新建文件夹\node.exe C:\Users\33864\Desktop\nuanban\scripts\check-c17-assembly.mjs --evidence C:\Users\33864\AppData\Local\Temp\nuanban-c17-iwfyT6\c17.json
+ ❯ runAudit tests/acceptance/c17-assembly.test.ts:14:5
+     12|   const evidence = join(directory, 'c17.json');
+     13|   try {
+     14|     execFileSync(process.execPath, [script, '--evidence', evidence], {…
+       |     ^
+     15|     return JSON.parse(readFileSync(evidence, 'utf8')) as {
+     16|       auditPassed: boolean;
+ ❯ tests/acceptance/c17-assembly.test.ts:39:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/43]⎯
+
+ FAIL  tests/acceptance/c17-assembly.test.ts > C17 共享仓储与桥接装配预备审计 > 只报告合成预备层，不把 IndexedDB 或消息模拟当作真实平台验收
+Error: Command failed: E:\7\新建文件夹\node.exe C:\Users\33864\Desktop\nuanban\scripts\check-c17-assembly.mjs --evidence C:\Users\33864\AppData\Local\Temp\nuanban-c17-qHkqAw\c17.json
+ ❯ runAudit tests/acceptance/c17-assembly.test.ts:14:5
+     12|   const evidence = join(directory, 'c17.json');
+     13|   try {
+     14|     execFileSync(process.execPath, [script, '--evidence', evidence], {…
+       |     ^
+     15|     return JSON.parse(readFileSync(evidence, 'utf8')) as {
+     16|       auditPassed: boolean;
+ ❯ tests/acceptance/c17-assembly.test.ts:58:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/43]⎯
+
+ FAIL  tests/acceptance/c17-assembly.test.ts > C17 共享仓储与桥接装配预备审计 > 明确不能正式发布并保留设备外部待项，不能全局阻断开发
+Error: Command failed: E:\7\新建文件夹\node.exe C:\Users\33864\Desktop\nuanban\scripts\check-c17-assembly.mjs --evidence C:\Users\33864\AppData\Local\Temp\nuanban-c17-rbnZxr\c17.json
+ ❯ runAudit tests/acceptance/c17-assembly.test.ts:14:5
+     12|   const evidence = join(directory, 'c17.json');
+     13|   try {
+     14|     execFileSync(process.execPath, [script, '--evidence', evidence], {…
+       |     ^
+     15|     return JSON.parse(readFileSync(evidence, 'utf8')) as {
+     16|       auditPassed: boolean;
+ ❯ tests/acceptance/c17-assembly.test.ts:70:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/43]⎯
+
+ FAIL  tests/acceptance/d-gate-readiness.test.ts > D 关口预备审计 > 覆盖 D01-D08 并保持未准入状态
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ runDGateCheck tests/acceptance/d-gate-readiness.test.ts:6:40
+      4| function runDGateCheck() {
+      5|   const result = spawnSync(process.execPath, ['scripts/check-d-gate-re…
+      6|   expect(result.status, result.stderr).toBe(0);
+       |                                        ^
+      7|   return JSON.parse(result.stdout);
+      8| }
+ ❯ tests/acceptance/d-gate-readiness.test.ts:12:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/43]⎯
+
+ FAIL  tests/acceptance/d-gate-readiness.test.ts > D 关口预备审计 > 保留 C15/C16 和人工签收前置条件
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ runDGateCheck tests/acceptance/d-gate-readiness.test.ts:6:40
+      4| function runDGateCheck() {
+      5|   const result = spawnSync(process.execPath, ['scripts/check-d-gate-re…
+      6|   expect(result.status, result.stderr).toBe(0);
+       |                                        ^
+      7|   return JSON.parse(result.stdout);
+      8| }
+ ❯ tests/acceptance/d-gate-readiness.test.ts:27:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/43]⎯
+
+ FAIL  tests/acceptance/d-gate-readiness.test.ts > D 关口预备审计 > 不把未接真实后端误列为 D02 冻结前置
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ runDGateCheck tests/acceptance/d-gate-readiness.test.ts:6:40
+      4| function runDGateCheck() {
+      5|   const result = spawnSync(process.execPath, ['scripts/check-d-gate-re…
+      6|   expect(result.status, result.stderr).toBe(0);
+       |                                        ^
+      7|   return JSON.parse(result.stdout);
+      8| }
+ ❯ tests/acceptance/d-gate-readiness.test.ts:37:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/43]⎯
+
+ FAIL  tests/acceptance/d-gate-readiness.test.ts > D 关口预备审计 > 不把缺字段的人工签收或独立评审文件当作有效证据
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ runDGateCheck tests/acceptance/d-gate-readiness.test.ts:6:40
+      4| function runDGateCheck() {
+      5|   const result = spawnSync(process.execPath, ['scripts/check-d-gate-re…
+      6|   expect(result.status, result.stderr).toBe(0);
+       |                                        ^
+      7|   return JSON.parse(result.stdout);
+      8| }
+ ❯ tests/acceptance/d-gate-readiness.test.ts:50:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/43]⎯
+
+ FAIL  tests/acceptance/d07-decision.test.ts > D07 开发与正式发布双门禁 > 没有人工决策也能依据自动证据继续开发，但不得正式发布
+AssertionError: expected 'development_blocked' to be 'development_ready' // Object.is equality
+
+Expected: "development_ready"
+Received: "development_blocked"
+
+ ❯ tests/acceptance/d07-decision.test.ts:47:27
+     45|     const report = runD07DecisionCheck({ decisionPath });
+     46|
+     47|     expect(report.status).toBe('development_ready');
+       |                           ^
+     48|     expect(report.eligible).toBe(true);
+     49|     expect(report.development.verdict).toBe('DEV_READY_WITH_EXTERNAL_P…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/43]⎯
+
+ FAIL  tests/acceptance/d07-decision.test.ts > D07 开发与正式发布双门禁 > 不覆盖人工或用户自有证据，损坏人工字段不造成异常放行
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/acceptance/d07-decision.test.ts:85:41
+     83|     writeFileSync(decisionPath, formal);
+     84|     const report = runD07DecisionCheck({ decisionPath, write: true });
+     85|     expect(report.development.eligible).toBe(true);
+       |                                         ^
+     86|     expect(report.release.ready).toBe(false);
+     87|     expect(readFileSync(decisionPath, 'utf8')).toBe(formal);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/43]⎯
+
+ FAIL  tests/acceptance/d07-decision.test.ts > D07 开发与正式发布双门禁 > 校验自动决定 Schema，不让损坏状态或伪造生产就绪通过
+AssertionError: expected [] to not deeply equal []
+
+Compared values have no visual difference.
+
+ ❯ tests/acceptance/d07-decision.test.ts:101:97
+     99|     expect(validateDevelopmentDecision(report.generatedDecision)).toEq…
+    100|     expect(validateDevelopmentDecision({ ...report.generatedDecision, …
+    101|     expect(validateDevelopmentDecision({ ...report.generatedDecision, …
+       |                                                                                                 ^
+    102|     expect(validateDevelopmentDecision({ ...report.generatedDecision, …
+    103|     const invalidPath = join(directory, 'broken.json');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/43]⎯
+
+ FAIL  tests/acceptance/f-development-dependencies.test.ts > F01-F24 自动开发依赖矩阵 > 按自动开发决定保留 24 项依赖与 D07 正式阻断
+Error: Command failed: E:\7\新建文件夹\node.exe scripts/f-development/dependency-matrix.mjs --no-write
+ ❯ runMatrix tests/acceptance/f-development-dependencies.test.ts:29:18
+     27|
+     28| function runMatrix() {
+     29|   const output = execFileSync(process.execPath, ['scripts/f-developmen…
+       |                  ^
+     30|     cwd: process.cwd(),
+     31|     encoding: 'utf8',
+ ❯ tests/acceptance/f-development-dependencies.test.ts:38:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/43]⎯
+
+ FAIL  tests/acceptance/f-development-dependencies.test.ts > F01-F24 自动开发依赖矩阵 > 每项仍有可追踪 blocker，并关闭真实能力
+Error: Command failed: E:\7\新建文件夹\node.exe scripts/f-development/dependency-matrix.mjs --no-write
+ ❯ runMatrix tests/acceptance/f-development-dependencies.test.ts:29:18
+     27|
+     28| function runMatrix() {
+     29|   const output = execFileSync(process.execPath, ['scripts/f-developmen…
+       |                  ^
+     30|     cwd: process.cwd(),
+     31|     encoding: 'utf8',
+ ❯ tests/acceptance/f-development-dependencies.test.ts:53:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/43]⎯
+
+ FAIL  tests/acceptance/f-development-runner.test.ts > F 自动开发门禁本机运行器 > 兼容旧 bypass 参数但仍需实际自动开发门禁通过
+Error: Command failed: E:\7\新建文件夹\node.exe scripts/run-f-development.mjs --bypass-d07 --no-write --only f-matrix,f-dependencies,gate-protection
+ ❯ runRunner tests/acceptance/f-development-runner.test.ts:21:18
+     19|
+     20| function runRunner() {
+     21|   const output = execFileSync(process.execPath, [
+       |                  ^
+     22|     'scripts/run-f-development.mjs',
+     23|     '--bypass-d07',
+ ❯ tests/acceptance/f-development-runner.test.ts:42:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/43]⎯
+
+ FAIL  tests/acceptance/f-development-runner.test.ts > F 自动开发门禁本机运行器 > V1.2 无需额外 bypass 即可执行本地开发检查
+Error: Command failed: E:\7\新建文件夹\node.exe scripts/run-f-development.mjs --no-write --only f-matrix
+ ❯ runWithoutBypass tests/acceptance/f-development-runner.test.ts:32:21
+     30|
+     31| function runWithoutBypass() {
+     32|   return JSON.parse(execFileSync(process.execPath, ['scripts/run-f-dev…
+       |                     ^
+     33|     cwd: process.cwd(),
+     34|     encoding: 'utf8',
+ ❯ tests/acceptance/f-development-runner.test.ts:59:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/43]⎯
+
+ FAIL  tests/acceptance/project-gate.test.ts > 共享开发/发布判定反例 > 开发执行需要完整自动决定，不能只凭 go 或手动 override
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/acceptance/project-gate.test.ts:63:52
+     61|   it('开发执行需要完整自动决定，不能只凭 go 或手动 override', () => {
+     62|     const record = JSON.parse(readFileSync('docs/implementation/eviden…
+     63|     expect(isAutomatedDevelopmentDecision(record)).toBe(true);
+       |                                                    ^
+     64|     expect(isAutomatedDevelopmentDecision({ decision: 'go' })).toBe(fa…
+     65|     expect(isAutomatedDevelopmentDecision({ ...record, reviewType: 'hu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/43]⎯
+
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 缺设备/供应/同意仍可开发，但正式发布必须 EXTERNAL_PENDING
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 按正文识别任意文件名 V1.2 并记录实际来源路径与 hash
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 只在临时目录移除计划，缺计划应开发阻断而非伪通过
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > root/docs 同版内容冲突不能静默选择一个计划
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 相同的 docs 副本可以发现，根目录无固定文件名也不阻断
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 误启 Windows 采集会让关闭检查失败，而非归到普通外部待项
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 实际隐私拒绝路径被移除时不能沿用旧 ready 标志
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > network 适配器拒绝失效会失败，测试替身从不调用网络
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > D07 当前本地失败不能冒充外部资源缺失
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 独立桌宠端口必须真实默认拒绝，不能用直接放行替代配置检查
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 允许已审计的独立视觉工厂不等于允许默认装配远端媒体模块
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 损坏/缺失证据不能通过：{ broken
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 损坏/缺失证据不能通过：null
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 生产配置和开发 go 不能把 Mock 供应证明升级为正式验收
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 不读取 secret 环境键、不输出端点/凭据/未知模式原值
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 公开配置按实际优先级计算而不是读取 .env.example 当正式配置
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 未知/危险配置按本地代码失败处理：{"VITE_API_MODE":"real","VITE_API_BASE_URL":"https://unverified.invalid"}
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 未知/危险配置按本地代码失败处理：{"VITE_API_MODE":"mock","VITE_DEPLOYMENT":"production"}
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 未知/危险配置按本地代码失败处理：{"VITE_PLATFORM_MODE":"unknown"}
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > 同样输入有相同指纹，真实本地源变更必须改变指纹
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > CLI 默认仅写清单/报告，release --no-write 退出 1 且不修改任何输入
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > CLI 拒绝未知/缺参数 "--mode" 而不写证据
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > CLI 拒绝未知/缺参数 "--mode" 而不写证据
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > CLI 拒绝未知/缺参数 "--evidence" 而不写证据
+ FAIL  tests/acceptance/release-readiness.test.ts > 一次性外部能力清单与发布就绪（全部变更仅在临时目录） > CLI 拒绝未知/缺参数 "--unknown" 而不写证据
+Error: ENOENT: no such file or directory, open 'C:\Users\33864\Desktop\nuanban\packages\config\src\scenarios.ts'
+ ❯ tests/acceptance/release-readiness.test.ts:54:46
+     52|   beforeEach(() => {
+     53|     directory = mkdtempSync(temporaryPrefix);
+     54|     for (const file of inputFiles) put(file, readFileSync(join(root, f…
+       |                                              ^
+     55|     put(planName, readImplementationPlan(root).text);
+     56|     json('docs/implementation/evidence/c15-nv-readiness-results.json',…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/43]⎯
+
+
+ Test Files  8 failed | 98 passed (106)
+      Tests  43 failed | 1852 passed (1895)
+   Start at  17:19:45
+   Duration  160.15s (tests 94%, import 3%, setup 2%, transform 1%)
+
+    Isolate  106 workers spawned · ~185ms startup each (spawn + environment, per file)
+             at least ~19.40s faster with isolate: false — reuses workers across files instead of one per file
 
 JSON report written to C:/Users/33864/Desktop/nuanban/docs/implementation/evidence/unit-results.json

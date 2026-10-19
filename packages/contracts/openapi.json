@@ -4902,6 +4902,157 @@
         }
       }
     },
+    "/v1/standalone/guidance/analyze": {
+      "post": {
+        "operationId": "standaloneGuidanceAnalyze",
+        "summary": "分析客户端声明已本地检测并脱敏的独立桌宠教学帧，不代替本人操作",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "example": "standalone-1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "操作成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/StandaloneGuidanceResult"
+                    },
+                    "request_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128,
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                      "example": "standalone-1"
+                    },
+                    "schema_version": {
+                      "const": "0.2.0"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "request_id",
+                    "schema_version"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "安全错误包络；不返回原始媒体、凭证或堆栈",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandaloneGuidanceErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "安全错误包络；不返回原始媒体、凭证或堆栈",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandaloneGuidanceErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "安全错误包络；不返回原始媒体、凭证或堆栈",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandaloneGuidanceErrorEnvelope"
+                }
+              }
+            }
+          },
+          "499": {
+            "description": "安全错误包络；不返回原始媒体、凭证或堆栈",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandaloneGuidanceErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "安全错误包络；不返回原始媒体、凭证或堆栈",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandaloneGuidanceErrorEnvelope"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "安全错误包络；不返回原始媒体、凭证或堆栈",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandaloneGuidanceErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "安全错误包络；不返回原始媒体、凭证或堆栈",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandaloneGuidanceErrorEnvelope"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "安全错误包络；不返回原始媒体、凭证或堆栈",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandaloneGuidanceErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "x-object-authorization": "self",
+        "x-implementation-stage": "E-after-D-approval",
+        "description": "Bearer 鉴权只认证当前账号；本地观察同意、安全检测和脱敏由客户端执行。local_safety=safe 与 redaction_profile 只是请求声明，JSON Schema 和服务端都不能证明本地检测可信，不可据此绕过 unknown 或风险停采集。\n\nX-Request-ID 可选，省略或无效时服务端生成 UUID；有效值沿用请求标识返回。此接口不要求 Idempotency-Key。请求体最多 3 MiB。\n\nbase64 最多 2700000 字符，解码后 PNG 最多 2000000 bytes、宽高各不超过 4096、总像素不超过 8388608；只允许非隔行 8-bit grayscale/RGB/RGBA（可带 alpha），拒绝未允许的元数据。Schema 仅约束 MIME、编码形状、长度和矩形各分量上界，不解码 PNG，也不能校验真实像素、校验和、元数据或矩形与图片相交边界。\n\n运行时还需校验原图与脱敏 SHA-256 不同、脱敏哈希匹配、帧最多早 30000 ms 或晚 5000 ms、元素 id 不重复、标签总计最多 2048 字符、标签列表不重复及安全内容；这些不能由本契约形状证明。question 触发必须有非空问题，其余触发可为空；问题最多 2000 字符。\n\nstep.target_id 必须来自当前 elements，且与 presentation 同时提供；uncertain_candidate 必须如实表达不确定。completed 仅是候选证据，仍需本机以新帧、当前代际和预期标签核验，不能据此自动认定成功或掌握。\n\n仅 completed 可附 review_proposal；remind_at 必须在未来且不超过 365 天，timezone 必须是有效 IANA 时区。它只是 AI 复习建议，未获本人确认不得创建提醒或标记掌握，也不代表提醒已创建、已调度或已送达。时间窗口、有效时区、证据和本人确认须在运行时核验。499 表达取消，不保证断开的连接仍能收到响应。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandaloneGuidanceAnalyzeRequest"
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/guidance/{id}/verify": {
       "post": {
         "operationId": "guidanceVerify",
@@ -14239,6 +14390,620 @@
           "websocket_path"
         ]
       },
+      "StandaloneGuidanceRect": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 4096
+          },
+          "y": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 4096
+          },
+          "width": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 4096
+          },
+          "height": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 4096
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height"
+        ]
+      },
+      "StandaloneGuidanceElement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "example": "standalone-1"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 48,
+            "pattern": "\\S"
+          },
+          "rect": {
+            "$ref": "#/components/schemas/StandaloneGuidanceRect"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "rect"
+        ]
+      },
+      "StandaloneGuidanceImage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mime": {
+            "const": "image/png"
+          },
+          "base64": {
+            "type": "string",
+            "minLength": 76,
+            "maxLength": 2700000,
+            "pattern": "^(?=iVBORw0KGgo)(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/][AQgw]==|[A-Za-z0-9+/]{2}[AEIMQUYcgkosw048]=)?$",
+            "example": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+          }
+        },
+        "required": [
+          "mime",
+          "base64"
+        ]
+      },
+      "StandaloneGuidancePreviousStep": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "instruction": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600,
+            "pattern": "\\S"
+          },
+          "expected_labels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 48,
+              "pattern": "\\S"
+            },
+            "minItems": 0,
+            "maxItems": 16
+          }
+        },
+        "required": [
+          "instruction",
+          "expected_labels"
+        ]
+      },
+      "StandaloneGuidanceReviewProposal": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "remind_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-15T01:00:00.000Z",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?(?:Z|[+-](?:(?:0\\d|1[0-3]):[0-5]\\d|14:00))$"
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "format": "iana-timezone",
+            "example": "Asia/Shanghai"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240,
+            "pattern": "\\S"
+          }
+        },
+        "required": [
+          "remind_at",
+          "timezone",
+          "reason"
+        ]
+      },
+      "StandaloneGuidanceAnalyzeRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "observation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "example": "standalone-1"
+          },
+          "guide_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "example": "standalone-1"
+          },
+          "observation_generation": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "task_generation": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "trigger_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "example": "standalone-1"
+          },
+          "frame_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "example": "standalone-1"
+          },
+          "trigger_reason": {
+            "type": "string",
+            "enum": [
+              "question",
+              "page_changed",
+              "verification"
+            ]
+          },
+          "frame_hash": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[a-fA-F0-9]{64}$",
+            "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "sanitized_sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[a-fA-F0-9]{64}$",
+            "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "captured_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-15T01:00:00.000Z",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?(?:Z|[+-](?:(?:0\\d|1[0-3]):[0-5]\\d|14:00))$"
+          },
+          "image": {
+            "$ref": "#/components/schemas/StandaloneGuidanceImage"
+          },
+          "redaction_profile": {
+            "const": "all_text_and_faces_v1"
+          },
+          "local_safety": {
+            "const": "safe"
+          },
+          "question": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 2000
+          },
+          "elements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StandaloneGuidanceElement"
+            },
+            "minItems": 0,
+            "maxItems": 80
+          },
+          "previous_step": {
+            "$ref": "#/components/schemas/StandaloneGuidancePreviousStep"
+          }
+        },
+        "required": [
+          "observation_id",
+          "guide_id",
+          "observation_generation",
+          "task_generation",
+          "trigger_id",
+          "frame_id",
+          "trigger_reason",
+          "frame_hash",
+          "sanitized_sha256",
+          "captured_at",
+          "image",
+          "redaction_profile",
+          "local_safety",
+          "question",
+          "elements"
+        ],
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "trigger_reason": {
+                "const": "question"
+              },
+              "question": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000,
+                "pattern": "\\S"
+              }
+            },
+            "required": [
+              "trigger_reason",
+              "question"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "trigger_reason": {
+                "type": "string",
+                "enum": [
+                  "page_changed",
+                  "verification"
+                ]
+              }
+            },
+            "required": [
+              "trigger_reason"
+            ]
+          }
+        ]
+      },
+      "StandaloneGuidanceResult": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "observation_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "guide_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "observation_generation": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "task_generation": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "trigger_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "frame_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "kind": {
+                "const": "step"
+              },
+              "instruction": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 600,
+                "pattern": "\\S"
+              },
+              "target_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "presentation": {
+                "type": "string",
+                "enum": [
+                  "confirmed",
+                  "uncertain_candidate"
+                ]
+              },
+              "expected_labels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 48,
+                  "pattern": "\\S"
+                },
+                "minItems": 0,
+                "maxItems": 16
+              },
+              "evidence_labels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 48,
+                  "pattern": "\\S"
+                },
+                "minItems": 0,
+                "maxItems": 16
+              }
+            },
+            "required": [
+              "observation_id",
+              "guide_id",
+              "observation_generation",
+              "task_generation",
+              "trigger_id",
+              "frame_id",
+              "kind",
+              "instruction"
+            ],
+            "dependentRequired": {
+              "target_id": [
+                "presentation"
+              ],
+              "presentation": [
+                "target_id"
+              ]
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "observation_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "guide_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "observation_generation": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "task_generation": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "trigger_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "frame_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "kind": {
+                "const": "completed"
+              },
+              "instruction": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 600,
+                "pattern": "\\S"
+              },
+              "evidence_labels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 48,
+                  "pattern": "\\S"
+                },
+                "minItems": 1,
+                "maxItems": 16
+              },
+              "review_proposal": {
+                "$ref": "#/components/schemas/StandaloneGuidanceReviewProposal"
+              }
+            },
+            "required": [
+              "observation_id",
+              "guide_id",
+              "observation_generation",
+              "task_generation",
+              "trigger_id",
+              "frame_id",
+              "kind",
+              "instruction",
+              "evidence_labels"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "observation_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "guide_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "observation_generation": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "task_generation": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "trigger_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "frame_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "kind": {
+                "const": "clarify"
+              },
+              "instruction": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 600,
+                "pattern": "\\S"
+              }
+            },
+            "required": [
+              "observation_id",
+              "guide_id",
+              "observation_generation",
+              "task_generation",
+              "trigger_id",
+              "frame_id",
+              "kind",
+              "instruction"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "observation_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "guide_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "observation_generation": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "task_generation": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "trigger_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "frame_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "example": "standalone-1"
+              },
+              "kind": {
+                "const": "unsupported"
+              },
+              "instruction": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 600,
+                "pattern": "\\S"
+              }
+            },
+            "required": [
+              "observation_id",
+              "guide_id",
+              "observation_generation",
+              "task_generation",
+              "trigger_id",
+              "frame_id",
+              "kind",
+              "instruction"
+            ]
+          }
+        ]
+      },
+      "StandaloneGuidanceErrorCode": {
+        "type": "string",
+        "enum": [
+          "GUIDANCE_AUTH_REQUIRED",
+          "GUIDANCE_INVALID_REQUEST",
+          "GUIDANCE_UNSAFE_REQUEST",
+          "GUIDANCE_UNAVAILABLE",
+          "GUIDANCE_PROVIDER_FAILURE",
+          "GUIDANCE_INVALID_PROVIDER_RESPONSE",
+          "GUIDANCE_UNSAFE_PROVIDER_RESPONSE",
+          "GUIDANCE_ABORTED",
+          "GUIDANCE_TIMEOUT"
+        ]
+      },
       "NormalizedRect": {
         "type": "object",
         "additionalProperties": false,
@@ -16539,7 +17304,16 @@
           "STREAM_INTERRUPTED",
           "INVALID_REQUEST",
           "PARTIAL_FAILURE",
-          "INVITE_EXPIRED"
+          "INVITE_EXPIRED",
+          "GUIDANCE_AUTH_REQUIRED",
+          "GUIDANCE_INVALID_REQUEST",
+          "GUIDANCE_UNSAFE_REQUEST",
+          "GUIDANCE_UNAVAILABLE",
+          "GUIDANCE_PROVIDER_FAILURE",
+          "GUIDANCE_INVALID_PROVIDER_RESPONSE",
+          "GUIDANCE_UNSAFE_PROVIDER_RESPONSE",
+          "GUIDANCE_ABORTED",
+          "GUIDANCE_TIMEOUT"
         ]
       },
       "ErrorEnvelope": {
@@ -16571,7 +17345,16 @@
                   "STREAM_INTERRUPTED",
                   "INVALID_REQUEST",
                   "PARTIAL_FAILURE",
-                  "INVITE_EXPIRED"
+                  "INVITE_EXPIRED",
+                  "GUIDANCE_AUTH_REQUIRED",
+                  "GUIDANCE_INVALID_REQUEST",
+                  "GUIDANCE_UNSAFE_REQUEST",
+                  "GUIDANCE_UNAVAILABLE",
+                  "GUIDANCE_PROVIDER_FAILURE",
+                  "GUIDANCE_INVALID_PROVIDER_RESPONSE",
+                  "GUIDANCE_UNSAFE_PROVIDER_RESPONSE",
+                  "GUIDANCE_ABORTED",
+                  "GUIDANCE_TIMEOUT"
                 ]
               },
               "message": {
@@ -16613,6 +17396,99 @@
             "type": "string",
             "format": "uuid",
             "example": "00000000-0000-4000-8000-000000000001"
+          },
+          "schema_version": {
+            "const": "0.2.0"
+          }
+        },
+        "required": [
+          "error",
+          "request_id",
+          "schema_version"
+        ]
+      },
+      "StandaloneGuidanceErrorEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "AUTH_FAILED",
+                  "AUTH_EXPIRED",
+                  "SCOPE_DENIED",
+                  "CONSENT_REQUIRED",
+                  "PERMISSION_DENIED",
+                  "RISK_PAUSED",
+                  "TARGET_STALE",
+                  "LOW_CONFIDENCE",
+                  "NEED_TIME_CONFIRMATION",
+                  "VERSION_CONFLICT",
+                  "RATE_LIMITED",
+                  "PROVIDER_UNAVAILABLE",
+                  "CANCELLED",
+                  "TIMEOUT",
+                  "NETWORK_OFFLINE",
+                  "STREAM_INTERRUPTED",
+                  "INVALID_REQUEST",
+                  "PARTIAL_FAILURE",
+                  "INVITE_EXPIRED",
+                  "GUIDANCE_AUTH_REQUIRED",
+                  "GUIDANCE_INVALID_REQUEST",
+                  "GUIDANCE_UNSAFE_REQUEST",
+                  "GUIDANCE_UNAVAILABLE",
+                  "GUIDANCE_PROVIDER_FAILURE",
+                  "GUIDANCE_INVALID_PROVIDER_RESPONSE",
+                  "GUIDANCE_UNSAFE_PROVIDER_RESPONSE",
+                  "GUIDANCE_ABORTED",
+                  "GUIDANCE_TIMEOUT"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 320
+              },
+              "retryable": {
+                "type": "boolean"
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "current_version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "conflict_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "00000000-0000-4000-8000-000000000001"
+                  }
+                },
+                "required": [
+                  "current_version",
+                  "conflict_id"
+                ]
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "retryable"
+            ]
+          },
+          "request_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "example": "standalone-1"
           },
           "schema_version": {
             "const": "0.2.0"

@@ -9,11 +9,14 @@
     "package": "electron-forge package"
   },
   "devDependencies": {
-    "electron": "44.7.2",
     "@electron-forge/cli": "8.0.1",
-    "@electron-forge/maker-squirrel": "8.0.1"
+    "@electron-forge/maker-squirrel": "8.0.1",
+    "electron": "44.7.2"
   },
   "config": {
     "forge": "./forge.config.cjs"
+  },
+  "dependencies": {
+    "@xmov/avatar": "2.4.1"
   }
 }

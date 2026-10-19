@@ -20,8 +20,12 @@ describe('全量服务契约与可重放合成夹具', () => {
     expect(declared.security).toEqual(operation.authentication === 'bearer' ? [{ bearerAuth: [] }] : []);
     if (operation.request) expect(contractValidator(operation.request)(fixture(operation.request))).toBe(true);
     if (operation.response) expect(contractValidator(operation.response)(fixture(operation.response))).toBe(true);
-    expect(declared.parameters.some((parameter: any) => parameter.name === 'X-Request-ID' && parameter.required)).toBe(true);
-    if (operation.method !== 'get') expect(declared.parameters.some((parameter: any) => parameter.name === 'Idempotency-Key' && parameter.required)).toBe(true);
+    expect(declared.parameters.find((parameter: any) => parameter.name === 'X-Request-ID')).toMatchObject({ required: operation.requestId?.required ?? true });
+    if (operation.method !== 'get') {
+      const idempotency = declared.parameters.find((parameter: any) => parameter.name === 'Idempotency-Key');
+      if (operation.idempotencyKey === false) expect(idempotency).toBeUndefined();
+      else expect(idempotency).toMatchObject({ required: true });
+    }
     if (operation.versioned) expect(declared.parameters.some((parameter: any) => parameter.name === 'If-Match' && parameter.required)).toBe(true);
     if (operation.paginated) expect(declared.parameters.some((parameter: any) => parameter.name === 'cursor')).toBe(true);
     if (operation.stream) expect(declared.responses[operation.successStatus].content['text/event-stream']['x-event-schema']).toEqual({ $ref: '#/components/schemas/ServiceStreamEvent' });

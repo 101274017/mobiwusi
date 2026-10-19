@@ -1,5 +1,6 @@
 const { spawn: nodeSpawn } = require('node:child_process');
 const path = require('node:path');
+const { externalScriptPath } = require('../external-script-path.cjs');
 const { ObservationError, checkAborted } = require('./observation-common.cjs');
 
 function createWindowsHelperProcess({ spawn = nodeSpawn, timeoutMs = 15_000, maxOutputBytes = 2 * 1024 * 1024, platform = process.platform } = {}) {
@@ -15,7 +16,7 @@ function createWindowsHelperProcess({ spawn = nodeSpawn, timeoutMs = 15_000, max
     let child;
     try {
       const executable = path.win32.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
-      child = spawn(executable, ['-NoLogo', '-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-File', path.join(__dirname, 'windows-local-analysis.ps1')], { windowsHide: true, shell: false, stdio: ['pipe', 'pipe', 'pipe'] });
+      child = spawn(executable, ['-NoLogo', '-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-File', externalScriptPath(path.join(__dirname, 'windows-local-analysis.ps1'))], { windowsHide: true, shell: false, stdio: ['pipe', 'pipe', 'pipe'] });
     } catch {
       encoded.fill(0);
       throw new ObservationError('helper_spawn_unavailable');

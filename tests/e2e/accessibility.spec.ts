@@ -1,4 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { installTextBridge } from '../helpers/text-bridge';
+
+test.beforeEach(async ({ page }) => { await installTextBridge(page); });
 
 test('键盘可以跳过导航、进入主内容并操作首页入口', async ({ page }) => {
   await page.goto('/#/');
@@ -54,7 +57,7 @@ test('模态框具备可访问名称、Escape 关闭与焦点回收', async ({ p
   await page.goto('/#/chat/new');
   const trigger = page.getByRole('button', { name: '屏幕' });
   await trigger.click();
-  const dialog = page.getByRole('dialog', { name: '屏幕输入能力说明' });
+  const dialog = page.getByRole('dialog', { name: '真实屏幕观察' });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('button', { name: '关闭窗口' })).toBeFocused();
   await page.keyboard.press('Escape');

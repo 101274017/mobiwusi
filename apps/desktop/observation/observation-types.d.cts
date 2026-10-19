@@ -22,6 +22,7 @@ export interface ObservationSourceMetadata {
 }
 
 export interface ObservationFrame {
+  region?: Rect;
   sourceId: string;
   sourceName?: string;
   sourceType?: 'screen' | 'window';
@@ -108,7 +109,7 @@ export interface WindowsLocalDetector {
 }
 export interface WindowsObservationSource extends WindowsLocalDetector {
   listSources(options?: SignalOptions): Promise<ObservationSourceMetadata[]>;
-  capture(options: SignalOptions & { sourceId: string }): Promise<ObservationFrame>;
+  capture(options: SignalOptions & { sourceId: string; region?: Rect }): Promise<ObservationFrame>;
 }
 export interface WindowsObservationSourceOptions {
   desktopCapturer?: DesktopCapturerApi;

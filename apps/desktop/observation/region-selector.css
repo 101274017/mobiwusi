@@ -1,0 +1,17 @@
+:root { color-scheme: light; font-family: "Microsoft YaHei UI", "PingFang SC", sans-serif; color: #3e3931; }
+* { box-sizing: border-box; }
+body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; cursor: crosshair; user-select: none; }
+#shade { position: fixed; inset: 0; background: rgba(24, 35, 31, .34); pointer-events: none; }
+#selection { position: fixed; border: 2px solid #c5f2c9; outline: 1px solid #326449; box-shadow: 0 0 0 20000px rgba(24, 35, 31, .46); pointer-events: none; }
+#dimensions { position: absolute; left: 0; top: 4px; padding: 4px 8px; border-radius: 5px; background: #254e3c; color: #fffdf5; font-size: 13px; white-space: nowrap; }
+.instructions { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); width: min(640px, calc(100vw - 32px)); padding: 20px 24px; border: 1px solid #dfd0b9; border-radius: 20px; background: #fff8eefa; box-shadow: 0 12px 40px #14231f2e; cursor: default; }
+.eyebrow { color: #746451; font-size: 13px; letter-spacing: .08em; }
+h1 { margin: 8px 0 10px; font-family: "STKaiti", "KaiTi", serif; font-size: clamp(22px, 3vw, 30px); font-weight: 700; }
+p { margin: 8px 0; font-size: 14px; line-height: 1.65; }
+#selection-status { min-height: 24px; color: #536d56; }
+.actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 14px; }
+button { padding: 10px 16px; border: 1px solid #d9cdbb; border-radius: 12px; background: #fffdf7; color: inherit; font: inherit; cursor: pointer; }
+#confirm { border-color: #46664e; background: #46664e; color: #fffdf5; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:focus-visible { outline: 3px solid #b57743; outline-offset: 3px; }
+[hidden] { display: none !important; }

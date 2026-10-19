@@ -36,7 +36,16 @@
             "STREAM_INTERRUPTED",
             "INVALID_REQUEST",
             "PARTIAL_FAILURE",
-            "INVITE_EXPIRED"
+            "INVITE_EXPIRED",
+            "GUIDANCE_AUTH_REQUIRED",
+            "GUIDANCE_INVALID_REQUEST",
+            "GUIDANCE_UNSAFE_REQUEST",
+            "GUIDANCE_UNAVAILABLE",
+            "GUIDANCE_PROVIDER_FAILURE",
+            "GUIDANCE_INVALID_PROVIDER_RESPONSE",
+            "GUIDANCE_UNSAFE_PROVIDER_RESPONSE",
+            "GUIDANCE_ABORTED",
+            "GUIDANCE_TIMEOUT"
           ]
         },
         "message": {

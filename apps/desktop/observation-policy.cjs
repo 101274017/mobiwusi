@@ -1,17 +1,65 @@
 const { createHash } = require('node:crypto');
+const { createControlLayout } = require('./observation/control-layout.cjs');
 
-const policyVersion = 'windows-local-ocr-v1';
+const policyVersion = 'windows-local-ocr-v4';
 const admittedFrames = new WeakSet();
 const privatePattern = /密码|口令|验证码|动态码|私聊|聊天记录|私人聊天|发送给|身份证|银行卡|支付|付款|收款|转账|交易确认|安全密钥|访问令牌|password|passcode|one[ -]?time|verification code|private (?:chat|message)|credit card|bank account|payment|transfer money|bearer\s|api[ _-]?key|secret key/i;
 const personalPattern = /(?:\b1[3-9]\d{9}\b)|(?:\b\d{17}[\dXx]\b)|(?:[\w.+-]+@[\w.-]+\.[A-Za-z]{2,})|(?:\b(?:sk|pk)[-_][A-Za-z0-9]{16,})/;
 const genericLabels = new Set([
   '设置', '系统', '显示', '屏幕', '字体', '字体大小', '文本大小', '大小', '缩放', '辅助功能', '无障碍', '个性化', '主题', '颜色', '语言', '时间和语言', '网络和internet', '网络', 'wifi', '蓝牙', '音量', '声音', '音频', '通知', '开始', '所有应用', '应用', '搜索', '搜索应用', '桌面', '文件', '编辑', '查看', '视图', '帮助', '格式', '工具', '选项', '菜单', '更多', '返回', '下一步', '上一步', '确定', '取消', '保存', '应用更改', '关闭', '打开', '展开', '收起', '大', '中', '小', '默认', '推荐', '开启', '关闭状态', '开', '关', '滑块', '放大', '缩小',
   'settings', 'system', 'display', 'screen', 'font', 'fonts', 'font size', 'text size', 'size', 'scale', 'accessibility', 'personalization', 'theme', 'colors', 'language', 'network', 'wi-fi', 'wifi', 'bluetooth', 'volume', 'sound', 'audio', 'notifications', 'start', 'all apps', 'apps', 'search', 'desktop', 'file', 'edit', 'view', 'help', 'format', 'tools', 'options', 'menu', 'more', 'back', 'next', 'previous', 'ok', 'cancel', 'save', 'apply', 'close', 'open', 'expand', 'collapse', 'large', 'medium', 'small', 'default', 'recommended', 'on', 'off', 'slider', 'zoom in', 'zoom out',
+  '书签', '收藏', '收藏夹', '添加书签', '添加到收藏夹', '添加收藏', '编辑书签', '书签管理器', '新建标签页', '新标签页', '标签页', '重新加载', '刷新', '主页', '全屏', '退出全屏',
+  '新建', '新建文件', '撤销', '重做', '剪切', '复制', '粘贴', '全选', '查找', '替换', '自动换行', '另存为', '对齐', '加粗', '斜体', '下划线', '居中', '项目符号',
+  'bookmarks', 'bookmark', 'favorites', 'add bookmark', 'add to favorites', 'edit bookmark', 'bookmark manager', 'new tab', 'reload', 'refresh', 'home', 'fullscreen', 'full screen',
+  'new', 'new file', 'undo', 'redo', 'cut', 'copy', 'paste', 'select all', 'find', 'replace', 'word wrap', 'save as', 'alignment', 'bold', 'italic', 'underline', 'center', 'bullets',
 ]);
 const sceneLabels = new Set(['设置', '系统', '显示', '字体', '字体大小', '文本大小', '缩放', '辅助功能', '无障碍', '个性化', '主题', '语言', '网络', '蓝牙', '音量', '声音', 'settings', 'system', 'display', 'font', 'fonts', 'font size', 'text size', 'scale', 'accessibility', 'personalization', 'theme', 'language', 'network', 'bluetooth', 'volume', 'sound']);
+const browserLabels = new Set(['书签', '收藏', '收藏夹', '添加书签', '添加到收藏夹', '添加收藏', '编辑书签', '书签管理器', '新建标签页', '新标签页', '标签页', '重新加载', '刷新', '主页', '全屏', '退出全屏',
+  'bookmarks', 'bookmark', 'favorites', 'add bookmark', 'add to favorites', 'edit bookmark', 'bookmark manager', 'new tab', 'reload', 'refresh', 'home', 'fullscreen', 'full screen']);
+const editorLabels = new Set(['文件', '编辑', '查看', '视图', '格式', '工具', '新建', '撤销', '重做', '自动换行', '另存为', '对齐', '加粗', '斜体', '下划线', '居中', '项目符号',
+  'file', 'edit', 'view', 'format', 'tools', 'new', 'undo', 'redo', 'word wrap', 'save as', 'alignment', 'bold', 'italic', 'underline', 'center', 'bullets']);
+const desktopLabels = new Set(['此电脑', '这台电脑', '我的电脑', '回收站', '控制面板', 'this pc', 'my computer', 'recycle bin', 'control panel']);
+const explorerLabels = new Set(['文件资源管理器', '资源管理器', '此电脑', '这台电脑', '快速访问', '文件夹选项', 'file explorer', 'this pc', 'quick access', 'folder options']);
+const fileColumns = new Set(['名称', '修改日期', '类型', '大小', 'name', 'date modified', 'type', 'size']);
+const fileActions = new Set(['新建', '剪切', '复制', '粘贴', '排序', '布局', '查看', '删除', '重命名', 'new', 'cut', 'copy', 'paste', 'sort', 'layout', 'view', 'delete', 'rename']);
+for (const label of [...desktopLabels, ...explorerLabels, ...fileColumns, ...fileActions, '下载', '文档', '图片', '音乐', '视频', '本地磁盘', '导航窗格', 'downloads', 'documents', 'pictures', 'music', 'videos', 'local disk', 'navigation pane']) genericLabels.add(label);
 
 function normalizeLabel(value) {
   return typeof value === 'string' ? value.normalize('NFKC').replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u206F]/g, '').trim().replace(/\s+/g, ' ').toLowerCase() : '';
+}
+
+function recognizedControls(words) {
+  const controls = [];
+  let matchedCount = 0;
+  for (let index = 0; index < words.length; index += 1) {
+    let match;
+    const parts = [];
+    const bounds = { ...words[index].rect };
+    for (let end = index; end < Math.min(words.length, index + 8); end += 1) {
+      const current = words[end];
+      if (end > index) {
+        const previous = words[end - 1].rect;
+        const overlap = Math.min(previous.y + previous.height, current.rect.y + current.rect.height) - Math.max(previous.y, current.rect.y);
+        const gap = current.rect.x - previous.x - previous.width;
+        if (overlap < Math.min(previous.height, current.rect.height) * 0.6 || gap < -2 || gap > Math.max(previous.height, current.rect.height) * 1.5) break;
+        const right = Math.max(bounds.x + bounds.width, current.rect.x + current.rect.width);
+        const bottom = Math.max(bounds.y + bounds.height, current.rect.y + current.rect.height);
+        bounds.x = Math.min(bounds.x, current.rect.x);
+        bounds.y = Math.min(bounds.y, current.rect.y);
+        bounds.width = right - bounds.x;
+        bounds.height = bottom - bounds.y;
+      }
+      parts.push(current.text.trim());
+      const label = [parts.join(' '), parts.join('')].find(value => genericLabels.has(normalizeLabel(value)));
+      if (label) match = { text: label, rect: { ...bounds }, count: end - index + 1 };
+    }
+    if (match) {
+      controls.push({ text: match.text, rect: match.rect });
+      matchedCount += match.count;
+      index += match.count - 1;
+    }
+  }
+  return { controls, matchedCount };
 }
 
 function isRestrictedText(value) {
@@ -61,20 +109,35 @@ function evaluateLocalFrame(frame, detection, options = {}) {
   const text = detection.words.map(word => word.text).join(' ');
   if (text.length > 20000) return deny('local_text_limit');
   if (isRestrictedText(text) || isRestrictedText(detection.words.map(word => word.text).join(''))) return deny('sensitive_screen', 'private');
-  const allowedWords = detection.words.filter(word => genericLabels.has(normalizeLabel(word.text)));
+  const { controls: allowedWords, matchedCount } = recognizedControls(detection.words);
   const labels = new Set(allowedWords.map(word => normalizeLabel(word.text)));
   const positiveMarkers = [...labels].filter(label => sceneLabels.has(label));
-  if (positiveMarkers.length < 2 || allowedWords.length < 3 || detection.words.length - allowedWords.length > allowedWords.length * 2) return deny('unclassified_screen');
-  const sanitizedHash = digest(detection.sanitizedPng);
-  if (sanitizedHash === frame.frameHash) return deny('unredacted_frame');
+  const unknownCount = detection.words.length - matchedCount;
+  const countLabels = group => [...labels].filter(label => group.has(label)).length;
+  let scene = null;
+  if (countLabels(explorerLabels) >= 2 && (countLabels(fileColumns) >= 3 || (countLabels(explorerLabels) >= 3 && countLabels(fileActions) >= 3)) && unknownCount <= Math.min(24, allowedWords.length * 2)) scene = 'file_manager_controls';
+  else if (countLabels(desktopLabels) >= 2 && allowedWords.length >= 3 && unknownCount <= Math.min(12, allowedWords.length * 2)) scene = 'desktop_controls';
+  else if (positiveMarkers.length >= 2 && allowedWords.length >= 3 && unknownCount <= allowedWords.length * 2) scene = 'settings';
+  else if (allowedWords.length >= 3 && unknownCount <= 1 && [...labels].filter(label => browserLabels.has(label)).length >= 2) scene = 'browser_controls';
+  else if (allowedWords.length >= 4 && unknownCount <= 1 && [...labels].filter(label => editorLabels.has(label)).length >= 3) scene = 'editor_controls';
+  if (digest(detection.sanitizedPng) === frame.frameHash) return deny('unredacted_frame');
+  let sanitizedPng;
+  if (!scene) {
+    if (!allowedWords.length) return deny('unclassified_screen');
+    try { sanitizedPng = createControlLayout(allowedWords, frame.width, frame.height); }
+    catch { return deny('control_layout_unavailable'); }
+    scene = 'controls_only';
+  } else sanitizedPng = Buffer.from(detection.sanitizedPng);
+  const sanitizedHash = digest(sanitizedPng);
+  if (sanitizedHash === frame.frameHash) { sanitizedPng.fill(0); return deny('unredacted_frame'); }
   const elements = allowedWords.map((word, index) => ({ id: `element_${frame.frameHash.slice(0, 12)}_${index}`, label: word.text.trim(), rect: { ...word.rect } }));
   const signature = digest(JSON.stringify(detection.words.map(word => [normalizeLabel(word.text), Math.round(word.rect.x / 4), Math.round(word.rect.y / 4), Math.round(word.rect.width / 4), Math.round(word.rect.height / 4)])));
   const admitted = {
-    decision: 'allow', risk: 'safe', reason: 'locally_checked', policyVersion, frameId: frame.frameId ?? frame.frameHash,
+    decision: 'allow', risk: 'safe', reason: scene === 'controls_only' ? 'locally_projected_controls' : 'locally_checked', policyVersion, frameId: frame.frameId ?? frame.frameHash,
     frameHash: frame.frameHash, sanitizedHash, capturedAt: frame.capturedAt, sourceId: frame.sourceId,
     sourceName: frame.sourceName ?? '', displayId: frame.displayId, width: frame.width, height: frame.height,
-    geometry: frame.geometry ? { ...frame.geometry } : null, signature, elements, sanitizedPng: Buffer.from(detection.sanitizedPng),
-    redactionProfile: 'all_text_and_faces_v1', scene: 'settings',
+    geometry: frame.geometry ? { ...frame.geometry } : null, signature, elements, sanitizedPng,
+    redactionProfile: 'all_text_and_faces_v1', scene,
   };
   admittedFrames.add(admitted);
   return admitted;

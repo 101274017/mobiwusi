@@ -23,9 +23,7 @@ import org.nuanban.assistant.data.ReminderStatuses
 import org.nuanban.assistant.data.ReminderScheduleInput
 import org.nuanban.assistant.data.RoomReminderStore
 import org.nuanban.assistant.nativehost.AndroidSecretStore
-import org.nuanban.assistant.nativehost.CaptureStop
-import org.nuanban.assistant.nativehost.NativeCaptureRuntime
-import org.nuanban.assistant.nativehost.NativeCaptureService
+import org.nuanban.assistant.nativehost.AndroidHostRuntime
 import org.nuanban.assistant.nativehost.NativeDeviceAuth
 import org.nuanban.assistant.nativehost.Top20FlowRegistry
 import java.io.ByteArrayInputStream
@@ -47,7 +45,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         webView = WebView(this)
-        setContentView(webView)
+        setContentView(AndroidHostRuntime.managementView(this, webView))
         reminderDatabase = ReminderDatabase.create(this)
         reminderStore = RoomReminderStore(reminderDatabase)
         reminderScheduler = ReminderNotificationScheduler(this)
@@ -80,11 +78,8 @@ class MainActivity : Activity() {
                 when (decoded.method) {
                     ActiveBridgeMethod.CAPABILITIES -> postBridgeReply(reply, nativeCapabilities(decoded))
                     ActiveBridgeMethod.STOP_ALL -> {
-                        NativeCaptureService.stopFrom(this)
-                        NativeCaptureRuntime.session.stop(CaptureStop.USER)
-                        NativeCaptureRuntime.gate.stop()
                         nativeAuth.cancel()
-                        postBridgeReply(reply, decoded.correlation() + mapOf("stopped" to true, "captureActive" to false, "authCancelled" to true))
+                        postBridgeReply(reply, decoded.correlation() + AndroidHostRuntime.stopManagement(this))
                     }
                     ActiveBridgeMethod.REMINDER_SCHEDULE,
                     ActiveBridgeMethod.REMINDER_CANCEL,
@@ -111,7 +106,7 @@ class MainActivity : Activity() {
     }
 
     private fun nativeCapabilities(request: ActiveBridgeRequest): Map<String, Any?> {
-        return request.correlation() + NativeCaptureRuntime.report(this) + mapOf(
+        return request.correlation() + AndroidHostRuntime.capabilities(this) + mapOf(
             "platform" to "android",
             "status" to "native-capability-gated",
             "auth" to nativeAuth.status(),
@@ -276,15 +271,14 @@ class MainActivity : Activity() {
         if (::webView.isInitialized) webView.evaluateJavascript("window.dispatchEvent(new Event('$name'))", null)
     }
     override fun onPause() {
-        dispatchLifecycleEvent("nuanban:host-pause")
+        dispatchLifecycleEvent("nuanban:management-pause")
         super.onPause()
     }
     override fun onDestroy() {
         destroyed = true
         webViewReady = false
-        runCatching { NativeCaptureService.stopFrom(this) }
         runCatching { nativeAuth.cancel() }
-        dispatchLifecycleEvent("nuanban:host-destroy")
+        dispatchLifecycleEvent("nuanban:management-destroy")
         webView.stopLoading()
         webView.destroy()
         synchronized(bridgeLifecycleLock) {

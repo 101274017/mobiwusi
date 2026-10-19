@@ -129,7 +129,7 @@ async function loadModules() {
     return {
       application: await load('packages/application/src/index.ts'),
       domain: await load('packages/domain/src/index.ts'),
-      mocks: await load('packages/mocks/src/index.ts'),
+      mocks: await load('tests/fixtures/business-scenarios.ts'),
       localData: await load('packages/local-data/src/index.ts'),
       platform: await load('packages/platform-ports/src/index.ts'),
       guidance: await load('packages/guidance-engine/src/index.ts'),
@@ -146,7 +146,7 @@ async function loadModules() {
       contracts: await load('packages/contracts/src/index.ts'),
       syncServices: await load('packages/sync-engine/src/services.ts'),
       syncMemory: await load('packages/sync-engine/src/memory.ts'),
-      assistFixture: await load('apps/web/src/assist-fixture.ts'),
+      assistFixture: await load('tests/fixtures/assist.ts'),
     };
   } finally {
     hooks.deregister();
@@ -433,8 +433,8 @@ async function runBackendPath(task, modules, shared) {
   check(task, 'unconnected-service-no-mock-fallback', serviceFailure?.message.includes('不会回退'), true, 'failure');
   check(task, 'unconnected-repository-no-data-side-effects', repositoryFailures.every(error => error !== null), true, 'failure');
   check(task, 'memory-service-not-production', { storage: repositories.storage, production: repositories.isProductionDatabase }, { storage: 'memory', production: false }, 'security');
-  const localConfiguration = config.configuration({ VITE_API_MODE: 'mock', VITE_PLATFORM_MODE: 'browser', VITE_MOCK_SCENARIO: 'success' }, false);
-  check(task, 'configuration-explicit-local-mode', localConfiguration, { apiMode: 'mock', platformMode: 'browser', scenario: 'success' });
+  const localConfiguration = config.configuration({ VITE_API_MODE: 'local', VITE_PLATFORM_MODE: 'browser' }, false);
+  check(task, 'configuration-explicit-local-mode', localConfiguration, { apiMode: 'local', platformMode: 'browser' });
   for (const [name, environment, production] of [
     ['production-mock', { VITE_API_MODE: 'mock' }, true],
     ['real-with-scenario', { VITE_API_MODE: 'real', VITE_MOCK_SCENARIO: 'offline' }, false],

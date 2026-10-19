@@ -1,0 +1,1001 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createDesktopRuntime, type AnalysisInput, type AnalysisResult, type DesktopRuntime, type ReviewSuggestion, type RuntimeOptions, type TeachingRecord } from '../../apps/desktop/runtime-coordinator.cjs';
+import { createDesktopAnalysisClient } from '../../apps/desktop/analysis-client.cjs';
+import type { ObservationFrame, ScreenGeometry } from '../../apps/desktop/observation-policy.cjs';
+import { syntheticDetection, syntheticFrame } from '../helpers/standalone-frame';
+
+const runtimes: DesktopRuntime[] = [];
+
+function responseIdentity(input: AnalysisInput) {
+  return { observation_id: input.observationId, guide_id: input.guideId, observation_generation: input.observationGeneration,
+    task_generation: input.taskGeneration, trigger_id: input.triggerId, frame_id: input.frame.frameId };
+}
+
+function stepResponse(input: AnalysisInput): AnalysisResult {
+  return { ...responseIdentity(input), kind: 'step', instruction: '请亲手打开显示设置，再观察新页面。', target_id: input.frame.elements[1].id,
+    presentation: 'uncertain_candidate', expected_labels: ['字体大小'] };
+}
+
+function fixture(callbacks: Pick<RuntimeOptions, 'recordTeaching' | 'suggestReview' | 'intervalMs' | 'questioner'> = {}) {
+  const controls = { time: Date.now(), labels: ['设置', '显示', '文本大小', '返回'], geometry: { x: -800, y: 0, width: 800, height: 600, scaleFactor: 1 } as ScreenGeometry | null, status: 'complete' as 'complete' | 'unavailable' };
+  const source = {
+    capture: vi.fn(async () => syntheticFrame(controls.geometry, ++controls.time)),
+    detect: vi.fn(async (frame: ObservationFrame) => ({ ...syntheticDetection(frame, controls.labels), status: controls.status })),
+    stop: vi.fn(async () => undefined),
+  };
+  const analyze = vi.fn<(input: AnalysisInput) => Promise<AnalysisResult>>(async input => stepResponse(input));
+  const onTarget = vi.fn();
+  const records: TeachingRecord[] = [];
+  const recordTeaching = vi.fn<(record: TeachingRecord) => unknown | Promise<unknown>>(record => { records.push(record); });
+  const suggestReview = vi.fn<(proposal: ReviewSuggestion) => unknown | Promise<unknown>>();
+  const runtime = createDesktopRuntime({ source, analyzer: { analyze }, onTarget, intervalMs: 60000,
+    now: () => controls.time, recordTeaching, suggestReview, ...callbacks });
+  runtimes.push(runtime);
+  const start = async (cloudConsent = true) => {
+    await runtime.startObservation({ actor: 'owner', confirmed: true, sourceId: 'screen:test:0', sourceName: '合成测试屏幕', cloudConsent });
+    await runtime.whenIdle();
+  };
+  return { runtime, source, controls, analyze, onTarget, records, recordTeaching, suggestReview, start };
+}
+
+function completedResponse(input: AnalysisInput): AnalysisResult {
+  return { ...responseIdentity(input), kind: 'completed', instruction: '新画面已显示字体大小设置。', evidence_labels: input.previousStep?.expectedLabels ?? ['字体大小'] };
+}
+
+function proposedReview(timestamp: number): NonNullable<AnalysisResult['review_proposal']> {
+  return { remind_at: new Date(timestamp + 86400000).toISOString(), timezone: 'Asia/Shanghai', reason: '明天亲手复习字体调整。' };
+}
+
+function deferred<Value>() {
+  let resolve!: (value: Value) => void;
+  let reject!: (reason: Error) => void;
+  const promise = new Promise<Value>((resolvePromise, rejectPromise) => { resolve = resolvePromise; reject = rejectPromise; });
+  return { promise, resolve, reject };
+}
+
+async function beginTeaching(setup: ReturnType<typeof fixture>) {
+  await setup.start();
+  await setup.runtime.ask('请教我调整文字大小');
+  await setup.runtime.whenIdle();
+}
+
+describe('观察与教学快照的独立代次', () => {
+  it('未确认整页类别时使用安全控件布局持续本地观察，未授权不出云，敏感内容仍停止', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 1500 });
+    setup.controls.labels = ['文件', '编辑', '查看', '练习文档', '普通正文', '第二行内容'];
+    await setup.start(false);
+    for (let count = 0; count < 4; count += 1) {
+      await vi.advanceTimersByTimeAsync(1600);
+      await setup.runtime.whenIdle();
+      expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'controls_only' });
+    }
+    expect(setup.source.stop).not.toHaveBeenCalled();
+    expect(setup.analyze).not.toHaveBeenCalled();
+    setup.controls.labels = ['文件', '编辑', '查看', '私人聊天'];
+    await vi.advanceTimersByTimeAsync(1600);
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false, reason: 'sensitive_screen' });
+    expect(setup.analyze).not.toHaveBeenCalled();
+  });
+
+  it('本人授权后的教学只接收安全控件布局，不接收未知正文或原始屏幕', async () => {
+    const setup = fixture();
+    setup.controls.labels = ['文件', '编辑', '查看', '练习文档', '普通正文', '第二行内容'];
+    await setup.start();
+    await setup.runtime.ask('教我使用查看菜单');
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledTimes(1);
+    const input = setup.analyze.mock.calls[0][0];
+    expect(input.frame.scene).toBe('controls_only');
+    expect(input.frame.elements.map(element => element.label)).toEqual(['文件', '编辑', '查看']);
+    expect(input.frame.sanitizedPng).not.toEqual(syntheticFrame().png);
+    expect(setup.runtime.snapshot().observation.state).toBe('observing');
+  });
+
+  it('普通桌面与文件管理器的新帧持续观察，未知页面仍熔断且不能自动恢复', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 1500 });
+    setup.controls.labels = ['此电脑', '回收站', '控制面板', '练习.txt'];
+    await setup.start(false);
+    for (let count = 0; count < 4; count += 1) {
+      await vi.advanceTimersByTimeAsync(1600);
+      await setup.runtime.whenIdle();
+      expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true });
+    }
+    setup.controls.labels = ['文件资源管理器', '此电脑', '名称', '修改日期', '类型', '大小', '练习.txt'];
+    await vi.advanceTimersByTimeAsync(1600);
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().observation.state).toBe('observing');
+    setup.controls.labels = ['未知页面内容', '另一段未经分类的正文'];
+    await vi.advanceTimersByTimeAsync(1600);
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false, reason: 'unclassified_screen' });
+    expect(setup.runtime.snapshot().analysis.message).toContain('框选观察区域');
+    const captures = setup.source.capture.mock.calls.length;
+    setup.controls.labels = ['设置', '显示', '文本大小', '返回'];
+    await vi.advanceTimersByTimeAsync(6000);
+    expect(setup.source.capture).toHaveBeenCalledTimes(captures);
+    expect(setup.analyze).not.toHaveBeenCalled();
+  });
+
+  it('每一帧都绑定本人所选区域，不引用可变参数，重新整屏授权后才清除裁剪', async () => {
+    const setup = fixture();
+    const region = { x: 20, y: 30, width: 320, height: 200 };
+    await setup.runtime.startObservation({ actor: 'owner', confirmed: true, sourceId: 'screen:test:0', region });
+    region.width = 700;
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture).toHaveBeenCalledWith(expect.objectContaining({ region: { x: 20, y: 30, width: 320, height: 200 } }));
+    await setup.runtime.stopObservation('user');
+    setup.source.capture.mockClear();
+    await setup.start(false);
+    expect(setup.source.capture).toHaveBeenCalledWith({ sourceId: 'screen:test:0', signal: expect.any(AbortSignal) });
+  });
+
+  it('多次提问保持正确观察关联，先问后授权会关联新观察而不复用任务计数', async () => {
+    const setup = fixture();
+    await setup.runtime.ask('请教我调整文字大小');
+    await setup.start();
+    expect(setup.runtime.snapshot().task.observationGeneration).toBe(setup.runtime.snapshot().observation.generation);
+    await setup.runtime.finishTeaching();
+    await setup.runtime.ask('请教我找到显示设置');
+    await setup.runtime.whenIdle();
+    const current = setup.runtime.snapshot();
+    expect(current.task.generation).not.toBe(current.observation.generation);
+    expect(current.task.observationGeneration).toBe(current.observation.generation);
+    expect(current.task.state).toBe('awaiting_action');
+  });
+
+  it('桌宠未共享屏幕时使用真实文字模型，不调用屏幕采集或演示回答', async () => {
+    const questioner = { answer: vi.fn(async (_input: { question: string; signal: AbortSignal; instructions?: string }) => ({ text: '可以先打开系统设置，再根据当前页面选择显示相关选项。' })) };
+    const setup = fixture({ questioner });
+    await setup.runtime.ask('如何调整文字大小');
+    const current = setup.runtime.snapshot();
+    expect(questioner.answer).toHaveBeenCalledOnce();
+    expect(questioner.answer.mock.calls[0][0].instructions).toContain('没有提供当前屏幕画面');
+    expect(current.task.state).toBe('ended');
+    expect(current.task.explanation).toContain('系统设置');
+    expect(current.messages.at(-1)).toMatchObject({ role: 'assistant', text: expect.stringContaining('系统设置') });
+    expect(setup.source.capture).not.toHaveBeenCalled();
+    expect(setup.analyze).not.toHaveBeenCalled();
+  });
+
+  it('停止桌宠文字提问会使迟到模型回答失效，且不记录为已完成教学', async () => {
+    const response = deferred<{ text: string }>();
+    const questioner = { answer: vi.fn(async (_input: { question: string; signal: AbortSignal; instructions?: string }) => response.promise) };
+    const setup = fixture({ questioner });
+    const asking = setup.runtime.ask('如何调整文字大小');
+    await vi.waitFor(() => expect(questioner.answer).toHaveBeenCalledOnce());
+    const stopped = setup.runtime.stopObservation('user');
+    await stopped;
+    response.resolve({ text: '这是一条迟到的回答，不应显示。' });
+    await asking;
+    await setup.runtime.whenIdle();
+    expect(questioner.answer.mock.calls[0][0].signal.aborted).toBe(true);
+    expect(setup.runtime.snapshot().task.result).toBe('cancelled');
+    expect(setup.runtime.snapshot().messages.at(-1)?.text).not.toContain('迟到的回答');
+    expect(setup.records).toEqual([]);
+  });
+});
+
+async function verifyChanged(setup: ReturnType<typeof fixture>) {
+  setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+  await setup.runtime.verify();
+  await setup.runtime.whenIdle();
+}
+
+async function advanceObservation(setup: ReturnType<typeof fixture>, duration: number) {
+  let elapsed = 0;
+  while (elapsed < duration) {
+    const interval = Math.min(1500, duration - elapsed);
+    setup.controls.time += interval;
+    await vi.advanceTimersByTimeAsync(interval);
+    elapsed += interval;
+  }
+}
+
+async function beginSlowAnalysis(setup: ReturnType<typeof fixture>, kind: 'step' | 'completed' = 'completed') {
+  if (kind === 'completed') await beginTeaching(setup);
+  else await setup.start();
+  const response = deferred<Response>();
+  const fetchRequest = vi.fn<typeof fetch>(() => response.promise);
+  const client = createDesktopAnalysisClient({
+    env: { NUANBAN_DESKTOP_API_BASE_URL: 'http://127.0.0.1:3000', NUANBAN_DESKTOP_API_TOKEN: 'synthetic-account-token' },
+    now: () => setup.controls.time, fetch: fetchRequest,
+  });
+  setup.analyze.mockImplementationOnce(input => client.analyze(input));
+  if (kind === 'completed') {
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    await setup.runtime.verify();
+  } else await setup.runtime.ask('请教我调整文字大小');
+  await vi.waitFor(() => expect(fetchRequest).toHaveBeenCalledOnce());
+  const request = setup.analyze.mock.calls.at(-1)![0];
+  const complete = () => response.resolve(new Response(JSON.stringify(kind === 'step' ? stepResponse(request)
+    : { ...completedResponse(request), review_proposal: proposedReview(setup.controls.time) })));
+  return { request, fetchRequest, complete };
+}
+
+afterEach(async () => {
+  for (const runtime of runtimes.splice(0)) await runtime.dispose();
+  vi.useRealTimers();
+});
+
+describe('驻留运行核心（合成端口单测，不替代原生/供应验收）', () => {
+  it('默认不观察，不因创建桌宠或恢复管理页面而采集', () => {
+    const setup = fixture();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'off', captureActive: false });
+    expect(setup.source.capture).not.toHaveBeenCalled();
+    expect(setup.analyze).not.toHaveBeenCalled();
+  });
+
+  it('只有本人新动作与明确同意可以开启，家属和云端不能代开', async () => {
+    const setup = fixture();
+    await expect(setup.runtime.startObservation({ actor: 'family', confirmed: true, sourceId: 'screen:test:0' })).rejects.toThrow('本人');
+    await expect(setup.runtime.startObservation({ actor: 'owner', confirmed: false, sourceId: 'screen:test:0' })).rejects.toThrow('本人');
+    expect(setup.source.capture).not.toHaveBeenCalled();
+  });
+
+  it('持续本地观察不等于持续上传；未同意云分析也不上传', async () => {
+    const setup = fixture();
+    await setup.start(false);
+    expect(setup.source.detect).toHaveBeenCalledOnce();
+    expect(setup.analyze).not.toHaveBeenCalled();
+    await setup.runtime.ask('请教我调整文字大小');
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().observation.state).toBe('observing');
+    expect(setup.runtime.snapshot().analysis.state).toBe('unavailable');
+    expect(setup.analyze).not.toHaveBeenCalled();
+  });
+
+  it('同一教学结束只记录一次，观察仍在，不以结束教学冒充停止采集', async () => {
+    const setup = fixture();
+    await setup.start();
+    await setup.runtime.ask('请教我调整文字大小');
+    await setup.runtime.whenIdle();
+    const guideId = setup.runtime.snapshot().task.id;
+    await setup.runtime.finishTeaching();
+    await setup.runtime.finishTeaching();
+    expect(setup.records).toHaveLength(1);
+    expect(setup.records[0]).toMatchObject({ sourceGuideId: guideId, mastery: 'unmastered', result: 'unfinished' });
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true });
+    expect(setup.source.stop).not.toHaveBeenCalled();
+  });
+
+  it('我点好了只重新采集核验；新画面未变化时不推进', async () => {
+    const setup = fixture();
+    await setup.start();
+    await setup.runtime.ask('请教我调整文字大小');
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
+    const captures = setup.source.capture.mock.calls.length;
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture.mock.calls.length).toBe(captures + 1);
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
+    expect(setup.runtime.snapshot().analysis.message).toContain('不会因为');
+  });
+
+  it('预期新标签、当前帧和新核验齐全时才确认完成，并记录笔记', async () => {
+    const setup = fixture();
+    setup.analyze.mockImplementation(async input => input.previousStep
+      ? { ...responseIdentity(input), kind: 'completed', instruction: '新画面已显示字体大小设置。', evidence_labels: ['字体大小'] }
+      : stepResponse(input));
+    await setup.start();
+    await setup.runtime.ask('请教我调整文字大小');
+    await setup.runtime.whenIdle();
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledTimes(2);
+    expect(setup.runtime.snapshot().task.state).toBe('completed');
+    expect(setup.records).toHaveLength(1);
+    expect(setup.records[0]).toMatchObject({ result: 'completed', mastery: 'unmastered' });
+    expect(setup.runtime.snapshot().observation.state).toBe('observing');
+  });
+
+  it('模型自称完成但缺预期证据时拒绝，不创建完成记录', async () => {
+    const setup = fixture();
+    setup.analyze.mockImplementation(async input => ({ ...responseIdentity(input), kind: 'completed', instruction: '已经完成。', evidence_labels: ['显示'] }));
+    await setup.start();
+    await setup.runtime.ask('请教我调整文字大小');
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+    expect(setup.records).toHaveLength(0);
+    expect(setup.onTarget.mock.calls.every(([target]) => target === null)).toBe(true);
+  });
+
+  it('只画当前可定位控件，负屏幕坐标保持正确，不生成输入注入', async () => {
+    const setup = fixture();
+    await setup.start();
+    await setup.runtime.ask('请教我调整文字大小');
+    await setup.runtime.whenIdle();
+    expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ rect: { x: -780, y: 60, width: 100, height: 30 }, presentation: 'uncertain_candidate' }));
+    setup.analyze.mockImplementation(async input => ({ ...stepResponse(input), target_id: 'imagined_button' }));
+    await setup.runtime.ask('再教我设置字体');
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+    expect(setup.onTarget).toHaveBeenLastCalledWith(null);
+  });
+
+  it('没有可证明的源坐标时只解释，不把捕获像素猜成桌面坐标', async () => {
+    const setup = fixture();
+    setup.controls.geometry = null;
+    await setup.start();
+    await setup.runtime.ask('请教我调整文字大小');
+    await setup.runtime.whenIdle();
+    expect(setup.onTarget.mock.calls.every(([target]) => target === null)).toBe(true);
+    expect(setup.runtime.snapshot().task.explanation).toContain('坐标未验证');
+  });
+
+  it.each(['capture_dimensions_unproven', 'capture_permission_denied', 'capture_track_ended', 'timeout'])('采集错误 %s 保留具体代码和恢复提示，不回显异常正文', async code => {
+    const setup = fixture();
+    setup.source.capture.mockRejectedValueOnce(Object.assign(new Error('private-screen-content'), { code }));
+    await setup.start();
+    const current = setup.runtime.snapshot();
+    expect(current.observation).toMatchObject({ state: 'privacy_paused', captureActive: false, reason: code });
+    expect(current.analysis).toMatchObject({ state: 'error', message: expect.stringMatching(/停止观察|观察已停止/) });
+    expect(JSON.stringify(current)).not.toContain('private-screen-content');
+    expect(setup.analyze).not.toHaveBeenCalled();
+    expect(setup.source.capture).toHaveBeenCalledOnce();
+  });
+
+  it('未知异常只显示固定通用代码，不能把异常字段带入桌宠状态', async () => {
+    const setup = fixture();
+    setup.source.capture.mockRejectedValueOnce(Object.assign(new Error('private-screen-content'), { code: 'private-screen-code' }));
+    await setup.start();
+    expect(setup.runtime.snapshot().observation.reason).toBe('capture_or_detector_failed');
+    expect(JSON.stringify(setup.runtime.snapshot())).not.toMatch(/private-screen-(?:content|code)/);
+  });
+
+  it('主机停止故障采集后，结束教学不能覆盖具体错误或谎报观察仍可继续', async () => {
+    const setup = fixture();
+    await beginTeaching(setup);
+    await setup.runtime.stopObservation('capture_dimensions_unproven');
+    await setup.runtime.finishTeaching();
+    const current = setup.runtime.snapshot();
+    expect(current.observation).toMatchObject({ state: 'stopped', captureActive: false, reason: 'capture_dimensions_unproven' });
+    expect(current.analysis).toMatchObject({ state: 'error', message: expect.stringContaining('缩放') });
+    expect(current.analysis.message).not.toContain('观察可继续');
+  });
+
+  it('敏感/未知/检测故障停止采集，离开页面不会自行恢复', async () => {
+    const setup = fixture();
+    setup.controls.labels = ['设置', '显示', '文本大小', '验证码123456'];
+    await setup.start();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false });
+    expect(setup.source.stop).toHaveBeenCalledOnce();
+    expect(setup.analyze).not.toHaveBeenCalled();
+    setup.controls.labels = ['设置', '显示', '文本大小', '返回'];
+    await expect(setup.runtime.startObservation({ actor: 'owner', confirmed: true, sourceId: 'screen:test:0' })).rejects.toThrow('继续共享');
+    await expect(setup.runtime.resumeObservation({ actor: 'family', confirmed: true, sourceId: 'screen:test:0' })).rejects.toThrow('本人');
+    await setup.runtime.resumeObservation({ actor: 'owner', confirmed: true, sourceId: 'screen:test:0' });
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().observation.state).toBe('observing');
+    expect(JSON.stringify(setup.runtime.snapshot())).not.toContain('123456');
+    expect(JSON.stringify(setup.runtime.snapshot())).not.toContain('sanitizedPng');
+  });
+
+  it('先失效发送资格和目标，再停本地源；迟到回答不会恢复指引', async () => {
+    const setup = fixture();
+    let completeAnalysis: ((result: AnalysisResult) => void) | undefined;
+    let request: AnalysisInput | undefined;
+    setup.analyze.mockImplementation(input => { request = input; return new Promise(resolve => { completeAnalysis = resolve; }); });
+    await setup.start();
+    await setup.runtime.ask('请教我调整文字大小');
+    await vi.waitFor(() => expect(request).toBeDefined());
+    expect(request?.canSend()).toBe(true);
+    setup.source.stop.mockImplementation(async () => {
+      expect(request?.canSend()).toBe(false);
+      expect(setup.onTarget).toHaveBeenLastCalledWith(null);
+    });
+    await setup.runtime.stopObservation('lock');
+    completeAnalysis?.(stepResponse(request!));
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'stopped', captureActive: false });
+    expect(setup.runtime.snapshot().task.state).toBe('ended');
+    expect(setup.onTarget).toHaveBeenLastCalledWith(null);
+    expect(setup.records).toHaveLength(1);
+  });
+
+  it('风险问题不在随后变页时偷偷继续分析，默认笔记仍未掌握', async () => {
+    const setup = fixture();
+    await setup.start();
+    await setup.runtime.ask('请教我输入验证码123456');
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'ended', result: 'risk_blocked' });
+    expect(setup.analyze).not.toHaveBeenCalled();
+    expect(setup.records[0]).toMatchObject({ mastery: 'unmastered', result: 'risk_blocked' });
+    expect(JSON.stringify(setup.records)).not.toContain('123456');
+  });
+
+  it('本地源清理失败不能谎报停止，也不能重新开启', async () => {
+    const setup = fixture();
+    await setup.start();
+    setup.source.stop.mockRejectedValue(new Error('synthetic cleanup failure'));
+    const result = await setup.runtime.stopObservation();
+    expect(result).toMatchObject({ stopped: false, captureActive: true });
+    expect(setup.runtime.snapshot().observation.state).toBe('cleanup_failed');
+    await expect(setup.runtime.startObservation({ actor: 'owner', confirmed: true, sourceId: 'screen:test:0' })).rejects.toThrow('清理');
+    setup.source.stop.mockResolvedValue(undefined);
+  });
+
+  it('后台无显著变化时只本地检测，真正变页可自动进入新帧核验', async () => {
+    vi.useFakeTimers();
+    const setup = fixture();
+    setup.analyze.mockImplementation(async input => input.previousStep
+      ? { ...responseIdentity(input), kind: 'completed', instruction: '当前新页面已显示字体大小。', evidence_labels: ['字体大小'] }
+      : stepResponse(input));
+    await setup.start();
+    await setup.runtime.ask('请教我调整文字大小');
+    await setup.runtime.whenIdle();
+    await vi.advanceTimersByTimeAsync(60000);
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.source.capture).toHaveBeenCalledTimes(3);
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    await vi.advanceTimersByTimeAsync(60000);
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledTimes(2);
+    expect(setup.analyze.mock.calls[1][0].reason).toBe('page_changed');
+    expect(setup.runtime.snapshot().task.state).toBe('completed');
+    await setup.runtime.stopObservation();
+    const stoppedCaptures = setup.source.capture.mock.calls.length;
+    await vi.advanceTimersByTimeAsync(120000);
+    expect(setup.source.capture).toHaveBeenCalledTimes(stoppedCaptures);
+  });
+
+  it('预期标签基线已存在时，无关 signature 变化不能证明完成', async () => {
+    const setup = fixture();
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    setup.analyze.mockImplementation(async input => input.previousStep
+      ? { ...completedResponse(input), review_proposal: proposedReview(setup.controls.time) } : stepResponse(input));
+    await beginTeaching(setup);
+    setup.controls.labels.push('帮助');
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledTimes(2);
+    expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+    expect(setup.records).toEqual([]);
+    expect(setup.suggestReview).not.toHaveBeenCalled();
+  });
+
+  it('基线标签先消失再出现也不能替代上一步没有的操作证据', async () => {
+    const setup = fixture();
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    setup.analyze.mockImplementation(async input => input.previousStep ? completedResponse(input) : stepResponse(input));
+    await beginTeaching(setup);
+    setup.controls.labels = ['设置', '显示', '文本大小', '返回'];
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    await verifyChanged(setup);
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', result: null });
+    expect(setup.analyze).toHaveBeenCalledTimes(2);
+    expect(setup.records).toEqual([]);
+  });
+
+  it('稳定上下文标签加一个基线没有的新预期标签，可以构成可验证变化', async () => {
+    const setup = fixture();
+    setup.analyze.mockImplementation(async input => input.previousStep ? completedResponse(input)
+      : { ...stepResponse(input), expected_labels: ['显示', '字体大小'] });
+    await beginTeaching(setup);
+    await verifyChanged(setup);
+    expect(setup.runtime.snapshot().task.state).toBe('completed');
+    expect(setup.records).toHaveLength(1);
+  });
+
+  it('规范化标签后仍检查基线，不能用全角或大小写变体冒充新证据', async () => {
+    const setup = fixture();
+    setup.controls.labels = ['settings', 'display', 'text size', 'back'];
+    setup.analyze.mockImplementation(async input => input.previousStep ? completedResponse(input)
+      : { ...stepResponse(input), expected_labels: ['ＴＥＸＴ　ＳＩＺＥ'] });
+    await beginTeaching(setup);
+    setup.controls.labels.push('help');
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+    expect(setup.records).toEqual([]);
+  });
+
+  it('模型不能借无关变化跳过旧步骤并安装新目标', async () => {
+    const setup = fixture();
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    setup.analyze.mockImplementation(async input => input.previousStep
+      ? { ...stepResponse(input), instruction: '请进入下一步辅助功能。', target_id: input.frame.elements[2].id, expected_labels: ['辅助功能'] }
+      : stepResponse(input));
+    await beginTeaching(setup);
+    setup.controls.labels.push('帮助');
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'needs_help', instruction: '请亲手打开显示设置，再观察新页面。' });
+    expect(setup.onTarget).toHaveBeenLastCalledWith(null);
+  });
+
+  it('真正推进后重新建立下一步基线，而不是沿用旧任务证据', async () => {
+    const setup = fixture();
+    setup.analyze.mockImplementation(async input => {
+      if (!input.previousStep) return stepResponse(input);
+      if (input.previousStep.expectedLabels.includes('字体大小')) return {
+        ...stepResponse(input), target_id: input.frame.elements[2].id, instruction: '请亲手打开辅助功能。', expected_labels: ['辅助功能'],
+      };
+      return completedResponse(input);
+    });
+    await beginTeaching(setup);
+    await verifyChanged(setup);
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
+    expect(setup.records).toEqual([]);
+    setup.controls.labels = ['设置', '显示', '字体大小', '辅助功能', '返回'];
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.state).toBe('completed');
+    expect(setup.records).toHaveLength(1);
+  });
+
+  it.each([0, -1])('拒绝时间戳相同或倒退的安全帧，即使帧 ID 和标签变化：%i', async offset => {
+    const setup = fixture();
+    setup.analyze.mockImplementation(async input => input.previousStep ? completedResponse(input) : stepResponse(input));
+    await beginTeaching(setup);
+    const baseline = setup.analyze.mock.calls[0][0].frame.capturedAt;
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    setup.source.capture.mockImplementationOnce(async () => ({ ...syntheticFrame(setup.controls.geometry, baseline + offset), frameId: 'replayed-frame' }));
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.runtime.snapshot().analysis.message).toContain('更新');
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
+    expect(setup.records).toEqual([]);
+  });
+
+  it('完成核验的捕获时刻必须晚于指引展示，不能使用分析期间提前捕获的画面', async () => {
+    const setup = fixture();
+    setup.analyze.mockImplementation(async input => {
+      if (input.previousStep) return completedResponse(input);
+      setup.controls.time += 100;
+      return stepResponse(input);
+    });
+    await beginTeaching(setup);
+    const baseline = setup.analyze.mock.calls[0][0].frame.capturedAt;
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    setup.source.capture.mockImplementationOnce(async () => syntheticFrame(setup.controls.geometry, baseline + 1));
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.records).toEqual([]);
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
+  });
+
+  it.each(['sensitive', 'unavailable', 'stale'] as const)('完成验证必须重新通过本地安全与新鲜度检查：%s', async condition => {
+    const setup = fixture();
+    setup.analyze.mockImplementation(async input => input.previousStep ? completedResponse(input) : stepResponse(input));
+    await beginTeaching(setup);
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    if (condition === 'sensitive') setup.controls.labels.push('验证码123456');
+    if (condition === 'unavailable') setup.controls.status = 'unavailable';
+    if (condition === 'stale') setup.source.capture.mockImplementationOnce(async () => syntheticFrame(setup.controls.geometry, setup.controls.time - 6000));
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().observation.state).toBe('privacy_paused');
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.records).toEqual([]);
+    expect(setup.suggestReview).not.toHaveBeenCalled();
+  });
+
+  it.each([['step', 6000], ['step', 11000], ['completed', 6000], ['completed', 11000]] as const)(
+    '原帧发送后允许 %s 慢响应 %i 毫秒，仅依赖同上下文最新完整安全帧', async (kind, delay) => {
+      vi.useFakeTimers();
+      const setup = fixture({ intervalMs: 1500 });
+      const pending = await beginSlowAnalysis(setup, kind);
+      try {
+        await advanceObservation(setup, delay);
+        expect(setup.controls.time - pending.request.frame.capturedAt).toBeGreaterThan(5000);
+        expect(pending.request.canSend()).toBe(true);
+        expect(pending.fetchRequest).toHaveBeenCalledOnce();
+        expect(setup.analyze).toHaveBeenCalledTimes(kind === 'step' ? 1 : 2);
+      } finally { pending.complete(); }
+      await setup.runtime.whenIdle();
+      expect(setup.runtime.snapshot().task.state).toBe(kind === 'step' ? 'awaiting_action' : 'completed');
+      expect(setup.records).toHaveLength(kind === 'step' ? 0 : 1);
+      expect(setup.suggestReview).toHaveBeenCalledTimes(kind === 'step' ? 0 : 1);
+      if (kind === 'step') expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ expiresAt: expect.any(Number) }));
+      else expect(setup.records[0]).toMatchObject({ result: 'completed', mastery: 'unmastered' });
+    },
+  );
+
+  it('慢响应没有更新的安全帧时仍被拒绝', async () => {
+    vi.useFakeTimers();
+    const setup = fixture();
+    const pending = await beginSlowAnalysis(setup);
+    try {
+      await advanceObservation(setup, 6000);
+      expect(setup.source.capture).toHaveBeenCalledTimes(3);
+      expect(pending.request.canSend()).toBe(false);
+    } finally { pending.complete(); }
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+    expect(setup.records).toEqual([]);
+    expect(setup.suggestReview).not.toHaveBeenCalled();
+  });
+
+  it.each([5000, 5001])('慢响应使用的最新安全帧仍受五秒边界约束：%i', async age => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 1500 });
+    const pending = await beginSlowAnalysis(setup);
+    try {
+      await advanceObservation(setup, 6000);
+      setup.controls.time += age;
+      expect(pending.request.canSend()).toBe(age <= 5000);
+    } finally { pending.complete(); }
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.state).toBe(age <= 5000 ? 'completed' : 'needs_help');
+    expect(setup.records).toHaveLength(age <= 5000 ? 1 : 0);
+  });
+
+  it.each(['source', 'display', 'geometry', 'signature'] as const)(
+    '慢响应不接受上下文曾发生变化的安全帧续接旧分析：%s', async changed => {
+      vi.useFakeTimers();
+      const setup = fixture({ intervalMs: 1500 });
+      const pending = await beginSlowAnalysis(setup);
+      try {
+        setup.source.capture.mockImplementationOnce(async () => {
+          const frame = syntheticFrame(setup.controls.geometry, ++setup.controls.time);
+          if (changed === 'source') frame.sourceId = 'screen:other:0';
+          if (changed === 'display') frame.displayId = 'other-display';
+          if (changed === 'geometry' && frame.geometry) frame.geometry.x += 10;
+          return frame;
+        });
+        if (changed === 'signature') setup.controls.labels.push('帮助');
+        await advanceObservation(setup, 6000);
+        expect(pending.request.signal.aborted).toBe(true);
+        expect(pending.request.canSend()).toBe(false);
+      } finally { pending.complete(); }
+      await setup.runtime.whenIdle();
+      expect(setup.runtime.snapshot().task.state).not.toBe('completed');
+      expect(setup.records).toEqual([]);
+      expect(setup.suggestReview).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['missing', 'invalid', 'aspect', 'scale', 'display'] as const)(
+    '慢响应不能借相同但未验证的几何或显示信息续接：%s', async invalid => {
+      vi.useFakeTimers();
+      const setup = fixture({ intervalMs: 1500 });
+      if (invalid === 'missing') setup.controls.geometry = null;
+      else if (setup.controls.geometry) {
+        if (invalid === 'invalid') setup.controls.geometry.x = Number.NaN;
+        if (invalid === 'aspect') setup.controls.geometry.height = 500;
+        if (invalid === 'scale') setup.controls.geometry.scaleFactor = 0;
+      }
+      if (invalid === 'display') setup.source.capture.mockImplementation(async () => ({
+        ...syntheticFrame(setup.controls.geometry, ++setup.controls.time), displayId: undefined,
+      }));
+      const pending = await beginSlowAnalysis(setup);
+      try {
+        await advanceObservation(setup, 6000);
+        expect(pending.request.canSend()).toBe(false);
+      } finally { pending.complete(); }
+      await setup.runtime.whenIdle();
+      expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+      expect(setup.records).toEqual([]);
+      expect(setup.suggestReview).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['sensitive', 'unknown', 'unavailable', 'failed'] as const)(
+    '慢响应期间最新本地检测不安全或不完整时立即失效：%s', async condition => {
+      vi.useFakeTimers();
+      const setup = fixture({ intervalMs: 1500 });
+      const pending = await beginSlowAnalysis(setup);
+      try {
+        if (condition === 'sensitive') setup.controls.labels.push('验证码123456');
+        if (condition === 'unknown') setup.controls.labels = ['无法分类的合成页面'];
+        if (condition === 'unavailable') setup.controls.status = 'unavailable';
+        if (condition === 'failed') setup.source.detect.mockRejectedValueOnce(new Error('synthetic detection failure'));
+        await advanceObservation(setup, 6000);
+        expect(setup.runtime.snapshot().observation.state).toBe('privacy_paused');
+        expect(pending.request.canSend()).toBe(false);
+      } finally { pending.complete(); }
+      await setup.runtime.whenIdle();
+      expect(setup.runtime.snapshot().task.state).not.toBe('completed');
+      expect(setup.records).toEqual([]);
+      expect(setup.suggestReview).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['stop', 'new_question'] as const)(
+    '慢响应在安全续接后停止或换问题仍不能迟到安装或传递建议：%s', async action => {
+      vi.useFakeTimers();
+      const setup = fixture({ intervalMs: 1500 });
+      const pending = await beginSlowAnalysis(setup);
+      try {
+        await advanceObservation(setup, 6000);
+        expect(pending.request.canSend()).toBe(true);
+        if (action === 'stop') await setup.runtime.stopObservation('lock');
+        else await setup.runtime.ask('新的问题，打开辅助功能');
+        expect(pending.request.canSend()).toBe(false);
+      } finally { pending.complete(); }
+      await setup.runtime.whenIdle();
+      expect(setup.runtime.snapshot().task.state).toBe(action === 'stop' ? 'ended' : 'awaiting_action');
+      expect(setup.records).toHaveLength(1);
+      expect(setup.records[0].result).toBe('interrupted');
+      expect(setup.suggestReview).not.toHaveBeenCalled();
+    },
+  );
+
+  it('慢响应原始准入帧被篡改时不能靠新安全帧恢复资格', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 1500 });
+    const pending = await beginSlowAnalysis(setup);
+    try {
+      await advanceObservation(setup, 6000);
+      pending.request.frame.sanitizedPng.fill(0);
+      expect(pending.request.canSend()).toBe(false);
+    } finally { pending.complete(); }
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+    expect(setup.records).toEqual([]);
+    expect(setup.suggestReview).not.toHaveBeenCalled();
+  });
+
+  it.each(['stale', 'forged'] as const)(
+    '发送瞬间仍拒绝过期原帧或 WeakSet 外的复制帧，不因响应续接门控放宽：%s', async condition => {
+      vi.useFakeTimers();
+      const setup = fixture({ intervalMs: 1500 });
+      await beginTeaching(setup);
+      const sending = deferred<void>();
+      const fetchRequest = vi.fn<typeof fetch>();
+      const client = createDesktopAnalysisClient({
+        env: { NUANBAN_DESKTOP_API_BASE_URL: 'http://127.0.0.1:3000', NUANBAN_DESKTOP_API_TOKEN: 'synthetic-account-token' },
+        now: () => setup.controls.time, fetch: fetchRequest,
+      });
+      setup.analyze.mockImplementationOnce(async input => {
+        await sending.promise;
+        return client.analyze(condition === 'forged' ? { ...input, frame: { ...input.frame } } : input);
+      });
+      setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+      await setup.runtime.verify();
+      try {
+        await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledTimes(2));
+        await advanceObservation(setup, condition === 'stale' ? 6000 : 1500);
+        expect(setup.analyze.mock.calls[1][0].canSend()).toBe(true);
+      } finally { sending.resolve(); }
+      await setup.runtime.whenIdle();
+      expect(fetchRequest).not.toHaveBeenCalled();
+      expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+      expect(setup.records).toEqual([]);
+      expect(setup.suggestReview).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['guide_id', 'observation_id', 'observation_generation', 'task_generation', 'frame_id', 'trigger_id'] as const)(
+    '完成回应必须绑定当前问题、代次、触发与帧：%s', async field => {
+      const setup = fixture();
+      setup.analyze.mockImplementation(async input => input.previousStep
+        ? { ...completedResponse(input), [field]: field.endsWith('generation') ? -1 : 'stale-identity', review_proposal: proposedReview(setup.controls.time) }
+        : stepResponse(input));
+      await beginTeaching(setup);
+      await verifyChanged(setup);
+      expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+      expect(setup.records).toEqual([]);
+      expect(setup.suggestReview).not.toHaveBeenCalled();
+    },
+  );
+
+  it('新问题保持独立问题与代次，旧分析迟到不安装；并发仅保留最新待分析任务', async () => {
+    const setup = fixture();
+    const firstResponse = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => firstResponse.promise);
+    await setup.start();
+    await setup.runtime.ask('第一个问题，调整文字大小');
+    let first: AnalysisInput | undefined;
+    try {
+      await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+      first = setup.analyze.mock.calls[0][0];
+      await setup.runtime.ask('第二个问题，调整显示');
+      await vi.waitFor(() => expect(setup.source.capture).toHaveBeenCalledTimes(3));
+      await setup.runtime.ask('第三个问题，打开辅助功能');
+      await vi.waitFor(() => expect(setup.source.capture).toHaveBeenCalledTimes(4));
+      expect(first.signal.aborted).toBe(true);
+      expect(first.canSend()).toBe(false);
+      expect(setup.analyze).toHaveBeenCalledOnce();
+    } finally {
+      if (first) firstResponse.resolve(stepResponse(first));
+      else firstResponse.reject(new Error('unit cleanup'));
+    }
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledTimes(2);
+    const latest = setup.analyze.mock.calls[1][0];
+    expect(latest.question).toBe('第三个问题，打开辅助功能');
+    expect(latest.guideId).not.toBe(first?.guideId);
+    expect(latest.taskGeneration).toBeGreaterThan(first!.taskGeneration);
+    expect(setup.runtime.snapshot().task).toMatchObject({ id: latest.guideId, question: latest.question, state: 'awaiting_action' });
+    expect(setup.records.map(record => record.question)).toEqual(['第一个问题，调整文字大小', '第二个问题，调整显示']);
+  });
+
+  it.each(['stop', 'new_question'] as const)('有真实变化的 completed 回应迟到也不能完成或传递复习建议：%s', async action => {
+    const setup = fixture();
+    await beginTeaching(setup);
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    await setup.runtime.verify();
+    let request: AnalysisInput | undefined;
+    try {
+      await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledTimes(2));
+      request = setup.analyze.mock.calls[1][0];
+      if (action === 'stop') await setup.runtime.stopObservation('lock');
+      else await setup.runtime.ask('请教我打开辅助功能');
+      expect(request.canSend()).toBe(false);
+    } finally {
+      const input = request ?? setup.analyze.mock.calls[0][0];
+      response.resolve({ ...completedResponse(input), review_proposal: proposedReview(setup.controls.time) });
+    }
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.state).toBe(action === 'stop' ? 'ended' : 'awaiting_action');
+    expect(setup.records).toHaveLength(1);
+    expect(setup.records[0].result).toBe('interrupted');
+    expect(setup.suggestReview).not.toHaveBeenCalled();
+  });
+
+  it('禁止外部直接 finishTeaching(completed) 或额外参数绕开实际核验', async () => {
+    const setup = fixture();
+    await beginTeaching(setup);
+    await expect(setup.runtime.finishTeaching('completed')).rejects.toThrow('实际变化');
+    await expect(Reflect.apply(setup.runtime.finishTeaching, null, ['completed', { review: proposedReview(setup.controls.time) }]))
+      .rejects.toThrow('实际变化');
+    expect(setup.records).toEqual([]);
+    expect(setup.suggestReview).not.toHaveBeenCalled();
+  });
+
+  it('真实 completed 的合法复习建议只能在教学记录成功之后传递，且不确认掌握或自动调度', async () => {
+    const setup = fixture();
+    const proposal = proposedReview(setup.controls.time);
+    const saved = deferred<void>();
+    const order: string[] = [];
+    setup.analyze.mockImplementation(async input => input.previousStep ? { ...completedResponse(input), review_proposal: proposal } : stepResponse(input));
+    setup.recordTeaching.mockImplementation(async record => { order.push('recording'); await saved.promise; setup.records.push(record); order.push('recorded'); });
+    setup.suggestReview.mockImplementation(() => { order.push('suggested'); });
+    await beginTeaching(setup);
+    const guideId = setup.runtime.snapshot().task.id;
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    await setup.runtime.verify();
+    try {
+      await vi.waitFor(() => expect(setup.recordTeaching).toHaveBeenCalledOnce());
+      expect(setup.suggestReview).not.toHaveBeenCalled();
+      expect(setup.runtime.snapshot().task.state).toBe('finishing');
+    } finally { saved.resolve(); }
+    await setup.runtime.whenIdle();
+    expect(order).toEqual(['recording', 'recorded', 'suggested']);
+    expect(setup.suggestReview).toHaveBeenCalledExactlyOnceWith({
+      sourceGuideId: guideId, remindAt: proposal.remind_at, timezone: proposal.timezone, reason: proposal.reason, source: 'ai',
+    });
+    expect(setup.runtime.snapshot().task.state).toBe('completed');
+    expect(setup.records[0]).toMatchObject({ sourceGuideId: guideId, result: 'completed', mastery: 'unmastered' });
+  });
+
+  it.each(['absent', 'on_step', 'failed_record', 'no_record_hook'] as const)('不得合成或提前传递复习建议：%s', async condition => {
+    const setup = fixture(condition === 'no_record_hook' ? { recordTeaching: undefined } : {});
+    const proposal = proposedReview(setup.controls.time);
+    setup.analyze.mockImplementation(async input => {
+      if (!input.previousStep) return condition === 'on_step' ? { ...stepResponse(input), review_proposal: proposal } : stepResponse(input);
+      return ['absent', 'on_step'].includes(condition) ? completedResponse(input) : { ...completedResponse(input), review_proposal: proposal };
+    });
+    if (condition === 'failed_record') setup.recordTeaching.mockRejectedValue(new Error('unit persistence failure'));
+    await beginTeaching(setup);
+    await verifyChanged(setup);
+    expect(setup.suggestReview).not.toHaveBeenCalled();
+    expect(setup.runtime.snapshot().task.state).toBe(condition === 'failed_record' ? 'needs_help' : 'completed');
+    if (condition === 'failed_record') expect(setup.runtime.snapshot().analysis).toMatchObject({ state: 'error' });
+  });
+
+  it.each([
+    'past', 'present', 'no_offset', 'rolled_date', 'offset', 'horizon', 'invalid_timezone', 'offset_timezone',
+    'missing_timezone', 'missing_reason', 'long_reason', 'sensitive_reason', 'control_reason', 'extra_fields', 'null', 'array', 'inherited', 'accessor',
+  ] as const)('非法复习建议被丢弃，不阻止已经核验且保存的教学完成：%s', async condition => {
+    const setup = fixture();
+    const proposal: Record<string, unknown> = { ...proposedReview(setup.controls.time) };
+    let responseProposal: unknown = proposal;
+    if (condition === 'past') proposal.remind_at = new Date(setup.controls.time - 1).toISOString();
+    if (condition === 'present') proposal.remind_at = new Date(setup.controls.time).toISOString();
+    if (condition === 'no_offset') proposal.remind_at = new Date(setup.controls.time + 86400000).toISOString().slice(0, -1);
+    if (condition === 'rolled_date') proposal.remind_at = `${new Date(setup.controls.time).getUTCFullYear() + 1}-02-30T12:00:00Z`;
+    if (condition === 'offset') proposal.remind_at = new Date(setup.controls.time + 86400000).toISOString().replace('Z', '+25:00');
+    if (condition === 'horizon') proposal.remind_at = new Date(setup.controls.time + 367 * 86400000).toISOString();
+    if (condition === 'invalid_timezone') proposal.timezone = 'Mars/Olympus';
+    if (condition === 'offset_timezone') proposal.timezone = '+08:00';
+    if (condition === 'missing_timezone') delete proposal.timezone;
+    if (condition === 'missing_reason') delete proposal.reason;
+    if (condition === 'long_reason') proposal.reason = '长'.repeat(241);
+    if (condition === 'sensitive_reason') proposal.reason = '请记住验证码123456';
+    if (condition === 'control_reason') proposal.reason = '复习\u0000';
+    if (condition === 'extra_fields') proposal.screenshot = Buffer.from('not a real screenshot');
+    if (condition === 'null') responseProposal = null;
+    if (condition === 'array') responseProposal = [proposal];
+    if (condition === 'inherited') responseProposal = Object.create(proposal);
+    if (condition === 'accessor') Object.defineProperty(proposal, 'timezone', { get() { throw new Error('must not invoke provider getters'); } });
+    setup.analyze.mockImplementation(async input => input.previousStep
+      ? { ...completedResponse(input), review_proposal: responseProposal as never } : stepResponse(input));
+    await beginTeaching(setup);
+    await verifyChanged(setup);
+    expect(setup.runtime.snapshot().task.state).toBe('completed');
+    expect(setup.records).toHaveLength(1);
+    expect(setup.suggestReview).not.toHaveBeenCalled();
+  });
+
+  it('保存笔记期间复习时间过期就不再传递建议', async () => {
+    const setup = fixture();
+    const proposal = proposedReview(setup.controls.time);
+    const saved = deferred<void>();
+    setup.analyze.mockImplementation(async input => input.previousStep ? { ...completedResponse(input), review_proposal: proposal } : stepResponse(input));
+    setup.recordTeaching.mockImplementation(async record => { await saved.promise; setup.records.push(record); });
+    await beginTeaching(setup);
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    await setup.runtime.verify();
+    try {
+      await vi.waitFor(() => expect(setup.recordTeaching).toHaveBeenCalledOnce());
+      setup.controls.time = Date.parse(proposal.remind_at);
+    } finally { saved.resolve(); }
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.state).toBe('completed');
+    expect(setup.suggestReview).not.toHaveBeenCalled();
+  });
+
+  it('复习回调失败不撤销真实教学完成，也不泄露底层错误或声称提醒已经创建', async () => {
+    const setup = fixture();
+    setup.analyze.mockImplementation(async input => input.previousStep
+      ? { ...completedResponse(input), review_proposal: proposedReview(setup.controls.time) } : stepResponse(input));
+    setup.suggestReview.mockRejectedValue(new Error('PRIVATE_STORE_ERROR'));
+    await beginTeaching(setup);
+    await verifyChanged(setup);
+    expect(setup.runtime.snapshot().task.state).toBe('completed');
+    expect(setup.runtime.snapshot().message).toContain('未创建提醒');
+    expect(JSON.stringify(setup.runtime.snapshot())).not.toContain('PRIVATE_STORE_ERROR');
+    expect(setup.records).toHaveLength(1);
+  });
+
+  it('完成记录尚未返回时停止，迟到存储结果不能恢复完成状态或产生建议', async () => {
+    const setup = fixture();
+    const saved = deferred<void>();
+    setup.analyze.mockImplementation(async input => input.previousStep
+      ? { ...completedResponse(input), review_proposal: proposedReview(setup.controls.time) } : stepResponse(input));
+    setup.recordTeaching.mockImplementation(async record => { await saved.promise; setup.records.push(record); });
+    await beginTeaching(setup);
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    await setup.runtime.verify();
+    let stopping: ReturnType<DesktopRuntime['stopObservation']> | undefined;
+    try {
+      await vi.waitFor(() => expect(setup.recordTeaching).toHaveBeenCalledOnce());
+      stopping = setup.runtime.stopObservation('lock');
+      await vi.waitFor(() => expect(setup.runtime.snapshot().observation.state).toBe('stopped'));
+    } finally { saved.resolve(); }
+    await stopping;
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'ended', result: 'interrupted' });
+    expect(setup.recordTeaching).toHaveBeenCalledOnce();
+    expect(setup.suggestReview).not.toHaveBeenCalled();
+  });
+
+  it('记录旧问题期间的新问题不会被旧完成回调覆盖，也不会误标为已记录', async () => {
+    const setup = fixture();
+    const saved = deferred<void>();
+    setup.analyze.mockImplementation(async input => input.previousStep
+      ? { ...completedResponse(input), review_proposal: proposedReview(setup.controls.time) } : stepResponse(input));
+    setup.recordTeaching.mockImplementationOnce(async record => { await saved.promise; setup.records.push(record); });
+    await beginTeaching(setup);
+    const firstGuideId = setup.runtime.snapshot().task.id;
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
+    await setup.runtime.verify();
+    let asking: ReturnType<DesktopRuntime['ask']> | undefined;
+    try {
+      await vi.waitFor(() => expect(setup.recordTeaching).toHaveBeenCalledOnce());
+      asking = setup.runtime.ask('新的问题，打开辅助功能');
+    } finally { saved.resolve(); }
+    await asking;
+    await setup.runtime.whenIdle();
+    const secondGuideId = setup.runtime.snapshot().task.id;
+    expect(secondGuideId).not.toBe(firstGuideId);
+    expect(setup.runtime.snapshot().task).toMatchObject({ question: '新的问题，打开辅助功能', state: 'awaiting_action' });
+    expect(setup.suggestReview).not.toHaveBeenCalled();
+    await setup.runtime.finishTeaching();
+    expect(setup.records.map(record => [record.sourceGuideId, record.result])).toEqual([[firstGuideId, 'completed'], [secondGuideId, 'unfinished']]);
+  });
+});

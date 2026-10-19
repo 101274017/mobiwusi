@@ -1,74 +1,104 @@
-const { app, BrowserWindow, ipcMain, safeStorage, session, Notification, screen, Menu } = require('electron');
+const electron = require('electron');
+const { app, BrowserWindow, ipcMain, safeStorage, session, Notification, dialog } = electron;
 const { createLifecycleController } = require('./lifecycle.cjs');
+const { createStandaloneHost } = require('./standalone-host.cjs');
+const { createPetWorkspace } = require('./pet-workspace.cjs');
+const { createPetToolWindow } = require('./pet-tool-window.cjs');
+const { registerManagementObservationBridge } = require('./management-observation-bridge.cjs');
+const { registerManagementVoiceBridge } = require('./management-voice-bridge.cjs');
+const { createImageQuestionService, registerManagementImageQuestionBridge } = require('./image-question.cjs');
+const { loadConfiguredProvider } = require('./ai-provider.cjs');
+const { createProviderAnalysisClient } = require('./provider-analysis.cjs');
+const { registerManagementTextQuestionBridge } = require('./text-question.cjs');
+const { createLocalArtworkStore, registerLocalArtworkBridge } = require('./local-artwork.cjs');
+const { createLocalModelStore, registerLocalModelBridge } = require('./local-model.cjs');
+const { createLocalModelValidator } = require('./model-validator.cjs');
 const { createDesktopReminderStore, createSafeStoragePayloadCodec } = require('./reminder-store.cjs');
 const { createDesktopReminderNotificationBridge } = require('./reminder-notification-bridge.cjs');
 const { createWindowsCapabilityPolicy } = require('./native-runtime.cjs');
+const { PET_AVATAR_CSP } = require('./xingyun-avatar.cjs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const fs = require('node:fs');
 const indexPath = path.join(__dirname, 'ui', 'index.html');
 const developmentIndex = path.join(__dirname, '..', 'web', 'dist', 'index.html');
-const petPath = path.join(__dirname, 'pet.html');
-const petRoutes = new Map([
-  ['暖伴首页', '/'],
-  ['和暖伴说说', '/chat/new'],
-  ['学习笔记', '/notes'],
-  ['待办与复习', '/todos'],
-  ['我的小伙伴', '/pets'],
-  ['画一画', '/pets/draw'],
-  ['亲情陪伴', '/family'],
-  ['手把手练习', '/overlay/guide'],
-  ['大字字幕', '/overlay/captions'],
-  ['设置与隐私', '/settings'],
-]);
+const managementIndex = () => !app.isPackaged && fs.existsSync(developmentIndex) ? developmentIndex : indexPath;
 let mainWindow;
-let petWindow;
+let mainWindowLoading;
+let standaloneHost;
 let quitAfterLifecycle = false;
+let shutdownPromise;
 let reminderStore;
 let reminderNotifications;
-const lifecycle = createLifecycleController(async reason => ({ stopped:true, captureActive:false, mediaActive:false, reason }));
-function notifyLifecycle(name) {
-  if (!mainWindow?.webContents || mainWindow.webContents.isDestroyed()) return;
-  mainWindow.webContents.send('nuanban:lifecycle', name);
+let artworkBridge;
+let modelBridge;
+let modelValidator;
+let imageQuestionBridge;
+let textQuestionBridge;
+let aiProvider;
+let workspaceBridge;
+const petTools = createPetToolWindow({ BrowserWindow, getIndexPath: managementIndex, preloadPath: path.join(__dirname, 'preload.cjs'),
+  onLifecycle: (name, window) => {
+    if (name !== 'nuanban:host-window-moved') { imageQuestionBridge?.stop(); textQuestionBridge?.stop(); }
+    notifyLifecycle(name, window);
+  }, onClosed: quitIfNoVisibleWindows });
+function notifyLifecycle(name, origin) {
+  for (const window of origin ? [origin] : [mainWindow, petTools.getWindow()]) {
+    if (window && !window.isDestroyed() && !window.webContents.isDestroyed()) window.webContents.send('nuanban:lifecycle', name);
+  }
+}
+function hasVisibleClientWindow() {
+  return [mainWindow, petTools.getWindow()].some(window => window && !window.isDestroyed() && (window.isVisible() || window.isMinimized()));
+}
+function quitIfNoVisibleWindows() {
+  if (!quitAfterLifecycle && !hasVisibleClientWindow() && standaloneHost?.getPetWindow()?.isVisible() === false) app.quit();
 }
 function trusted(event) {
-  const expected = pathToFileURL(fs.existsSync(indexPath) ? indexPath : developmentIndex).href;
-  return event.sender === mainWindow?.webContents && event.senderFrame === mainWindow.webContents.mainFrame && event.senderFrame.url.split('#')[0] === expected;
+  const expected = pathToFileURL(managementIndex()).href;
+  const window = [mainWindow, petTools.getWindow()].find(candidate => candidate && !candidate.isDestroyed() && event.sender === candidate.webContents);
+  return Boolean(window && !window.webContents.isDestroyed() && event.senderFrame === window.webContents.mainFrame && event.senderFrame.url.split('#')[0] === expected);
 }
-function trustedPet(event) {
-  const expected = pathToFileURL(petPath).href;
-  return event.sender === petWindow?.webContents && event.senderFrame === petWindow.webContents.mainFrame && event.senderFrame.url.split('#')[0] === expected;
-}
-function showMainWindow(route = '/') {
-  if (!mainWindow || mainWindow.isDestroyed()) return false;
+async function showMainWindow(route = '/') {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    if (!mainWindowLoading) mainWindowLoading = createWindow().finally(() => { mainWindowLoading = undefined; });
+    await mainWindowLoading;
+  }
+  if (!mainWindow || mainWindow.isDestroyed()) throw new Error('管理窗口未就绪');
+  mainWindow.setTitle('暖伴 · 管理中心');
   if (mainWindow.isMinimized()) mainWindow.restore();
+  await mainWindow.webContents.executeJavaScript(`window.location.hash = ${JSON.stringify(route)};`, true);
   mainWindow.show();
-  void mainWindow.webContents.executeJavaScript(`window.location.hash = ${JSON.stringify(route)};`, true).catch(() => undefined);
   mainWindow.focus();
   return true;
 }
-function createPetMenu() {
-  const routeItems = [...petRoutes].map(([label, route]) => ({ label, click: () => { showMainWindow(route); } }));
-  return Menu.buildFromTemplate([
-    { label: '暖伴功能', enabled: false },
-    { type: 'separator' },
-    ...routeItems,
-    { type: 'separator' },
-    { label: '打开主客户端', click: () => { showMainWindow('/'); } },
-    { label: '停止当前流程', click: () => { void lifecycle.requestStop('user').catch(() => undefined); } },
-    { label: '关闭桌宠', click: () => { petWindow?.close(); } },
-  ]);
-}
 function registerBridge() {
   const requireTrusted = event => { if (!trusted(event)) throw new Error('不可信桥接来源'); };
-  const requireTrustedPet = event => { if (!trustedPet(event)) throw new Error('不可信桌宠来源'); };
+  workspaceBridge = createPetWorkspace({ ipcMain, isTrusted: trusted, getWindow: () => mainWindow,
+    getToolWindow: petTools.getWindow, getToolRevision: petTools.getRevision,
+    showPet: () => { if (!standaloneHost) throw new Error('桌宠尚未就绪'); return standaloneHost.showPetPanel({ section: 'features' }); } });
+  registerManagementObservationBridge({ ipcMain, isTrusted: trusted, getHost: () => standaloneHost });
+  registerManagementVoiceBridge({ ipcMain, isTrusted: trusted, getHost: () => standaloneHost,
+    openMicrophoneSettings: () => electron.shell.openExternal('ms-settings:privacy-microphone') });
+  imageQuestionBridge = registerManagementImageQuestionBridge({ ipcMain, isTrusted: trusted,
+    service: createImageQuestionService({ nativeImage: electron.nativeImage, provider: aiProvider, timeoutMs: 45000 }) });
+  textQuestionBridge = registerManagementTextQuestionBridge({ ipcMain, isTrusted: trusted, provider: aiProvider });
+  modelValidator = createLocalModelValidator({ BrowserWindow, ipcMain });
+  modelBridge = registerLocalModelBridge({ ipcMain, dialog,
+    store: createLocalModelStore({ databasePath: path.join(app.getPath('userData'), 'nuanban-local-model.sqlite') }),
+    validate: modelValidator.validate, isManagementTrusted: trusted, getManagementWindow: () => mainWindow, getToolWindow: petTools.getWindow, getPetWindow: () => standaloneHost?.getPetWindow() });
+  artworkBridge = registerLocalArtworkBridge({ ipcMain, onChange: () => modelBridge.deactivate(),
+    store: createLocalArtworkStore({ filePath: path.join(app.getPath('userData'), 'nuanban-original-pet.png'), nativeImage: electron.nativeImage }),
+    isManagementTrusted: trusted, getManagementWindow: () => mainWindow, getToolWindow: petTools.getWindow, getPetWindow: () => standaloneHost?.getPetWindow() });
   ipcMain.handle('nuanban:capabilities', event => {
     requireTrusted(event);
      return { ...createWindowsCapabilityPolicy({ safeStorage, Notification }), externalCapture:false, encryptedReminderPayload:Boolean(reminderStore?.encryptedReminderPayload), persistentReminderStore:Boolean(reminderStore) };
   });
   ipcMain.handle('nuanban:stop', event => {
     requireTrusted(event);
-    return lifecycle.requestStop('user');
+    imageQuestionBridge?.stop();
+    textQuestionBridge?.stop();
+    if (!standaloneHost) throw new Error('独立运行核心尚未就绪');
+    return standaloneHost.stop('user');
   });
   ipcMain.handle('nuanban:reminders:schedule', (event, input) => { requireTrusted(event); if (!reminderStore) throw new Error('本地提醒仓储不可用'); return reminderStore.schedule(input); });
   ipcMain.handle('nuanban:reminders:read', (event, accountId, reminderId) => { requireTrusted(event); if (!reminderStore) throw new Error('本地提醒仓储不可用'); return reminderStore.read(accountId, reminderId); });
@@ -78,112 +108,65 @@ function registerBridge() {
   ipcMain.handle('nuanban:reminders:receipt', (event, input) => { requireTrusted(event); if (!reminderStore) throw new Error('本地提醒仓储不可用'); return reminderStore.recordReceipt(input); });
   ipcMain.handle('nuanban:reminders:complete', (event, input) => { requireTrusted(event); if (!reminderStore) throw new Error('本地提醒仓储不可用'); return reminderStore.complete(input); });
   ipcMain.handle('nuanban:reminders:notify-due', (event, input) => { requireTrusted(event); if (!reminderNotifications) return { status:'unsupported', reason:'桌面通知适配器不可用' }; return reminderNotifications.notifyDue(input); });
-  ipcMain.handle('nuanban:pet:close', event => { requireTrustedPet(event); petWindow?.close(); return true; });
-  ipcMain.handle('nuanban:pet:open-main', event => {
-    requireTrustedPet(event);
-    return showMainWindow('/');
-  });
-  ipcMain.handle('nuanban:pet:context-menu', event => {
-    requireTrustedPet(event);
-    if (!petWindow || petWindow.isDestroyed()) return false;
-    createPetMenu().popup({ window: petWindow });
-    return true;
-  });
 }
 async function createWindow() {
-  const startPage = fs.existsSync(indexPath) ? indexPath : developmentIndex;
-  mainWindow = new BrowserWindow({ width:1360,height:920,minWidth:420,minHeight:640,title:'暖伴 · 前端演示',backgroundColor:'#FFF8EF',show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true} });
+  const startPage = managementIndex();
+  mainWindow = new BrowserWindow({ width:1360,height:920,minWidth:420,minHeight:640,title:'暖伴 · 管理中心',backgroundColor:'#FFF8EF',show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true} });
+  mainWindow.setContentProtection(true);
   mainWindow.webContents.setWindowOpenHandler(() => ({action:'deny'}));
   mainWindow.webContents.on('will-navigate', event => event.preventDefault());
   mainWindow.webContents.on('will-attach-webview', event => event.preventDefault());
   mainWindow.webContents.on('render-process-gone', () => {
-    notifyLifecycle('nuanban:host-renderer-gone');
-    void lifecycle.requestStop('renderer-gone').catch(() => undefined);
+    textQuestionBridge?.stop();
+    imageQuestionBridge?.stop();
+    notifyLifecycle('nuanban:host-renderer-gone', mainWindow);
   });
-  mainWindow.on('close', () => notifyLifecycle('nuanban:host-before-quit'));
-  mainWindow.on('move', () => notifyLifecycle('nuanban:host-window-moved'));
+  mainWindow.on('close', () => { imageQuestionBridge?.stop(); textQuestionBridge?.stop(); notifyLifecycle('nuanban:host-before-quit', mainWindow); });
+  mainWindow.on('move', () => notifyLifecycle('nuanban:host-window-moved', mainWindow));
   mainWindow.on('closed', () => {
-    void lifecycle.requestStop('process-terminated').catch(() => undefined);
     mainWindow = undefined;
+    quitIfNoVisibleWindows();
   });
-  mainWindow.once('ready-to-show', () => mainWindow.show());
   await mainWindow.loadFile(startPage);
 }
-async function createPetWindow() {
-  const { workArea } = screen.getPrimaryDisplay();
-  const petWidth = 280;
-  const petHeight = 330;
-  const petMargin = 24;
-  petWindow = new BrowserWindow({
-    x: workArea.x + workArea.width - petWidth - petMargin,
-    y: workArea.y + workArea.height - petHeight - petMargin,
-    width: petWidth,
-    height: petHeight,
-    minWidth: petWidth,
-    minHeight: petHeight,
-    maxWidth: petWidth,
-    maxHeight: petHeight,
-    title: '暖伴桌宠',
-    show: false,
-    transparent: true,
-    frame: false,
-    hasShadow: false,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    resizable: false,
-    movable: true,
-    focusable: true,
-    backgroundColor: '#00000000',
-    webPreferences: {
-      preload: path.join(__dirname, 'pet-preload.cjs'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-      webSecurity: true,
-    },
-  });
-  petWindow.setAlwaysOnTop(true, 'floating');
-  petWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-  petWindow.webContents.on('will-navigate', event => event.preventDefault());
-  petWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
-    if (isMainFrame) console.error(`[pet] load failed (${errorCode}): ${errorDescription} ${validatedURL}`);
-  });
-  petWindow.webContents.on('render-process-gone', (_event, details) => {
-    console.error(`[pet] renderer exited: ${details.reason}`);
-  });
-  petWindow.on('unresponsive', () => console.error('[pet] window became unresponsive'));
-  petWindow.on('responsive', () => console.warn('[pet] window became responsive'));
-  petWindow.on('closed', () => {
-    console.warn('[pet] window closed');
-    petWindow = undefined;
-  });
-  const showPetWindow = () => {
-    if (!petWindow || petWindow.isDestroyed()) return;
-    petWindow.showInactive();
-    petWindow.setAlwaysOnTop(true, 'floating');
-    petWindow.moveTop();
-  };
-  petWindow.once('ready-to-show', showPetWindow);
-  await petWindow.loadFile(petPath);
-  showPetWindow();
-}
 app.on('before-quit', event => {
+  textQuestionBridge?.stop();
+  imageQuestionBridge?.stop();
   if (quitAfterLifecycle) return;
   event.preventDefault();
-  quitAfterLifecycle = true;
+  if (shutdownPromise) return;
   notifyLifecycle('nuanban:host-before-quit');
-  void lifecycle.requestStop('process-terminated').then(() => app.quit(), () => app.quit());
+  const lifecycle = createLifecycleController(reason => standaloneHost ? standaloneHost.dispose(reason) : Promise.resolve({ stopped: true, captureActive: false, mediaActive: false, reason }));
+  shutdownPromise = lifecycle.requestStop('process-terminated').then(() => {
+    quitAfterLifecycle = true;
+    app.quit();
+  }, () => {
+    shutdownPromise = undefined;
+    dialog.showErrorBox('采集或形象停止尚未确认', '已关闭发送，但尚未确认所有本地采集或星云形象会话退出。请再次退出桌宠，并检查星云后台会话；不会假报清理成功。');
+  });
 });
 app.on('will-quit', () => {
+  workspaceBridge?.dispose();
+  textQuestionBridge?.dispose();
+  modelValidator?.dispose();
+  modelBridge?.dispose();
+  imageQuestionBridge?.dispose();
+  artworkBridge?.dispose();
   reminderNotifications?.dispose();
   reminderNotifications = undefined;
   reminderStore?.close();
   reminderStore = undefined;
 });
-app.whenReady().then(async () => {
+const ownsInstance = app.requestSingleInstanceLock();
+if (!ownsInstance) app.quit();
+app.on('second-instance', (_event, argumentsList) => {
+  if (argumentsList.includes('--management')) void showMainWindow('/').catch(() => dialog.showErrorBox('管理窗口未打开', '请从桌宠重新打开管理窗口。'));
+  else standaloneHost?.showPetPanel();
+});
+if (ownsInstance) app.whenReady().then(async () => {
   session.defaultSession.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));
   session.defaultSession.setPermissionCheckHandler(()=>false);
-  session.defaultSession.webRequest.onHeadersReceived((details,callback)=>callback({responseHeaders:{...details.responseHeaders,'Content-Security-Policy':["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'"]}}));
+  session.defaultSession.webRequest.onHeadersReceived((details,callback)=>callback({responseHeaders:{...details.responseHeaders,'Content-Security-Policy':[details.webContentsId === standaloneHost?.getPetWindow()?.webContents.id ? PET_AVATAR_CSP : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src blob: data:; media-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'"]}}));
   try {
     reminderStore = createDesktopReminderStore({ databasePath: path.join(app.getPath('userData'), 'nuanban-reminders.sqlite'), payloadCodec: createSafeStoragePayloadCodec(safeStorage) });
     reminderNotifications = createDesktopReminderNotificationBridge({
@@ -195,8 +178,17 @@ app.whenReady().then(async () => {
       },
     });
   } catch { reminderStore = undefined; reminderNotifications = undefined; }
+  try { aiProvider = await loadConfiguredProvider(); } catch { aiProvider = undefined; }
   registerBridge();
-  await createWindow();
-  await createPetWindow();
+  standaloneHost = createStandaloneHost({ electron, userDataPath: app.getPath('userData'), showManagement: showMainWindow,
+    showPetTool: route => petTools.show(route),
+    analyzer: aiProvider ? createProviderAnalysisClient({ provider: aiProvider }) : undefined,
+    questioner: aiProvider,
+    reminderStore, reminderNotifications, isQuitting: () => quitAfterLifecycle, hasManagementWindow: hasVisibleClientWindow, onExit: () => app.quit() });
+  await standaloneHost.initialize();
+  if (process.argv.includes('--management')) await showMainWindow('/');
+}).catch(() => {
+  dialog.showErrorBox('暖伴启动未完成', '独立桌宠加载失败，未自动开启屏幕或麦克风采集。请检查本地启动日志与依赖后重试。');
+  app.quit();
 });
 app.on('window-all-closed',()=>app.quit());

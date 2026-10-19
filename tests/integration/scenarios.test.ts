@@ -1,17 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { configuration, scenarioCatalog } from '@nuanban/config';
-import { DemoConversation, ScenarioRepository, createScenarioSnapshot } from '@nuanban/mocks';
+import { configuration } from '@nuanban/config';
+import { scenarioCatalog } from '../fixtures/scenario-catalog';
+import { DemoConversation, ScenarioRepository, createScenarioSnapshot } from '../fixtures/business-scenarios';
 import { readConversation } from '@nuanban/application';
 import { IndexedDbRepository, IndexedDbDrawing } from '@nuanban/local-data';
 import { UnconnectedConversation, UnconnectedRepository } from '../../packages/api-client/src/index';
 import { guideReducer, initialGuide } from '@nuanban/domain';
 
 afterEach(() => vi.useRealTimers());
-describe('确定性 Mock 与独立开关', () => {
+describe('测试夹具与运行时配置隔离', () => {
   it('登记了方案规定的 13 个场景', () => {
     expect(scenarioCatalog).toHaveLength(13);
     expect(new Set(scenarioCatalog.map(scenario => scenario.id)).size).toBe(13);
-    for (const scenario of scenarioCatalog) expect(configuration({ VITE_MOCK_SCENARIO: scenario.id }, false).scenario).toBe(scenario.id);
+    for (const scenario of scenarioCatalog) expect(() => configuration({ VITE_MOCK_SCENARIO: scenario.id }, false)).toThrow('演示场景已移除');
   });
   it('同场景重置的时间、ID 与顺序固定', () => {
     expect(createScenarioSnapshot('demo-owner', 'success')).toEqual(createScenarioSnapshot('demo-owner', 'success'));
@@ -19,15 +20,15 @@ describe('确定性 Mock 与独立开关', () => {
     expect(createScenarioSnapshot('demo-owner', 'empty').notes).toEqual([]);
     expect(createScenarioSnapshot('demo-owner', 'empty').todos).toEqual([]);
   });
-  it('平台选择不会改变业务服务或场景', () => {
+  it('平台选择不会重新启用测试场景', () => {
     for (const platform of ['browser', 'windows', 'android']) {
-      expect(configuration({ VITE_PLATFORM_MODE: platform, VITE_MOCK_SCENARIO: 'timeout' }, false)).toEqual({ apiMode: 'mock', platformMode: platform, scenario: 'timeout' });
+      expect(configuration({ VITE_PLATFORM_MODE: platform }, false)).toEqual({ apiMode: 'local', platformMode: platform });
     }
   });
   it('未知场景、真实模式注入和正式部署 Mock 均失败关闭', () => {
-    expect(() => configuration({ VITE_MOCK_SCENARIO: 'typo' }, false)).toThrow('未知演示场景');
-    expect(() => configuration({ VITE_API_MODE: 'real', VITE_MOCK_SCENARIO: 'offline' }, false)).toThrow('禁止注入');
-    expect(() => configuration({ VITE_API_MODE: 'mock' }, true)).toThrow('禁止');
+    expect(() => configuration({ VITE_MOCK_SCENARIO: 'typo' }, false)).toThrow('演示场景已移除');
+    expect(() => configuration({ VITE_API_MODE: 'real', VITE_MOCK_SCENARIO: 'offline' }, false)).toThrow('演示场景已移除');
+    expect(() => configuration({ VITE_API_MODE: 'mock' }, true)).toThrow('Mock 已停用');
   });
   it.each([
     ['timeout', 'TIMEOUT'], ['offline', 'NETWORK_OFFLINE'], ['permission-denied', 'PERMISSION_DENIED'],

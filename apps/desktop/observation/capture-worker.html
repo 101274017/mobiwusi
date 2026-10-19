@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; connect-src 'none'; media-src blob:; img-src 'none'; style-src 'none'; font-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Local controlled capture</title>
+  <script src="capture-worker.js" defer></script>
+</head>
+<body><video id="capture-video" muted playsinline width="16" height="16"></video><canvas id="capture-canvas" width="0" height="0" hidden></canvas></body>
+</html>

@@ -1,6 +1,6 @@
 import { describe,it,expect,beforeEach } from 'vitest';
 import { IndexedDbRepository,IndexedDbDrawing } from '@nuanban/local-data';
-import { createDemoSnapshot } from '@nuanban/mocks';
+import { createDemoSnapshot } from '../fixtures/business-scenarios';
 import { buildReviewTodo,markReviewed,setMastery,mayViewLearning } from '@nuanban/application';
 import { configuration } from '@nuanban/config';
 import { useApp } from '../../apps/web/src/store';
@@ -19,7 +19,7 @@ describe('学习闭环',()=>{
   it('撤权立即拒绝档案投影',()=>{expect(mayViewLearning({id:'r1',name:'示例家属',relation:'家属',status:'revoked',scopes:['notes:read']})).toBe(false);});
 });
 describe('配置隔离',()=>{
-  it('业务 Mock 和平台选择独立',()=>expect(configuration({VITE_API_MODE:'mock',VITE_PLATFORM_MODE:'android'},false)).toEqual({apiMode:'mock',platformMode:'android',scenario:'success'}));
+  it('本机业务与平台选择独立',()=>expect(configuration({VITE_API_MODE:'local',VITE_PLATFORM_MODE:'android'},false)).toEqual({apiMode:'local',platformMode:'android'}));
   it('生产环境不得模拟登录与 Mock 服务',()=>expect(()=>configuration({VITE_API_MODE:'mock'},true)).toThrow('Mock'));
   it('未知枚举拒绝启动',()=>expect(()=>configuration({VITE_API_MODE:'anything'},false)).toThrow('未知'));
 });

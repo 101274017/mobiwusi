@@ -18,10 +18,10 @@ const privacyPath = 'packages/privacy/src/index.ts';
 const desktopPath = 'apps/desktop/native-runtime.cjs';
 const inputFiles = [
   'scripts/check-release-readiness.mjs', 'scripts/project-gate.mjs', 'scripts/check-d07-decision.mjs',
-  'scripts/implementation-plan.mjs', 'packages/config/src/index.ts', 'packages/config/src/scenarios.ts',
+  'scripts/implementation-plan.mjs', 'packages/config/src/index.ts', 'apps/web/src/local-snapshot.ts',
   'apps/web/vite.config.ts', desktopPath, 'apps/desktop/main.cjs', privacyPath, providerPath,
-  'apps/server/src/main.ts', 'apps/server/src/http.ts', 'apps/server/src/service-modules.ts',
-  ...['NativeCaptureRuntime', 'NativeCaptureService', 'LocalFrameGate'].map(name => `apps/android/app/src/main/java/org/nuanban/assistant/nativehost/${name}.kt`),
+  'apps/server/src/main.ts', 'apps/server/src/http.ts', 'apps/server/src/service-modules.ts', 'apps/server/src/standalone-guidance.ts',
+  ...['NativeCaptureRuntime', 'NativeCaptureService', 'LocalFrameGate'].map(name => `apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/${name}.kt`),
 ];
 const digest = (value: string) => createHash('sha256').update(value).digest('hex');
 type Check = { id: string; passed: boolean };
@@ -134,6 +134,21 @@ describe('一次性外部能力清单与发布就绪（全部变更仅在临时�
     expect(report.development.eligible).toBe(false);
   });
 
+  it('独立桌宠端口必须真实默认拒绝，不能用直接放行替代配置检查', async () => {
+    const file = 'apps/server/src/standalone-guidance.ts';
+    put(file, text(file).replace('const provider = configuration(env);', "const provider = { endpoint: 'https://synthetic.invalid', key: 'synthetic', model: 'synthetic' };"));
+    const report = await createReleaseReadinessReport(options());
+    expect(failed(report)).toContain('STANDALONE_GUIDANCE_DEFAULT_CLOSED');
+    expect(report.development.eligible).toBe(false);
+  });
+
+  it('允许已审计的独立视觉工厂不等于允许默认装配远端媒体模块', async () => {
+    const file = 'apps/server/src/main.ts';
+    put(file, text(file).replace('standaloneGuidance: createStandaloneGuidanceService()', 'standaloneGuidance: createStandaloneGuidanceService(), modules: {}'));
+    const report = await createReleaseReadinessReport(options());
+    expect(failed(report)).toContain('SERVER_EXTERNAL_MODULES_UNMOUNTED');
+  });
+
   it.each(['{ broken', 'null'])('损坏/缺失证据不能通过：%s', async contents => {
     put('docs/implementation/evidence/c15-nv-readiness-results.json', contents);
     const report = await createReleaseReadinessReport(options());
@@ -172,9 +187,9 @@ describe('一次性外部能力清单与发布就绪（全部变更仅在临时�
   it('公开配置按实际优先级计算而不是读取 .env.example 当正式配置', async () => {
     put('.env.example', 'VITE_API_MODE=real\nVITE_DEPLOYMENT=production\n');
     put('apps/web/.env', 'VITE_API_MODE=real\nVITE_API_BASE_URL=http://127.0.0.1:3000\n');
-    put('apps/web/.env.local', 'VITE_API_MODE=mock\n');
+    put('apps/web/.env.local', 'VITE_API_MODE=local\n');
     const report = await createReleaseReadinessReport(options());
-    expect(report.configuration[0]).toMatchObject({ apiMode: 'mock', deployment: 'development', apiEndpoint: 'loopback' });
+    expect(report.configuration[0]).toMatchObject({ apiMode: 'local', deployment: 'development', apiEndpoint: 'loopback' });
     expect(report.configuration[0].origins.VITE_API_MODE).toBe('apps/web/.env.local');
     expect(report.release.ready).toBe(false);
   });
@@ -182,6 +197,7 @@ describe('一次性外部能力清单与发布就绪（全部变更仅在临时�
   it.each([
     { VITE_API_MODE: 'real', VITE_API_BASE_URL: 'https://unverified.invalid' },
     { VITE_API_MODE: 'mock', VITE_DEPLOYMENT: 'production' },
+    { VITE_API_MODE: 'mock', VITE_DEPLOYMENT: 'development' },
     { VITE_PLATFORM_MODE: 'unknown' },
   ])('未知/危险配置按本地代码失败处理：%j', async environment => {
     const report = await createReleaseReadinessReport(options(environment));

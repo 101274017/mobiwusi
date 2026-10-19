@@ -1,0 +1,55 @@
+:root { color-scheme: light; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; color: #493728; background: #fff8ed; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 300px; }
+button { font: inherit; cursor: pointer; }
+button:disabled { opacity: .48; cursor: not-allowed; }
+button:focus-visible { outline: 3px solid #667c57; outline-offset: 4px; }
+.voice-room { display: flex; flex-direction: column; height: 100dvh; max-width: 560px; margin: auto; padding: 20px 26px 16px; }
+.room-header, .session-chip, .session-details, .captions-heading, .call-controls { display: flex; align-items: center; }
+.room-header { justify-content: space-between; flex-shrink: 0; gap: 8px; font-size: 12px; }
+.brand { color: #8f7256; letter-spacing: .08em; }
+.session-chip { gap: 7px; border: 1px solid #ded6be; border-radius: 20px; background: #fbfcf1; padding: 6px 10px; color: #5e704f; white-space: nowrap; }
+.status-dot { width: 6px; height: 6px; border-radius: 100%; background: #9b937d; }
+.face-to-face { flex-shrink: 0; text-align: center; padding: 16px 0 14px; }
+.eyebrow { font-size: 12px; color: #987658; letter-spacing: .14em; margin: 4px 0 9px; }
+h1 { margin: 0; font: 500 30px/1.5 "STKaiti", "KaiTi", serif; letter-spacing: .1em; }
+.avatar-halo { width: 222px; height: 222px; margin: 15px auto 0; border-radius: 50%; background: radial-gradient(ellipse at 50% 54%, #f6e5c5 0, #f8edd9 55%, transparent 71%); }
+.voice-cat { width: 220px; height: 220px; transform-origin: 50% 90%; animation: breathe 5s ease-in-out infinite; }
+.cat-mouth { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.voice-wave { display: flex; align-items: center; justify-content: center; gap: 5px; height: 28px; margin-top: 3px; }
+.voice-wave span { display: block; width: 4px; height: 5px; border-radius: 4px; background: #b9a180; }
+.voice-wave span:nth-child(2), .voice-wave span:nth-child(4) { animation-delay: -.22s; }
+.voice-wave span:nth-child(3) { animation-delay: -.4s; }
+.voice-prompt { font-size: 16px; min-height: 26px; margin: 10px 0 7px; }
+.session-details { justify-content: center; gap: 12px; color: #95816b; font-size: 12px; margin: 0; }
+.session-details time { font-variant-numeric: tabular-nums; }
+.captions-card { display: flex; flex-direction: column; flex: 1; min-height: 86px; overflow: hidden; padding: 13px 17px; border: 1px solid #e9dcc7; border-radius: 18px; background: #fffdf8; }
+.captions-heading { justify-content: space-between; gap: 8px; color: #a28d73; font-size: 10px; }
+h2 { font-size: 12px; font-weight: 500; color: #796449; margin: 0; }
+.caption-empty { margin: 19px 0 13px; font-size: 13px; line-height: 1.7; color: #a08b74; }
+#voice-transcripts { flex: 1; min-height: 0; overflow-y: auto; list-style: none; margin: 10px 0 0; padding: 0; scrollbar-width: thin; }
+#voice-transcripts:empty { margin: 0; }
+#voice-transcripts li { padding: 8px 0; font-size: 14px; line-height: 1.75; white-space: pre-wrap; overflow-wrap: anywhere; }
+#voice-transcripts li + li { border-top: 1px solid #f0e7d8; }
+#voice-transcripts li[data-role="user"] { color: #7d715e; }
+.speaker { display: block; margin-bottom: 3px; color: #ac855c; font-size: 11px; }
+.room-footer { flex-shrink: 0; padding-top: 16px; }
+.call-controls { justify-content: center; flex-wrap: wrap; gap: 8px; }
+.call-controls button { min-height: 44px; padding: 9px 12px; border: 1px solid #ddcfb9; border-radius: 12px; background: #fffaf1; color: #67513b; font-size: 13px; }
+.call-controls button:hover:not(:disabled) { background: #f2e9d7; }
+.call-controls .end-call { border-color: #ab4f39; background: #ab4f39; color: #fff8ee; }
+.call-controls .end-call:hover { background: #923e2a; }
+.call-controls button[aria-pressed="true"] { background: #fbe8df; border-color: #cf9e88; color: #8b3f2f; }
+.privacy-note { margin: 15px 2px 0; color: #a08a70; font-size: 10px; line-height: 1.8; text-align: center; }
+body[data-state="listening"] .status-dot, body[data-state="thinking"] .status-dot, body[data-state="speaking"] .status-dot { background: #728966; }
+body[data-state="listening"] .voice-wave span, body[data-state="speaking"] .voice-wave span { animation: wave .8s ease-in-out infinite alternate; background: #7e946e; }
+body[data-state="speaking"] .cat-mouth { opacity: 1; animation: mouth .22s ease-in-out infinite alternate; }
+body[data-state="speaking"] .avatar-halo { background: radial-gradient(ellipse at 50% 54%, #e9edcc 0, #f7eed9 55%, transparent 71%); }
+body[data-state="muted"] .status-dot { background: #b17658; }
+body[data-state="error"] .voice-prompt { color: #9d4939; }
+@keyframes breathe { 50% { transform: translateY(-3px) rotate(1deg); } }
+@keyframes wave { to { height: 21px; } }
+@keyframes mouth { to { transform: scaleY(.3); } }
+@media (max-height: 850px) { .avatar-halo, .voice-cat { width: 170px; height: 170px; } .avatar-halo { margin-top: 9px; } .face-to-face { padding: 12px 0; } h1 { font-size: 27px; } .voice-wave { height: 22px; } .voice-prompt { margin: 6px 0 4px; } .privacy-note { margin-top: 10px; line-height: 1.6; } .room-footer { padding-top: 12px; } }
+@media (max-width: 360px), (max-height: 640px) { .voice-room { padding: 12px 16px; } .face-to-face { padding: 8px 0; } .avatar-halo, .voice-cat { width: 130px; height: 130px; } h1 { font-size: 24px; } .eyebrow { font-size: 11px; margin: 2px 0 4px; } .voice-prompt { font-size: 14px; } .call-controls { gap: 5px; } .call-controls button { font-size: 12px; padding: 8px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }

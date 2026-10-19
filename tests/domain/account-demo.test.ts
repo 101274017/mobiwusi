@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { accountDemoEligibility, accountDemoReducer, initialAccountDemo, type AccountDemoInput } from '@nuanban/domain';
-import { DemoAccountFlow } from '@nuanban/mocks';
+import { accountDemoEligibility, accountDemoReducer, initialAccountDemo, type AccountDemoInput } from '../fixtures/account-demo';
+import { DemoAccountFlow } from '../fixtures/business-scenarios';
 
 const input: AccountDemoInput = { method: 'family', platform: 'android', subject: 'adult', hasSim: true, bound: true, operatorAuthorized: true, purposeAccepted: true, outcome: 'success' };
 afterEach(() => vi.useRealTimers());

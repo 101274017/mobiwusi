@@ -35,19 +35,20 @@ function typeOf(schema) {
 export function generateArtifacts() {
   const paths = {};
   for (const operation of operations) {
-    const parameters = [{ name: 'X-Request-ID', in: 'header', required: true, schema: { type: 'string', format: 'uuid' } }];
+    const parameters = [{ name: 'X-Request-ID', in: 'header', required: operation.requestId?.required ?? true, schema: operation.requestId?.schema ?? { type: 'string', format: 'uuid' } }];
     for (const match of operation.path.matchAll(/\{([^}]+)\}/g)) parameters.push({ name: match[1], in: 'path', required: true, schema: { type: 'string', format: 'uuid' } });
-    if (operation.method !== 'get') parameters.push({ name: 'Idempotency-Key', in: 'header', required: true, schema: { type: 'string', format: 'uuid' } });
+    if (operation.method !== 'get' && operation.idempotencyKey !== false) parameters.push({ name: 'Idempotency-Key', in: 'header', required: true, schema: { type: 'string', format: 'uuid' } });
     if (operation.versioned) parameters.push({ name: 'If-Match', in: 'header', required: true, schema: { type: 'string', pattern: '^"[1-9][0-9]*"$' } });
     if (operation.paginated) parameters.push({ name: 'cursor', in: 'query', required: false, schema: { type: 'string', minLength: 1, maxLength: 512 } }, { name: 'limit', in: 'query', required: false, schema: { type: 'integer', minimum: 1, maximum: 100, default: 30 } });
     const response = { description: operation.stream ? '带终止事件的 SSE；关闭连接不代表成功' : '操作成功' };
     if (operation.response) response.content = operation.stream
       ? { 'text/event-stream': { schema: { type: 'string' }, 'x-event-schema': reference(operation.response) } }
-      : { 'application/json': { schema: componentRefs(successEnvelope(operation.response)) } };
+      : { 'application/json': { schema: componentRefs(successEnvelope(operation.response, operation.requestId?.schema)) } };
     if (operation.versioned) response.headers = { ETag: { description: '当前对象版本，用于后续 If-Match', schema: { type: 'string', pattern: '^"[1-9][0-9]*"$' } } };
     const responses = { [operation.successStatus]: response };
-    for (const status of [400, 401, 403, 404, 409, 410, 422, 429, 503, 504]) responses[status] = { description: '安全错误包络；不返回原始媒体、凭证或堆栈', content: { 'application/json': { schema: reference('ErrorEnvelope') } } };
+    for (const status of operation.errorStatuses ?? [400, 401, 403, 404, 409, 410, 422, 429, 503, 504]) responses[status] = { description: '安全错误包络；不返回原始媒体、凭证或堆栈', content: { 'application/json': { schema: reference(operation.errorEnvelope ?? 'ErrorEnvelope') } } };
     const spec = { operationId: operation.id, summary: operation.summary, security: operation.authentication === 'bearer' ? [{ bearerAuth: [] }] : [], parameters, responses, 'x-object-authorization': operation.authorization, 'x-implementation-stage': 'E-after-D-approval' };
+    if (operation.description) spec.description = operation.description;
     if (operation.authentication === 'public-challenge') spec['x-challenge-proof-required'] = operation.authorization;
     if (operation.binary) spec.requestBody = { required: true, content: { 'application/octet-stream': { schema: { type: 'string', format: 'binary' } } }, 'x-maximum-bytes': 10485760 };
     else if (operation.request) spec.requestBody = { required: true, content: { 'application/json': { schema: reference(operation.request) } } };

@@ -1,20 +1,20 @@
 {
   "reportSchemaVersion": "c17-assembly/v2",
   "generatedBy": "nuanban/scripts/check-c17-assembly.mjs",
-  "generatedAt": "2026-10-17T15:53:08.148Z",
-  "generatedDate": "2026-10-17",
+  "generatedAt": "2026-10-18T09:19:20.959Z",
+  "generatedDate": "2026-10-18",
   "generatedTimeZone": "Asia/Shanghai",
   "mode": "development",
   "scope": "C17 shared storage and bridge assembly preflight",
-  "sourceRevision": "c493a506079a9a3d914d793b214930ad52f58701602fbf45f6ebf2ad7b94b1e0",
-  "status": "ready_for_development",
+  "sourceRevision": "fa5b14ee249e8aa633667cd3643b69dd83d17789c8cf88f27387f5af47ff12fa",
+  "status": "blocked",
   "acceptance": "preparatory_not_accepted",
-  "auditPassed": true,
-  "browserStorageVerified": "synthetic_only",
-  "nativeBridgeVerified": "synthetic_only",
-  "androidRoomVerified": "compile_only",
-  "desktopStoreVerified": "static_only",
-  "desktopNotificationVerified": "synthetic_only",
+  "auditPassed": false,
+  "browserStorageVerified": "not_ready",
+  "nativeBridgeVerified": "not_ready",
+  "androidRoomVerified": "not_ready",
+  "desktopStoreVerified": "not_ready",
+  "desktopNotificationVerified": "not_ready",
   "accountIsolationAudited": true,
   "highRiskCapabilitiesEnabled": false,
   "goNoGoEligible": false,
@@ -81,8 +81,8 @@
     {
       "id": "C17-06",
       "title": "组合根不把真实服务或系统权限伪装成已接入",
-      "status": "passed",
-      "passed": true,
+      "status": "failed",
+      "passed": false,
       "kind": "code",
       "files": [
         "packages/config/src/index.ts",
@@ -90,7 +90,10 @@
         "packages/platform-ports/README.md",
         "packages/contracts/README.md"
       ],
-      "missing": []
+      "missing": [
+        "packages/config/src/index.ts: if (production && apiMode === 'mock')",
+        "apps/web/src/composition.ts: UnconnectedRepository"
+      ]
     },
     {
       "id": "C17-07",
@@ -146,19 +149,41 @@
   ],
   "commandResults": [
     {
-      "command": "E:\\7\\新建文件夹\\node.exe C:\\Users\\33864\\Desktop\\nuanban\\node_modules\\vitest\\vitest.mjs run tests/privacy/c03-gate.test.ts tests/privacy/c04-media-relay.test.ts tests/domain/guidance-platform.test.ts tests/provider/provider-sandbox.test.ts tests/integration/local-data.test.ts tests/platform/android-message-host.test.ts tests/platform/native-host.test.ts tests/contract/active-bridge.test.ts tests/platform/desktop-notification-adapter.test.ts tests/platform/desktop-reminder-bridge.test.ts --reporter=dot --maxWorkers=2 --no-file-parallelism",
+      "command": "E:\\7\\新建文件夹\\node.exe C:\\Users\\33864\\Desktop\\nuanban\\node_modules\\vitest\\vitest.mjs run tests/privacy/c03-gate.test.ts tests/privacy/c04-media-relay.test.ts tests/domain/guidance-platform.test.ts tests/provider/provider-sandbox.test.ts tests/integration/local-data.test.ts tests/platform/android-message-host.test.ts tests/platform/native-host.test.ts tests/contract/active-bridge.test.ts tests/platform/desktop-notification-adapter.test.ts tests/platform/desktop-reminder-bridge.test.ts tests/platform/desktop-standalone-host.test.ts tests/platform/desktop-runtime-coordinator.test.ts tests/platform/desktop-runtime-learning-store.test.ts tests/platform/desktop-observation-policy.test.ts tests/platform/desktop-observation-source.test.ts tests/platform/desktop-analysis-client.test.ts tests/platform/desktop-local-wake.test.ts tests/platform/desktop-pet-ui.test.ts tests/platform/desktop-external-script.test.ts tests/platform/android-standalone-runtime.test.ts --reporter=dot --maxWorkers=2 --no-file-parallelism",
       "exitCode": 0,
       "signal": null,
       "passed": true,
-      "stdout": "RUN  v5.0.4 C:/Users/33864/Desktop/nuanban\n\n·································································································································································\n\n Test Files  10 passed (10)\n      Tests  161 passed (161)\n   Start at  23:53:01\n   Duration  6.38s (import 39%, transform 22%, tests 19%, setup 17%, worker 2%)\n\n    Isolate  10 workers spawned · ~302ms startup each (spawn + environment, per file)\n             at least ~2.72s faster with isolate: false — reuses workers across files instead of one per file",
+      "stdout": "RUN  v5.0.4 C:/Users/33864/Desktop/nuanban\n\n······················································································································································································································································································································································································································································································································································································································································\n\n Test Files  20 passed (20)\n      Tests  630 passed (630)\n   Start at  17:18:56\n   Duration  24.10s (tests 90%, transform 4%, setup 3%, import 2%)\n\n    Isolate  20 workers spawned · ~170ms startup each (spawn + environment, per file)\n             at least ~3.23s faster with isolate: false — reuses workers across files instead of one per file",
       "stderr": ""
     }
   ],
   "development": {
-    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
-    "eligible": true,
-    "failedChecks": [],
-    "failed_checks": [],
+    "verdict": "DEV_BLOCKED",
+    "eligible": false,
+    "failedChecks": [
+      {
+        "id": "C17_REQUIRED_SOURCE_MISSING",
+        "reason": "Required assembly source missing: packages/config/src/scenarios.ts",
+        "kind": "code"
+      },
+      {
+        "id": "C17-06",
+        "reason": "组合根不把真实服务或系统权限伪装成已接入",
+        "kind": "code"
+      }
+    ],
+    "failed_checks": [
+      {
+        "id": "C17_REQUIRED_SOURCE_MISSING",
+        "reason": "Required assembly source missing: packages/config/src/scenarios.ts",
+        "kind": "code"
+      },
+      {
+        "id": "C17-06",
+        "reason": "组合根不把真实服务或系统权限伪装成已接入",
+        "kind": "code"
+      }
+    ],
     "externalPending": [
       {
         "id": "C17_WEBVIEW_DEVICE",
@@ -202,8 +227,8 @@
   },
   "default": {
     "mode": "development",
-    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
-    "eligible": true,
+    "verdict": "DEV_BLOCKED",
+    "eligible": false,
     "externalPending": [
       {
         "id": "C17_WEBVIEW_DEVICE",
@@ -246,9 +271,9 @@
     ]
   },
   "external": {
-    "verdict": "EXTERNAL_PENDING",
+    "verdict": "BLOCKED",
     "ready": false,
-    "status": "external_pending",
+    "status": "blocked",
     "pending": [
       {
         "id": "C17_WEBVIEW_DEVICE",
@@ -311,7 +336,7 @@
     ]
   },
   "release": {
-    "verdict": "EXTERNAL_PENDING",
+    "verdict": "BLOCKED",
     "ready": false,
     "blockers": [
       {
@@ -342,6 +367,8 @@
     ]
   },
   "blockers": [
+    "Required assembly source missing: packages/config/src/scenarios.ts",
+    "组合根不把真实服务或系统权限伪装成已接入",
     "No real Android WebView or system lifecycle evidence is present.",
     "No installed desktop runtime, system permission or Toast evidence is present.",
     "C17 native assembly evidence has not received independent review."
@@ -350,14 +377,14 @@
     {
       "file": "scripts/check-c17-assembly.mjs",
       "exists": true,
-      "bytes": 17075,
-      "contentSha256": "90ac33a29fe3641f90b8eea1315e8f0458aa626ba763c3848598be87b0c8bec3"
+      "bytes": 20328,
+      "contentSha256": "4fbc7a8d7256028fc1eadb9c854a69c11959fc36ba5a777199003d6b89f1ce28"
     },
     {
       "file": "vitest.config.ts",
       "exists": true,
-      "bytes": 575,
-      "contentSha256": "89d8070c219134e32755073124b91c2875afcad830a30d3b2e32fe3dbd5ec0c4"
+      "bytes": 567,
+      "contentSha256": "427f1096f34e0434abef6fea5c21a8c865979097402aaa03931111d0c0ac47df"
     },
     {
       "file": "tests/setup.ts",
@@ -392,14 +419,14 @@
     {
       "file": "packages/config/src/index.ts",
       "exists": true,
-      "bytes": 1048,
-      "contentSha256": "3219ab186389562352a9b3d687536d87a834a64fe3fbf9cc3fea8bd9f6bfcec4"
+      "bytes": 753,
+      "contentSha256": "29a148391e1f7b8787167666746b906c98781fd458da17c5ef117761159d51e1"
     },
     {
       "file": "packages/config/src/scenarios.ts",
-      "exists": true,
-      "bytes": 2520,
-      "contentSha256": "8186404c755f8ce32e146d03554f29a7534527648e83cfc2e737b3c083bb2cb0"
+      "exists": false,
+      "bytes": 0,
+      "contentSha256": null
     },
     {
       "file": "tests/privacy/c03-gate.test.ts",
@@ -428,8 +455,8 @@
     {
       "file": "apps/web/src/composition.ts",
       "exists": true,
-      "bytes": 2767,
-      "contentSha256": "c868fd05bd1e1c8a99fce287707395fef872b59df8cc2b55d2a31b01c42c08eb"
+      "bytes": 1672,
+      "contentSha256": "5d439043b315aa0067aaf8dee0fe9fe4abe33295df10669f6337323d4e3294a3"
     },
     {
       "file": "apps/web/src/bootstrap.tsx",
@@ -476,20 +503,218 @@
     {
       "file": "apps/desktop/main.cjs",
       "exists": true,
-      "bytes": 6543,
-      "contentSha256": "69816da0287322a492af0413df126508b03478ce83e509d7d41ee1ffba752983"
+      "bytes": 11493,
+      "contentSha256": "fc2dbd0c4b4cbd6f5d27f324c80e60eb0b1409a92c1210351e5b463f60fd4438"
     },
     {
       "file": "apps/desktop/preload.cjs",
       "exists": true,
-      "bytes": 1479,
-      "contentSha256": "21a2175fcddf98292f08c34cd86e031830b1041e6ed71cc0bed3112d9618b122"
+      "bytes": 5111,
+      "contentSha256": "b275016ad48680e79164652c8d5fed3975f9430eca893cbd08e4dc5903e085b2"
+    },
+    {
+      "file": "apps/desktop/forge.config.cjs",
+      "exists": true,
+      "bytes": 826,
+      "contentSha256": "7012ba4998c10cea65f0ab1cb58ea7c1a65b44b185fa999a404f3af0291a0810"
+    },
+    {
+      "file": "apps/desktop/external-script-path.cjs",
+      "exists": true,
+      "bytes": 381,
+      "contentSha256": "5f4e917b52662dc958c481c39f277af5133916aba75e92e75bbf86a4fc5dd457"
+    },
+    {
+      "file": "apps/desktop/standalone-host.cjs",
+      "exists": true,
+      "bytes": 35229,
+      "contentSha256": "7f5bee97a3cb68e465a8a2eeb8d39c5315102316e880972f01af1c45b703e007"
+    },
+    {
+      "file": "apps/desktop/runtime-coordinator.cjs",
+      "exists": true,
+      "bytes": 28786,
+      "contentSha256": "bfb4e82560ad3d546a81df5834d8a3f6135b88355974d308160aade35330003f"
+    },
+    {
+      "file": "apps/desktop/runtime-learning-store.cjs",
+      "exists": true,
+      "bytes": 21552,
+      "contentSha256": "70b571eb2de0909d114907a4f41b971596ff685560a4b3d118ad92a4da2aa38e"
+    },
+    {
+      "file": "apps/desktop/analysis-client.cjs",
+      "exists": true,
+      "bytes": 5050,
+      "contentSha256": "82b04e9f1e0244f50b1cf3ea6c2ee127c235cd4b41a3987f895c49fb04cadfd9"
+    },
+    {
+      "file": "apps/desktop/observation-policy.cjs",
+      "exists": true,
+      "bytes": 9651,
+      "contentSha256": "d2b65b72273f5cfb43a6342e2471c22617dab174c3848500cfccedaacee72b48"
+    },
+    {
+      "file": "apps/desktop/pet-preload.cjs",
+      "exists": true,
+      "bytes": 9920,
+      "contentSha256": "7fe5913a61495f33aa9ccc18801a1ebb7d8ec3526c0c224835717da8749e50a6"
+    },
+    {
+      "file": "apps/desktop/pet.js",
+      "exists": true,
+      "bytes": 42517,
+      "contentSha256": "ad12528027aec262dd278d0b16157ca0c24c5db47bae5d95f529e231689868a5"
+    },
+    {
+      "file": "apps/desktop/pet.html",
+      "exists": true,
+      "bytes": 14721,
+      "contentSha256": "1916c2387ea0467edbe5c2453549d4467936d8c178d953c52ab11b554565a930"
+    },
+    {
+      "file": "apps/desktop/pet.css",
+      "exists": true,
+      "bytes": 13567,
+      "contentSha256": "368cac18324c805f1bcdb6cdb95ece8e678d9172b7e9de6207c3fceb5bc29d88"
+    },
+    {
+      "file": "apps/desktop/guide-preload.cjs",
+      "exists": true,
+      "bytes": 1260,
+      "contentSha256": "4a90d7435479f95d00baf31cbb83a4293af09d3397b7a00d634cff771b30d17c"
+    },
+    {
+      "file": "apps/desktop/guide.js",
+      "exists": true,
+      "bytes": 4425,
+      "contentSha256": "dae0d49b489a606cdc2e256a76c401bfe510f713552a825b01621b0c8032da94"
+    },
+    {
+      "file": "apps/desktop/guide.html",
+      "exists": true,
+      "bytes": 1011,
+      "contentSha256": "7f5025083245eddfb7b50f67fa6ad85fa8ca3e637a0af0ba30bdbd920231e23d"
+    },
+    {
+      "file": "apps/desktop/guide.css",
+      "exists": true,
+      "bytes": 1924,
+      "contentSha256": "5daee530d12f29e9042187215637b47b5ee5828a969b0ab52509fd7247d2c497"
+    },
+    {
+      "file": "apps/desktop/caption-preload.cjs",
+      "exists": true,
+      "bytes": 535,
+      "contentSha256": "a6008712e874b367c98ab0e449a9f5a8aa6c227fcafd378605a33478e81ecc4b"
+    },
+    {
+      "file": "apps/desktop/caption.js",
+      "exists": true,
+      "bytes": 333,
+      "contentSha256": "8512d74eeebedda1d1aba143b8067777df4a181c0c6831e07b20472beef92435"
+    },
+    {
+      "file": "apps/desktop/caption.html",
+      "exists": true,
+      "bytes": 359,
+      "contentSha256": "dfe9d793b3b8234aae0392f464219562f8073194a64e8ed9ab00900a12384fd8"
+    },
+    {
+      "file": "apps/desktop/caption.css",
+      "exists": true,
+      "bytes": 644,
+      "contentSha256": "3bddb42c441dc1893a3c6b96262ea67c8a4168ebc3ea1b976e5bf468bd96b194"
+    },
+    {
+      "file": "apps/desktop/observation/windows-observation-source.cjs",
+      "exists": true,
+      "bytes": 9312,
+      "contentSha256": "2d4de8ee9e46692b995c36a81399cd84c29236c93db6e840a4d43f7401dc23be"
+    },
+    {
+      "file": "apps/desktop/observation/windows-local-detector.cjs",
+      "exists": true,
+      "bytes": 12348,
+      "contentSha256": "d134125b454ecb7b2081811116fef260effc8cbd286b71c779363becee81451d"
+    },
+    {
+      "file": "apps/desktop/observation/windows-local-analysis.ps1",
+      "exists": true,
+      "bytes": 9917,
+      "contentSha256": "8c1bbd819ecdcae821e544a1ae22ee65688ed3803843af6b9d21e6751034efa2"
+    },
+    {
+      "file": "apps/desktop/observation/windows-helper-process.cjs",
+      "exists": true,
+      "bytes": 4082,
+      "contentSha256": "e38e6ed27c129f9f44224e74c01122dadd0ccfce8560e41aa3e45e765a9c772c"
+    },
+    {
+      "file": "apps/desktop/observation/observation-common.cjs",
+      "exists": true,
+      "bytes": 3420,
+      "contentSha256": "7b6e790d107083e4d32a9fb23aae30047e80904f18259db888b89368172b38fb"
+    },
+    {
+      "file": "apps/desktop/observation/controlled-screen-capture.cjs",
+      "exists": true,
+      "bytes": 14683,
+      "contentSha256": "80f274c582a93dfc8ca436bd25fa1d909f145db27910563fb27d9d10aadd8925"
+    },
+    {
+      "file": "apps/desktop/observation/capture-worker.js",
+      "exists": true,
+      "bytes": 4730,
+      "contentSha256": "dee063a955db675feafd0ded843f6a6af4bf5a93eda70e195927803f8422f977"
+    },
+    {
+      "file": "apps/desktop/observation/capture-worker.html",
+      "exists": true,
+      "bytes": 605,
+      "contentSha256": "3922cb50d0347df22bbfa55aec4fe31bb52bd8fff5004ea432f5a36ce42fcbd2"
+    },
+    {
+      "file": "apps/desktop/observation/capture-worker-preload.cjs",
+      "exists": true,
+      "bytes": 3267,
+      "contentSha256": "58a4d990a5fd6cf3551531fe47d2ce67ec05411cfa11c22a353cb5e532bfa27f"
+    },
+    {
+      "file": "apps/desktop/wake/windows-local-wake.cjs",
+      "exists": true,
+      "bytes": 15582,
+      "contentSha256": "229164adfb757c10431abe68d6e7fb44f14cec3a539976e39728f5c58d84c641"
+    },
+    {
+      "file": "apps/desktop/wake/windows-local-wake.ps1",
+      "exists": true,
+      "bytes": 9951,
+      "contentSha256": "52ea723efec9aaa133949fb1a3134d136cdb8918c7a7ba96b6e6aa0815d006d7"
+    },
+    {
+      "file": "apps/server/src/standalone-guidance.ts",
+      "exists": true,
+      "bytes": 32951,
+      "contentSha256": "8baa3a232b6271c708104b4ea585b961a09d4365433d9a6955667995d3207723"
+    },
+    {
+      "file": "apps/server/src/http.ts",
+      "exists": true,
+      "bytes": 16052,
+      "contentSha256": "3c69828e422f11679d6a30dbb3a75255c4a3f279aede527fda9db33139f1c642"
+    },
+    {
+      "file": "apps/server/src/main.ts",
+      "exists": true,
+      "bytes": 1638,
+      "contentSha256": "8ccee347df7b801a9b2eb0c11637a3e1a829b41f19e5456e1952f3464e010437"
     },
     {
       "file": "apps/android/app/build.gradle.kts",
       "exists": true,
-      "bytes": 781,
-      "contentSha256": "fd521e1d3035e52c0b86d984d6e249e2636c922718ddfec8b207fcf119f3b062"
+      "bytes": 835,
+      "contentSha256": "634bc1487234c2321367199f12310e4b04ec5a2e7ca2d33ed85a5efe4486cdde"
     },
     {
       "file": "apps/android/app/src/main/AndroidManifest.xml",
@@ -536,8 +761,278 @@
     {
       "file": "apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt",
       "exists": true,
-      "bytes": 17612,
-      "contentSha256": "009ad52bcc1f422787761b17a54a0a0a0cdab7a56d6f1e3916a3162bca151718"
+      "bytes": 17265,
+      "contentSha256": "6dd35d2bdcff3dab4b69dc34a621bd0e8c259128383ae2a8ec4030e7cde2548d"
+    },
+    {
+      "file": "apps/android/standalone/build.gradle.kts",
+      "exists": true,
+      "bytes": 1196,
+      "contentSha256": "2ce6d3466f1f73b8d43adeb2aaaf0de1f49c02ddec95b7df3a63f32d0ad2ae57"
+    },
+    {
+      "file": "apps/android/standalone/src/main/AndroidManifest.xml",
+      "exists": true,
+      "bytes": 2388,
+      "contentSha256": "dd9b4d560e6f69d7f1c8219ec88aeb17d9a097ce4ba7af2ee8a705e83772cbd3"
+    },
+    {
+      "file": "apps/android/app/src/normal/java/org/nuanban/assistant/nativehost/AndroidHostRuntime.kt",
+      "exists": true,
+      "bytes": 646,
+      "contentSha256": "7afb89e36da4e986651609e7a3d93659ea18934652739d1bf89b72f6cec11615"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidHostRuntime.kt",
+      "exists": true,
+      "bytes": 1713,
+      "contentSha256": "0c3b29226642e1828e4ce24c7a0695fc415fbf0189eb984bf9bf936a28af4248"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/CaptureSession.kt",
+      "exists": true,
+      "bytes": 3429,
+      "contentSha256": "7fc014bf6deb77bdc78b56bcc23b5e84867f785fd37bafa0d4ed09ae4b49d04a"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt",
+      "exists": true,
+      "bytes": 2415,
+      "contentSha256": "6de6212a3110cd9068dace85f7957957611ac525a2a980bf26e2d3c75e0dcf69"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureControlActivity.kt",
+      "exists": true,
+      "bytes": 6097,
+      "contentSha256": "4770067b92cdfc9f61c6a7df8b7f0dedb7b51a4e2560cb5efdfac03cefd4458d"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+      "exists": true,
+      "bytes": 3648,
+      "contentSha256": "8b3e27aafa45f025b728d181f7fb16d933420cccc4f34c3e089d11a8ec957f9e"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+      "exists": true,
+      "bytes": 18936,
+      "contentSha256": "a38fdadd23853f4d24c41dcc712ee65d336afc4a5f30df1677064ae6a74d2e57"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/PetControlActivity.kt",
+      "exists": true,
+      "bytes": 9172,
+      "contentSha256": "26408efd261cb105e55174f03571663f3be7b8793b1da43d0d805ac6e6f9e292"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/PetManagementBoundary.kt",
+      "exists": true,
+      "bytes": 1255,
+      "contentSha256": "09d568eb891bd440f7b03150bf0f05bdb46be74b73116e64655f7b208559515d"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/PetRuntime.kt",
+      "exists": true,
+      "bytes": 2841,
+      "contentSha256": "76201cffb9c2a49b15b870d6f169618b3a73230161470d5e3272ed6cddd534c5"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/PetRuntimeService.kt",
+      "exists": true,
+      "bytes": 12578,
+      "contentSha256": "c3e6c0b1882c2f6c60a0ee208fe8008118acbf80668f2b0bdada249202573889"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/PetSessions.kt",
+      "exists": true,
+      "bytes": 4569,
+      "contentSha256": "3bfc396d445317dceb3f2fa718a193d256ea7c517cab3841a9de5184be35e1d6"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidScreenPolicy.kt",
+      "exists": true,
+      "bytes": 4972,
+      "contentSha256": "73b2b9d2e358bf85020d2fa7c3e847bb5bc0cfcd9051db961639d0b478b6a289"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidLocalScreenDetector.kt",
+      "exists": true,
+      "bytes": 10385,
+      "contentSha256": "dc6ccb527f4ac7d82bbed719c17a1e5c4752b5ffe13dad3e6f59b0c2bc95538d"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidCaptureGeometry.kt",
+      "exists": true,
+      "bytes": 1275,
+      "contentSha256": "5a2da4f004f4298a64371e8f07f9b58cdca0d535d38ce09da264a531db6ec140"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidTeachingState.kt",
+      "exists": true,
+      "bytes": 10829,
+      "contentSha256": "74f2201e0dacaf21751d752155ae573d314648f944e0bd2d1fc914a0d702426e"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidGuidanceAdapter.kt",
+      "exists": true,
+      "bytes": 2251,
+      "contentSha256": "c191e6dd39df2b26f25cb4fce3b522a8d6bcf38d50a661a61fd8415d816e1dce"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidGuidanceConnection.kt",
+      "exists": true,
+      "bytes": 6125,
+      "contentSha256": "37c03d765d5e2e0b45eca3477baf85e91db0a7b9fdbaa202f472a75617023a4e"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidGuidanceRuntime.kt",
+      "exists": true,
+      "bytes": 7635,
+      "contentSha256": "e2d21d5c974c882b7c47bd3601fa862761c61a9b87dc988589fd1519208dac01"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidGuidanceOverlay.kt",
+      "exists": true,
+      "bytes": 4392,
+      "contentSha256": "e56a8a393748eaba74eb124e618e2c51c5bc5fd5c0bb775b649dbc72739950d0"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/StandaloneGuidanceProtocol.kt",
+      "exists": true,
+      "bytes": 30569,
+      "contentSha256": "4e9581d026473dddefd04029482d2865fc7fb8bc17fb6434350822cfa95d3d1f"
+    },
+    {
+      "file": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/StandaloneGuidanceClient.kt",
+      "exists": true,
+      "bytes": 9642,
+      "contentSha256": "f4e7858bc5ba40bb87e0b4386b156c326f18c5bc9b08347b5918bae50fd6a4bf"
+    },
+    {
+      "file": "apps/android/check-standalone.ps1",
+      "exists": true,
+      "bytes": 2871,
+      "contentSha256": "639527e4b8d4e5840028c755c0869bc0f42fd91f24b1eca856900633f9c91d0e"
+    },
+    {
+      "file": "apps/android/check-standalone-packaging.ps1",
+      "exists": true,
+      "bytes": 9226,
+      "contentSha256": "40242ec26abd8adef478e85ca6b82b3cc194a7ee366544a7e2deb86336bf39ad"
+    },
+    {
+      "file": "apps/android/standalone-tests/PetSessionChecks.kt",
+      "exists": true,
+      "bytes": 15722,
+      "contentSha256": "598de29182a333287b5df3c408ad9d5804646392cf5b5816ff91f1ddac088577"
+    },
+    {
+      "file": "apps/android/standalone-tests/AndroidScreenPolicyChecks.kt",
+      "exists": true,
+      "bytes": 4306,
+      "contentSha256": "f5fcb23df45a1d68eca55aa6000929389d110ce4bf011207295a4b075caa5f80"
+    },
+    {
+      "file": "apps/android/standalone-tests/AndroidCaptureGeometryChecks.kt",
+      "exists": true,
+      "bytes": 1703,
+      "contentSha256": "17492a4ec1d7103429eab6acd8fddaa29d5b43209b474d39bb1f7932465579ed"
+    },
+    {
+      "file": "apps/android/standalone-tests/AndroidTeachingStateChecks.kt",
+      "exists": true,
+      "bytes": 8350,
+      "contentSha256": "e52362e85395e95a9cee6cd899bc17363d3fe9b3bc9e038954bd6659c3bacebf"
+    },
+    {
+      "file": "apps/android/standalone-tests/AndroidGuidanceAdapterChecks.kt",
+      "exists": true,
+      "bytes": 6013,
+      "contentSha256": "23e94a3da5914363e8b7abbaf6cb60a11da7a02544f043bf9e233c93fdd86592"
+    },
+    {
+      "file": "apps/android/standalone-tests/StandaloneGuidanceProtocolChecks.kt",
+      "exists": true,
+      "bytes": 24240,
+      "contentSha256": "2f83c8cb8f95ed7b90afe2355becad7b80eb56b40c3698616e047028f114c2ef"
+    },
+    {
+      "file": "tests/platform/desktop-standalone-host.test.ts",
+      "exists": true,
+      "bytes": 27927,
+      "contentSha256": "38c9d24474b3a5ea5666bdd8790bab13c634375273b2e1247aaa08f312f730e9"
+    },
+    {
+      "file": "tests/platform/desktop-runtime-coordinator.test.ts",
+      "exists": true,
+      "bytes": 47612,
+      "contentSha256": "2c6873c4835298b29f2dfcf620136ced5b570633e4e9be493718f108621ad68f"
+    },
+    {
+      "file": "tests/platform/desktop-runtime-learning-store.test.ts",
+      "exists": true,
+      "bytes": 33401,
+      "contentSha256": "3b1b045c6249b7e1217cc2548871d9728ca21282c086650be8159ac40a49fe0c"
+    },
+    {
+      "file": "tests/platform/desktop-observation-policy.test.ts",
+      "exists": true,
+      "bytes": 4608,
+      "contentSha256": "6cf72839403b8debf1d0b757a7214f32e2ab0e7d271820a70c5304b65be86e98"
+    },
+    {
+      "file": "tests/platform/desktop-observation-source.test.ts",
+      "exists": true,
+      "bytes": 53729,
+      "contentSha256": "04b87ef243f6268e9b13a29bbef5903d473526ff39c66ca53abb14833fe2b8f0"
+    },
+    {
+      "file": "tests/platform/desktop-analysis-client.test.ts",
+      "exists": true,
+      "bytes": 6042,
+      "contentSha256": "eafcb359f36561ffef051867a9c67e2157ee18060eb92310a1bbb7756ac4d265"
+    },
+    {
+      "file": "tests/platform/desktop-local-wake.test.ts",
+      "exists": true,
+      "bytes": 36766,
+      "contentSha256": "3b6af2100368e669e493ebae5f6563f2cd6b667d4bd889600c5978881c7d509e"
+    },
+    {
+      "file": "tests/platform/desktop-pet-ui.test.ts",
+      "exists": true,
+      "bytes": 66793,
+      "contentSha256": "f406dffa41a8cfd845cca4d2a94f3c6e02f8019037bc4cc99396cdeccc3da10f"
+    },
+    {
+      "file": "tests/platform/desktop-external-script.test.ts",
+      "exists": true,
+      "bytes": 2788,
+      "contentSha256": "4aee804c27522e62a3dbe697dcf4b7c5cff7caece4288ccd87b238356d2ad326"
+    },
+    {
+      "file": "tests/platform/android-standalone-runtime.test.ts",
+      "exists": true,
+      "bytes": 15270,
+      "contentSha256": "fe6621f1d9d66351ca23b73be59c8b6e05b827fa14f48f6b0617553bb3533d3a"
+    },
+    {
+      "file": "暖伴AI公益助手-产品需求文档-独立桌宠版.md",
+      "exists": true,
+      "bytes": 66739,
+      "contentSha256": "9c1942e74bfe95ac10720e49968622a6a46b4f1a5ab0f6d6ad5b75d30c0df421"
+    },
+    {
+      "file": "暖伴AI公益助手-技术与实施方案-独立桌宠版.md",
+      "exists": true,
+      "bytes": 153746,
+      "contentSha256": "f17d1367c5d8be3d8a7b0324ba0000eb5e5d2d286442fbd8f25335ec30b70d9a"
+    },
+    {
+      "file": "暖伴AI公益助手-项目实施计划-独立桌宠四机并发版.md",
+      "exists": true,
+      "bytes": 156364,
+      "contentSha256": "ea78384001013d1e695a458112743a53c87aff52d8e3f94446014e8d311141c7"
     },
     {
       "file": "packages/contracts/kotlin/src/main/kotlin/org/nuanban/contracts/ActiveBridgeProtocol.kt",
@@ -548,8 +1043,8 @@
     {
       "file": "tests/integration/local-data.test.ts",
       "exists": true,
-      "bytes": 4065,
-      "contentSha256": "6784d7c6db0bb3c05a729345865d0c0d2a45d296acb458a74f32194452bc43b2"
+      "bytes": 4064,
+      "contentSha256": "3ce6cfa2d0eb813e3e042d4719e389cc9c007166f85daada2802e80ec605c142"
     },
     {
       "file": "tests/platform/android-message-host.test.ts",

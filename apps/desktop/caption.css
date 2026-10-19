@@ -1,0 +1,4 @@
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: transparent; pointer-events: none; }
+body { display: flex; align-items: flex-end; justify-content: center; font-family: "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; }
+#caption { box-sizing: border-box; max-width: 100%; max-height: 108px; overflow: hidden; margin: 0 8px 8px; padding: 14px 22px; border: 1px solid #e9d8b9; border-radius: 20px; background: #fff9eff5; box-shadow: 0 4px 14px #503a231f; color: #453126; font-size: 26px; font-weight: 600; line-height: 1.5; text-align: center; overflow-wrap: anywhere; }
+[hidden] { display: none !important; }

@@ -1,8 +1,12 @@
+import type { Schema } from './primitives.ts';
+import { standaloneGuidanceIdentifier } from './standalone-guidance.ts';
+
 export interface OperationSpec {
   id: string;
   method: 'get' | 'post' | 'put' | 'patch' | 'delete';
   path: string;
   summary: string;
+  description?: string;
   request: string | null;
   response: string | null;
   authentication: 'public-challenge' | 'bearer';
@@ -12,6 +16,10 @@ export interface OperationSpec {
   stream: boolean;
   binary: boolean;
   successStatus: number;
+  idempotencyKey?: boolean;
+  requestId?: { required: boolean; schema: Schema };
+  errorEnvelope?: string;
+  errorStatuses?: number[];
 }
 
 function operation(id: string, method: OperationSpec['method'], path: string, summary: string, request: string | null, response: string | null, options: Partial<OperationSpec> = {}): OperationSpec {
@@ -47,6 +55,21 @@ export const operations: OperationSpec[] = [
   operation('mediaCommit', 'post', '/media/{id}/commit', '校验哈希/大小/归属后提交媒体引用', 'MediaCommitRequest', 'MediaCommitResponse', { authorization: 'owner_of_unexpired_safe_upload' }),
   operation('guidanceCreate', 'post', '/guidance', '创建逐步教学，不注入输入', 'GuidanceCreateRequest', 'GuidanceCreateResponse'),
   operation('guidanceAnalyze', 'post', '/guidance/{id}/analyze', '候选步骤须绑定当前授权与帧代际', 'GuidanceAnalyzeRequest', 'RequestAccepted', { authorization: 'self_and_current_capture_consent' }),
+  operation('standaloneGuidanceAnalyze', 'post', '/standalone/guidance/analyze', '分析客户端声明已本地检测并脱敏的独立桌宠教学帧，不代替本人操作', 'StandaloneGuidanceAnalyzeRequest', 'StandaloneGuidanceResult', {
+    successStatus: 200,
+    idempotencyKey: false,
+    requestId: { required: false, schema: standaloneGuidanceIdentifier },
+    errorEnvelope: 'StandaloneGuidanceErrorEnvelope',
+    errorStatuses: [400, 401, 403, 499, 500, 502, 503, 504],
+    description: [
+      'Bearer 鉴权只认证当前账号；本地观察同意、安全检测和脱敏由客户端执行。local_safety=safe 与 redaction_profile 只是请求声明，JSON Schema 和服务端都不能证明本地检测可信，不可据此绕过 unknown 或风险停采集。',
+      'X-Request-ID 可选，省略或无效时服务端生成 UUID；有效值沿用请求标识返回。此接口不要求 Idempotency-Key。请求体最多 3 MiB。',
+      'base64 最多 2700000 字符，解码后 PNG 最多 2000000 bytes、宽高各不超过 4096、总像素不超过 8388608；只允许非隔行 8-bit grayscale/RGB/RGBA（可带 alpha），拒绝未允许的元数据。Schema 仅约束 MIME、编码形状、长度和矩形各分量上界，不解码 PNG，也不能校验真实像素、校验和、元数据或矩形与图片相交边界。',
+      '运行时还需校验原图与脱敏 SHA-256 不同、脱敏哈希匹配、帧最多早 30000 ms 或晚 5000 ms、元素 id 不重复、标签总计最多 2048 字符、标签列表不重复及安全内容；这些不能由本契约形状证明。question 触发必须有非空问题，其余触发可为空；问题最多 2000 字符。',
+      'step.target_id 必须来自当前 elements，且与 presentation 同时提供；uncertain_candidate 必须如实表达不确定。completed 仅是候选证据，仍需本机以新帧、当前代际和预期标签核验，不能据此自动认定成功或掌握。',
+      '仅 completed 可附 review_proposal；remind_at 必须在未来且不超过 365 天，timezone 必须是有效 IANA 时区。它只是 AI 复习建议，未获本人确认不得创建提醒或标记掌握，也不代表提醒已创建、已调度或已送达。时间窗口、有效时区、证据和本人确认须在运行时核验。499 表达取消，不保证断开的连接仍能收到响应。',
+    ].join('\n\n'),
+  }),
   operation('guidanceVerify', 'post', '/guidance/{id}/verify', '新帧核验；点好了不直接算成功', 'GuidanceVerifyRequest', 'GuidanceVerifyResponse', { authorization: 'self_and_current_capture_consent' }),
   operation('guidanceStop', 'post', '/guidance/{id}/stop', '停止教学并清理标记，HTTP 不阻塞本地清理', null, 'EndedResponse', { successStatus: 200 }),
   operation('guidanceEvents', 'get', '/guidance/{id}/events', '教学候选/风险/低置信 SSE', null, 'ServiceStreamEvent', { stream: true, authorization: 'self_and_current_capture_consent' }),

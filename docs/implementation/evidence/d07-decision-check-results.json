@@ -1,17 +1,59 @@
 {
   "reportSchemaVersion": "d07-decision-check/v2",
   "generatedBy": "nuanban/scripts/check-d07-decision.mjs",
-  "generatedAt": "2026-10-17T15:58:47.725Z",
+  "generatedAt": "2026-10-18T09:24:23.510Z",
   "generatedTimeZone": "Asia/Shanghai",
   "mode": "development",
   "scope": "D07 automated development gate and release readiness validation",
-  "status": "development_ready",
-  "eligible": true,
+  "status": "development_blocked",
+  "eligible": false,
   "development": {
-    "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
-    "eligible": true,
-    "failedChecks": [],
-    "failed_checks": [],
+    "verdict": "DEV_BLOCKED",
+    "eligible": false,
+    "failedChecks": [
+      {
+        "id": "D07_DEV_1",
+        "reason": "Acceptance bundle local checks are missing or failed.",
+        "kind": "code"
+      },
+      {
+        "id": "D07_DEV_2",
+        "reason": "C17 assembly checks or capability isolation are missing or failed.",
+        "kind": "code"
+      },
+      {
+        "id": "D07_DEV_3",
+        "reason": "Stale or missing c17 source evidence: apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+        "kind": "code"
+      },
+      {
+        "id": "D07_DEV_4",
+        "reason": "Stale or missing c17 source evidence: tests/platform/android-standalone-runtime.test.ts",
+        "kind": "code"
+      }
+    ],
+    "failed_checks": [
+      {
+        "id": "D07_DEV_1",
+        "reason": "Acceptance bundle local checks are missing or failed.",
+        "kind": "code"
+      },
+      {
+        "id": "D07_DEV_2",
+        "reason": "C17 assembly checks or capability isolation are missing or failed.",
+        "kind": "code"
+      },
+      {
+        "id": "D07_DEV_3",
+        "reason": "Stale or missing c17 source evidence: apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+        "kind": "code"
+      },
+      {
+        "id": "D07_DEV_4",
+        "reason": "Stale or missing c17 source evidence: tests/platform/android-standalone-runtime.test.ts",
+        "kind": "code"
+      }
+    ],
     "externalPending": [
       {
         "id": "C15_EXTERNAL_EVIDENCE",
@@ -92,7 +134,7 @@
     ]
   },
   "release": {
-    "verdict": "EXTERNAL_PENDING",
+    "verdict": "BLOCKED",
     "ready": false,
     "blockers": [
       {
@@ -102,21 +144,26 @@
       },
       {
         "id": "release-2",
-        "reason": "C15 is not ready_for_independent_review with all NV checks ready",
+        "reason": "acceptance bundle is not preparatory_ready",
         "kind": "release"
       },
       {
         "id": "release-3",
-        "reason": "C16 decision input, Top20 approval, or pilot eligibility is not ready",
+        "reason": "C15 is not ready_for_independent_review with all NV checks ready",
         "kind": "release"
       },
       {
         "id": "release-4",
-        "reason": "C17 release evidence is not ready for independent review",
+        "reason": "C16 decision input, Top20 approval, or pilot eligibility is not ready",
         "kind": "release"
       },
       {
         "id": "release-5",
+        "reason": "C17 release evidence is not ready for independent review",
+        "kind": "release"
+      },
+      {
+        "id": "release-6",
         "reason": "C14 release review or backend handoff is not ready",
         "kind": "release"
       }
@@ -136,21 +183,27 @@
       "D07_FORMAL_RELEASE_GATE"
     ]
   },
-  "developmentBlockers": [],
+  "developmentBlockers": [
+    "Acceptance bundle local checks are missing or failed.",
+    "C17 assembly checks or capability isolation are missing or failed.",
+    "Stale or missing c17 source evidence: apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+    "Stale or missing c17 source evidence: tests/platform/android-standalone-runtime.test.ts"
+  ],
   "releaseBlockers": [
     "D07 formal decision record is missing",
+    "acceptance bundle is not preparatory_ready",
     "C15 is not ready_for_independent_review with all NV checks ready",
     "C16 decision input, Top20 approval, or pilot eligibility is not ready",
     "C17 release evidence is not ready for independent review",
     "C14 release review or backend handoff is not ready"
   ],
-  "inputFingerprint": "cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
-  "idempotencyKey": "development:cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
+  "inputFingerprint": "bd746b8a44e546ff2aaaf8b4b0f06799d843210a0701d87a89d151f45ca02262",
+  "idempotencyKey": "development:bd746b8a44e546ff2aaaf8b4b0f06799d843210a0701d87a89d151f45ca02262",
   "decisionPath": "docs/implementation/evidence/d07-decision.json",
   "decisionPresent": true,
   "formalDecisionPresent": false,
   "formalDecisionSha256": null,
-  "decision": "go",
+  "decision": "no_go",
   "inputInventory": [
     {
       "report": "c15",
@@ -210,7 +263,7 @@
     {
       "report": "c15",
       "path": "docs/implementation/evidence/c14-handoff-results.json",
-      "sha256": "75be0c961ee520621e5b07570d7d2096c0b2ecdb93658e1d36a98d3356c32fee"
+      "sha256": "85c8ce4998d09ecd0ce9459772714e96dd8d7bb1ac174208331f9fb7688a4ea1"
     },
     {
       "report": "c16",
@@ -224,18 +277,18 @@
     },
     {
       "report": "c16",
-      "path": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
+      "path": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
       "sha256": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
       "report": "c17",
       "path": "scripts/check-c17-assembly.mjs",
-      "sha256": "90ac33a29fe3641f90b8eea1315e8f0458aa626ba763c3848598be87b0c8bec3"
+      "sha256": "4fbc7a8d7256028fc1eadb9c854a69c11959fc36ba5a777199003d6b89f1ce28"
     },
     {
       "report": "c17",
       "path": "vitest.config.ts",
-      "sha256": "89d8070c219134e32755073124b91c2875afcad830a30d3b2e32fe3dbd5ec0c4"
+      "sha256": "427f1096f34e0434abef6fea5c21a8c865979097402aaa03931111d0c0ac47df"
     },
     {
       "report": "c17",
@@ -265,12 +318,12 @@
     {
       "report": "c17",
       "path": "packages/config/src/index.ts",
-      "sha256": "3219ab186389562352a9b3d687536d87a834a64fe3fbf9cc3fea8bd9f6bfcec4"
+      "sha256": "29a148391e1f7b8787167666746b906c98781fd458da17c5ef117761159d51e1"
     },
     {
       "report": "c17",
       "path": "packages/config/src/scenarios.ts",
-      "sha256": "8186404c755f8ce32e146d03554f29a7534527648e83cfc2e737b3c083bb2cb0"
+      "sha256": null
     },
     {
       "report": "c17",
@@ -295,7 +348,7 @@
     {
       "report": "c17",
       "path": "apps/web/src/composition.ts",
-      "sha256": "c868fd05bd1e1c8a99fce287707395fef872b59df8cc2b55d2a31b01c42c08eb"
+      "sha256": "5d439043b315aa0067aaf8dee0fe9fe4abe33295df10669f6337323d4e3294a3"
     },
     {
       "report": "c17",
@@ -335,17 +388,182 @@
     {
       "report": "c17",
       "path": "apps/desktop/main.cjs",
-      "sha256": "69816da0287322a492af0413df126508b03478ce83e509d7d41ee1ffba752983"
+      "sha256": "fc2dbd0c4b4cbd6f5d27f324c80e60eb0b1409a92c1210351e5b463f60fd4438"
     },
     {
       "report": "c17",
       "path": "apps/desktop/preload.cjs",
-      "sha256": "21a2175fcddf98292f08c34cd86e031830b1041e6ed71cc0bed3112d9618b122"
+      "sha256": "b275016ad48680e79164652c8d5fed3975f9430eca893cbd08e4dc5903e085b2"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/forge.config.cjs",
+      "sha256": "7012ba4998c10cea65f0ab1cb58ea7c1a65b44b185fa999a404f3af0291a0810"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/external-script-path.cjs",
+      "sha256": "5f4e917b52662dc958c481c39f277af5133916aba75e92e75bbf86a4fc5dd457"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/standalone-host.cjs",
+      "sha256": "7f5bee97a3cb68e465a8a2eeb8d39c5315102316e880972f01af1c45b703e007"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/runtime-coordinator.cjs",
+      "sha256": "bfb4e82560ad3d546a81df5834d8a3f6135b88355974d308160aade35330003f"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/runtime-learning-store.cjs",
+      "sha256": "70b571eb2de0909d114907a4f41b971596ff685560a4b3d118ad92a4da2aa38e"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/analysis-client.cjs",
+      "sha256": "82b04e9f1e0244f50b1cf3ea6c2ee127c235cd4b41a3987f895c49fb04cadfd9"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/observation-policy.cjs",
+      "sha256": "d2b65b72273f5cfb43a6342e2471c22617dab174c3848500cfccedaacee72b48"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/pet-preload.cjs",
+      "sha256": "7fe5913a61495f33aa9ccc18801a1ebb7d8ec3526c0c224835717da8749e50a6"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/pet.js",
+      "sha256": "ad12528027aec262dd278d0b16157ca0c24c5db47bae5d95f529e231689868a5"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/pet.html",
+      "sha256": "1916c2387ea0467edbe5c2453549d4467936d8c178d953c52ab11b554565a930"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/pet.css",
+      "sha256": "368cac18324c805f1bcdb6cdb95ece8e678d9172b7e9de6207c3fceb5bc29d88"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/guide-preload.cjs",
+      "sha256": "4a90d7435479f95d00baf31cbb83a4293af09d3397b7a00d634cff771b30d17c"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/guide.js",
+      "sha256": "dae0d49b489a606cdc2e256a76c401bfe510f713552a825b01621b0c8032da94"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/guide.html",
+      "sha256": "7f5025083245eddfb7b50f67fa6ad85fa8ca3e637a0af0ba30bdbd920231e23d"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/guide.css",
+      "sha256": "5daee530d12f29e9042187215637b47b5ee5828a969b0ab52509fd7247d2c497"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/caption-preload.cjs",
+      "sha256": "a6008712e874b367c98ab0e449a9f5a8aa6c227fcafd378605a33478e81ecc4b"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/caption.js",
+      "sha256": "8512d74eeebedda1d1aba143b8067777df4a181c0c6831e07b20472beef92435"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/caption.html",
+      "sha256": "dfe9d793b3b8234aae0392f464219562f8073194a64e8ed9ab00900a12384fd8"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/caption.css",
+      "sha256": "3bddb42c441dc1893a3c6b96262ea67c8a4168ebc3ea1b976e5bf468bd96b194"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/observation/windows-observation-source.cjs",
+      "sha256": "2d4de8ee9e46692b995c36a81399cd84c29236c93db6e840a4d43f7401dc23be"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/observation/windows-local-detector.cjs",
+      "sha256": "d134125b454ecb7b2081811116fef260effc8cbd286b71c779363becee81451d"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/observation/windows-local-analysis.ps1",
+      "sha256": "8c1bbd819ecdcae821e544a1ae22ee65688ed3803843af6b9d21e6751034efa2"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/observation/windows-helper-process.cjs",
+      "sha256": "e38e6ed27c129f9f44224e74c01122dadd0ccfce8560e41aa3e45e765a9c772c"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/observation/observation-common.cjs",
+      "sha256": "7b6e790d107083e4d32a9fb23aae30047e80904f18259db888b89368172b38fb"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/observation/controlled-screen-capture.cjs",
+      "sha256": "80f274c582a93dfc8ca436bd25fa1d909f145db27910563fb27d9d10aadd8925"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/observation/capture-worker.js",
+      "sha256": "dee063a955db675feafd0ded843f6a6af4bf5a93eda70e195927803f8422f977"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/observation/capture-worker.html",
+      "sha256": "3922cb50d0347df22bbfa55aec4fe31bb52bd8fff5004ea432f5a36ce42fcbd2"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/observation/capture-worker-preload.cjs",
+      "sha256": "58a4d990a5fd6cf3551531fe47d2ce67ec05411cfa11c22a353cb5e532bfa27f"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/wake/windows-local-wake.cjs",
+      "sha256": "229164adfb757c10431abe68d6e7fb44f14cec3a539976e39728f5c58d84c641"
+    },
+    {
+      "report": "c17",
+      "path": "apps/desktop/wake/windows-local-wake.ps1",
+      "sha256": "52ea723efec9aaa133949fb1a3134d136cdb8918c7a7ba96b6e6aa0815d006d7"
+    },
+    {
+      "report": "c17",
+      "path": "apps/server/src/standalone-guidance.ts",
+      "sha256": "8baa3a232b6271c708104b4ea585b961a09d4365433d9a6955667995d3207723"
+    },
+    {
+      "report": "c17",
+      "path": "apps/server/src/http.ts",
+      "sha256": "3c69828e422f11679d6a30dbb3a75255c4a3f279aede527fda9db33139f1c642"
+    },
+    {
+      "report": "c17",
+      "path": "apps/server/src/main.ts",
+      "sha256": "8ccee347df7b801a9b2eb0c11637a3e1a829b41f19e5456e1952f3464e010437"
     },
     {
       "report": "c17",
       "path": "apps/android/app/build.gradle.kts",
-      "sha256": "fd521e1d3035e52c0b86d984d6e249e2636c922718ddfec8b207fcf119f3b062"
+      "sha256": "634bc1487234c2321367199f12310e4b04ec5a2e7ca2d33ed85a5efe4486cdde"
     },
     {
       "report": "c17",
@@ -385,7 +603,232 @@
     {
       "report": "c17",
       "path": "apps/android/app/src/main/java/org/nuanban/assistant/MainActivity.kt",
-      "sha256": "009ad52bcc1f422787761b17a54a0a0a0cdab7a56d6f1e3916a3162bca151718"
+      "sha256": "6dd35d2bdcff3dab4b69dc34a621bd0e8c259128383ae2a8ec4030e7cde2548d"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/standalone/build.gradle.kts",
+      "sha256": "2ce6d3466f1f73b8d43adeb2aaaf0de1f49c02ddec95b7df3a63f32d0ad2ae57"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/standalone/src/main/AndroidManifest.xml",
+      "sha256": "dd9b4d560e6f69d7f1c8219ec88aeb17d9a097ce4ba7af2ee8a705e83772cbd3"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/normal/java/org/nuanban/assistant/nativehost/AndroidHostRuntime.kt",
+      "sha256": "7afb89e36da4e986651609e7a3d93659ea18934652739d1bf89b72f6cec11615"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidHostRuntime.kt",
+      "sha256": "0c3b29226642e1828e4ce24c7a0695fc415fbf0189eb984bf9bf936a28af4248"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/CaptureSession.kt",
+      "sha256": "7fc014bf6deb77bdc78b56bcc23b5e84867f785fd37bafa0d4ed09ae4b49d04a"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt",
+      "sha256": "6de6212a3110cd9068dace85f7957957611ac525a2a980bf26e2d3c75e0dcf69"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureControlActivity.kt",
+      "sha256": "4770067b92cdfc9f61c6a7df8b7f0dedb7b51a4e2560cb5efdfac03cefd4458d"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt",
+      "sha256": "8b3e27aafa45f025b728d181f7fb16d933420cccc4f34c3e089d11a8ec957f9e"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+      "sha256": "2c9c80a72871a21e4548ae07a59903e4a40d9a8f9da3521d2171436483b0a646"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/PetControlActivity.kt",
+      "sha256": "26408efd261cb105e55174f03571663f3be7b8793b1da43d0d805ac6e6f9e292"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/PetManagementBoundary.kt",
+      "sha256": "09d568eb891bd440f7b03150bf0f05bdb46be74b73116e64655f7b208559515d"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/PetRuntime.kt",
+      "sha256": "76201cffb9c2a49b15b870d6f169618b3a73230161470d5e3272ed6cddd534c5"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/PetRuntimeService.kt",
+      "sha256": "c3e6c0b1882c2f6c60a0ee208fe8008118acbf80668f2b0bdada249202573889"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/PetSessions.kt",
+      "sha256": "3bfc396d445317dceb3f2fa718a193d256ea7c517cab3841a9de5184be35e1d6"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidScreenPolicy.kt",
+      "sha256": "73b2b9d2e358bf85020d2fa7c3e847bb5bc0cfcd9051db961639d0b478b6a289"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidLocalScreenDetector.kt",
+      "sha256": "dc6ccb527f4ac7d82bbed719c17a1e5c4752b5ffe13dad3e6f59b0c2bc95538d"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidCaptureGeometry.kt",
+      "sha256": "5a2da4f004f4298a64371e8f07f9b58cdca0d535d38ce09da264a531db6ec140"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidTeachingState.kt",
+      "sha256": "74f2201e0dacaf21751d752155ae573d314648f944e0bd2d1fc914a0d702426e"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidGuidanceAdapter.kt",
+      "sha256": "c191e6dd39df2b26f25cb4fce3b522a8d6bcf38d50a661a61fd8415d816e1dce"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidGuidanceConnection.kt",
+      "sha256": "37c03d765d5e2e0b45eca3477baf85e91db0a7b9fdbaa202f472a75617023a4e"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidGuidanceRuntime.kt",
+      "sha256": "e2d21d5c974c882b7c47bd3601fa862761c61a9b87dc988589fd1519208dac01"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/AndroidGuidanceOverlay.kt",
+      "sha256": "e56a8a393748eaba74eb124e618e2c51c5bc5fd5c0bb775b649dbc72739950d0"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/StandaloneGuidanceProtocol.kt",
+      "sha256": "4e9581d026473dddefd04029482d2865fc7fb8bc17fb6434350822cfa95d3d1f"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/StandaloneGuidanceClient.kt",
+      "sha256": "f4e7858bc5ba40bb87e0b4386b156c326f18c5bc9b08347b5918bae50fd6a4bf"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/check-standalone.ps1",
+      "sha256": "639527e4b8d4e5840028c755c0869bc0f42fd91f24b1eca856900633f9c91d0e"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/check-standalone-packaging.ps1",
+      "sha256": "40242ec26abd8adef478e85ca6b82b3cc194a7ee366544a7e2deb86336bf39ad"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/standalone-tests/PetSessionChecks.kt",
+      "sha256": "598de29182a333287b5df3c408ad9d5804646392cf5b5816ff91f1ddac088577"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/standalone-tests/AndroidScreenPolicyChecks.kt",
+      "sha256": "f5fcb23df45a1d68eca55aa6000929389d110ce4bf011207295a4b075caa5f80"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/standalone-tests/AndroidCaptureGeometryChecks.kt",
+      "sha256": "17492a4ec1d7103429eab6acd8fddaa29d5b43209b474d39bb1f7932465579ed"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/standalone-tests/AndroidTeachingStateChecks.kt",
+      "sha256": "e52362e85395e95a9cee6cd899bc17363d3fe9b3bc9e038954bd6659c3bacebf"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/standalone-tests/AndroidGuidanceAdapterChecks.kt",
+      "sha256": "23e94a3da5914363e8b7abbaf6cb60a11da7a02544f043bf9e233c93fdd86592"
+    },
+    {
+      "report": "c17",
+      "path": "apps/android/standalone-tests/StandaloneGuidanceProtocolChecks.kt",
+      "sha256": "2f83c8cb8f95ed7b90afe2355becad7b80eb56b40c3698616e047028f114c2ef"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/desktop-standalone-host.test.ts",
+      "sha256": "38c9d24474b3a5ea5666bdd8790bab13c634375273b2e1247aaa08f312f730e9"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/desktop-runtime-coordinator.test.ts",
+      "sha256": "2c6873c4835298b29f2dfcf620136ced5b570633e4e9be493718f108621ad68f"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/desktop-runtime-learning-store.test.ts",
+      "sha256": "3b1b045c6249b7e1217cc2548871d9728ca21282c086650be8159ac40a49fe0c"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/desktop-observation-policy.test.ts",
+      "sha256": "6cf72839403b8debf1d0b757a7214f32e2ab0e7d271820a70c5304b65be86e98"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/desktop-observation-source.test.ts",
+      "sha256": "04b87ef243f6268e9b13a29bbef5903d473526ff39c66ca53abb14833fe2b8f0"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/desktop-analysis-client.test.ts",
+      "sha256": "eafcb359f36561ffef051867a9c67e2157ee18060eb92310a1bbb7756ac4d265"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/desktop-local-wake.test.ts",
+      "sha256": "3b6af2100368e669e493ebae5f6563f2cd6b667d4bd889600c5978881c7d509e"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/desktop-pet-ui.test.ts",
+      "sha256": "f406dffa41a8cfd845cca4d2a94f3c6e02f8019037bc4cc99396cdeccc3da10f"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/desktop-external-script.test.ts",
+      "sha256": "4aee804c27522e62a3dbe697dcf4b7c5cff7caece4288ccd87b238356d2ad326"
+    },
+    {
+      "report": "c17",
+      "path": "tests/platform/android-standalone-runtime.test.ts",
+      "sha256": "97339ce9b6e20404ddb25a15e5ed6db174bf27ef3c5c27994e9f63401a7d4df4"
+    },
+    {
+      "report": "c17",
+      "path": "暖伴AI公益助手-产品需求文档-独立桌宠版.md",
+      "sha256": "9c1942e74bfe95ac10720e49968622a6a46b4f1a5ab0f6d6ad5b75d30c0df421"
+    },
+    {
+      "report": "c17",
+      "path": "暖伴AI公益助手-技术与实施方案-独立桌宠版.md",
+      "sha256": "f17d1367c5d8be3d8a7b0324ba0000eb5e5d2d286442fbd8f25335ec30b70d9a"
+    },
+    {
+      "report": "c17",
+      "path": "暖伴AI公益助手-项目实施计划-独立桌宠四机并发版.md",
+      "sha256": "ea78384001013d1e695a458112743a53c87aff52d8e3f94446014e8d311141c7"
     },
     {
       "report": "c17",
@@ -395,7 +838,7 @@
     {
       "report": "c17",
       "path": "tests/integration/local-data.test.ts",
-      "sha256": "6784d7c6db0bb3c05a729345865d0c0d2a45d296acb458a74f32194452bc43b2"
+      "sha256": "3ce6cfa2d0eb813e3e042d4719e389cc9c007166f85daada2802e80ec605c142"
     },
     {
       "report": "c17",
@@ -425,12 +868,12 @@
     {
       "report": "c14",
       "path": "packages/contracts/openapi.json",
-      "sha256": "8054d8be16705bc6902e86494c53ca9bff2c3ade4903d698b4367a5957c92e41"
+      "sha256": "c25745290e13cf5e168586b35cb7419f46891889fdc32a6018be1fd6fc5015b5"
     },
     {
       "report": "c14",
       "path": "packages/contracts/src/spec/operations.ts",
-      "sha256": "95118a211b11dc9230a98e785ae678b1eca8779f6c08ee40956a8d643c3380ee"
+      "sha256": "814b8defa5e8fa125bb2242b746506bf6d8651eeb72cd970dfcdf9f2ea6f2396"
     },
     {
       "report": "c14",
@@ -440,7 +883,7 @@
     {
       "report": "c14",
       "path": "packages/contracts/src/spec/catalog.ts",
-      "sha256": "75d4df906ca406819dcd42febd07cc07f207a8a9c356006f8475af2280fe46db"
+      "sha256": "f225c9de04e07597ac2a5158237ba9e3b549e4821370055c323dbd8b18ee3d0e"
     },
     {
       "report": "c14",
@@ -450,7 +893,12 @@
     {
       "report": "c14",
       "path": "packages/contracts/src/spec/errors.ts",
-      "sha256": "27124d0ddb3bcffcd7f65177caedb00191dfa8f892d8f234dd73aecfe0f71b66"
+      "sha256": "d4a992a3e570b973f4c333007d8815fa0de150cda1892a01b8b27ce9caa47da0"
+    },
+    {
+      "report": "c14",
+      "path": "packages/contracts/src/spec/standalone-guidance.ts",
+      "sha256": "6b1d9ba368ca188fef75d11b7b8ec888e4474eb633672bd28ba75228ddcd90c6"
     },
     {
       "report": "gate",
@@ -484,22 +932,22 @@
     },
     {
       "report": "plan",
-      "path": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
+      "path": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
       "sha256": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     }
   ],
   "generatedDecision": {
     "schemaVersion": "d07-decision/v2",
     "generatedBy": "nuanban/scripts/check-d07-decision.mjs",
-    "generatedAt": "2026-10-17T15:58:47.722Z",
-    "decisionId": "d07-development-cd66cc5b64f74058",
-    "decision": "go",
+    "generatedAt": "2026-10-18T09:24:23.509Z",
+    "decisionId": "d07-development-bd746b8a44e546ff",
+    "decision": "no_go",
     "decisionMode": "development",
     "reviewType": "automated",
     "review_type": "automated",
     "development": {
-      "verdict": "DEV_READY_WITH_EXTERNAL_PENDING",
-      "eligible": true,
+      "verdict": "DEV_BLOCKED",
+      "eligible": false,
       "evidenceRefs": [
         "docs/implementation/evidence/acceptance-bundle-results.json",
         "docs/implementation/evidence/c15-nv-readiness-results.json",
@@ -548,7 +996,7 @@
       ]
     },
     "release": {
-      "verdict": "EXTERNAL_PENDING",
+      "verdict": "BLOCKED",
       "ready": false,
       "reasonRefs": [
         "C15_EXTERNAL_EVIDENCE",
@@ -559,8 +1007,8 @@
       ],
       "formalDecision": null
     },
-    "inputFingerprint": "cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
-    "idempotencyKey": "cd66cc5b64f74058ab44f62a515ed80c39cecf25fc680446200692dc18daa44e",
+    "inputFingerprint": "bd746b8a44e546ff2aaaf8b4b0f06799d843210a0701d87a89d151f45ca02262",
+    "idempotencyKey": "bd746b8a44e546ff2aaaf8b4b0f06799d843210a0701d87a89d151f45ca02262",
     "limitations": [
       "该决定由本机自动检查生成，reviewType=automated，不冒充负责人、独立人员或真人试点签收。",
       "development go 只允许继续代码、契约、夹具和本地验证；release.ready=false 时不得开放真实生产能力。",
@@ -571,35 +1019,40 @@
     "acceptance": {
       "path": "docs/implementation/evidence/acceptance-bundle-results.json",
       "exists": true,
-      "sha256": "7f567a59781b510cf2906a0feee233139b5ceac1650e140bcf36c730073feca0",
-      "status": "preparatory_ready"
+      "sha256": "38793f1176d94d6884233d6584807bfc56262b1c24fb020db0b15d211331fe17",
+      "status": "blocked"
     },
     "c15": {
       "path": "docs/implementation/evidence/c15-nv-readiness-results.json",
       "exists": true,
-      "sha256": "285a5c57bc414802a00b385f8f80f8c8d664e6639ed78c38090167b297fdf980",
+      "sha256": "84b133ad7e0d9c49a4456b9803ea96efc49cdb7a48cf4312fd4dc0813ef27fc1",
       "status": "blocked"
     },
     "c16": {
       "path": "docs/implementation/evidence/c16-decision-readiness-results.json",
       "exists": true,
-      "sha256": "00c72b16d7f1817f84120ac6794076163de1728472cae5fe3dc96818668b124a",
+      "sha256": "edf41719048aaca336af29d9c6c1d903346b52ae7d823b59bc8d771fb0931e03",
       "status": "blocked"
     },
     "c17": {
       "path": "docs/implementation/evidence/c17-assembly-results.json",
       "exists": true,
-      "sha256": "8fa311cbe3ea9b94748d99d35cd9e25dc4f8dbe82a1e3cefe5f70991d2c21fcc",
-      "status": "ready_for_development"
+      "sha256": "61a35725bdda847c6ef4acc29abc22087b87b6eeff958e8513c55b015f9350b3",
+      "status": "blocked"
     },
     "c14": {
       "path": "docs/implementation/evidence/c14-handoff-results.json",
       "exists": true,
-      "sha256": "75be0c961ee520621e5b07570d7d2096c0b2ecdb93658e1d36a98d3356c32fee",
+      "sha256": "85c8ce4998d09ecd0ce9459772714e96dd8d7bb1ac174208331f9fb7688a4ea1",
       "status": "frozen"
     }
   },
-  "blockers": [],
+  "blockers": [
+    "Acceptance bundle local checks are missing or failed.",
+    "C17 assembly checks or capability isolation are missing or failed.",
+    "Stale or missing c17 source evidence: apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt",
+    "Stale or missing c17 source evidence: tests/platform/android-standalone-runtime.test.ts"
+  ],
   "limitations": [
     "开发门禁只验证真实源码、契约、自动证据和安全关闭路径，不代替人工、设备、供应、用户同意或正式发布授权。",
     "release.ready 不会因 development.verdict 通过而自动变为 true；外部待项保持 external_pending。",

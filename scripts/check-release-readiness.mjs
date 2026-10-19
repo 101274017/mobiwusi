@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { isIP } from 'node:net';
+import { crc32, inflateSync } from 'node:zlib';
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,11 +13,12 @@ import { assertGateMode, evaluateProjectGate, exitCodeForGate } from './project-
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const reportPath = 'docs/implementation/evidence/release-readiness.json';
 const listPath = 'docs/implementation/external-capabilities.md';
-const androidRoot = 'apps/android/app/src/main/java/org/nuanban/assistant/nativehost/';
+const androidRoot = 'apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/';
 const providerPath = 'packages/provider-sandbox/src/index.ts';
 const privacyPath = 'packages/privacy/src/index.ts';
 const desktopPath = 'apps/desktop/native-runtime.cjs';
 const configPath = 'packages/config/src/index.ts';
+const standaloneGuidancePath = 'apps/server/src/standalone-guidance.ts';
 const evidencePaths = Object.fromEntries([
   ['c15', 'c15-nv-readiness-results'], ['c16', 'c16-decision-readiness-results'],
   ['d07', 'd07-decision'], ['f', 'f-execution-results'],
@@ -73,7 +76,7 @@ function publicConfiguration(read, environment, profile) {
     input: values,
     summary: {
       profile,
-      apiMode: enumeration('VITE_API_MODE', ['mock', 'real'], 'mock'),
+      apiMode: enumeration('VITE_API_MODE', ['local', 'real'], 'local'),
       platformMode: enumeration('VITE_PLATFORM_MODE', ['browser', 'windows', 'android'], 'browser'),
       deployment: enumeration('VITE_DEPLOYMENT', ['production', 'development'], 'development'),
       apiEndpoint: endpoint,
@@ -93,9 +96,12 @@ function offlineModules(source) {
     const module = { exports: {} };
     const context = createContext({
       module, exports: module.exports, AbortController, structuredClone, setTimeout, clearTimeout,
+      ...(relativePath === standaloneGuidancePath ? { process: { env: {} }, Buffer, URL } : {}),
       require(specifier) {
-        if (relativePath === configPath && specifier === './scenarios') return load('packages/config/src/scenarios.ts');
         if (relativePath === desktopPath && specifier === 'node:path') return path;
+        if (relativePath === standaloneGuidancePath && specifier === 'node:crypto') return { createHash };
+        if (relativePath === standaloneGuidancePath && specifier === 'node:net') return { isIP };
+        if (relativePath === standaloneGuidancePath && specifier === 'node:zlib') return { crc32, inflateSync };
         throw new Error('Import unavailable in offline probe');
       },
     }, { codeGeneration: { strings: false, wasm: false } });
@@ -130,7 +136,14 @@ function serverModulesUnmounted(source) {
   const http = parsedSource('apps/server/src/http.ts', source);
   const dispatches = nodes(http, node => ts.isCallExpression(node) && node.expression.getText(http) === 'dispatchServiceRoute');
   return calls.length === 1 && ts.isObjectLiteralExpression(calls[0].arguments[0])
-    && calls[0].arguments[0].properties.every(property => ts.isPropertyAssignment(property) && property.name.getText(main) === 'storage')
+    && calls[0].arguments[0].properties.every(property => ts.isPropertyAssignment(property)
+      && (property.name.getText(main) === 'storage'
+        || (property.name.getText(main) === 'standaloneGuidance' && ts.isCallExpression(property.initializer)
+          && property.initializer.expression.getText(main) === 'createStandaloneGuidanceService'
+          && property.initializer.arguments.length === 0)))
+    && nodes(main, node => ts.isImportDeclaration(node) && node.moduleSpecifier.text === './standalone-guidance.ts'
+      && node.importClause?.namedBindings && ts.isNamedImports(node.importClause.namedBindings)
+      && node.importClause.namedBindings.elements.some(element => element.name.text === 'createStandaloneGuidanceService' && !element.propertyName)).length === 1
     && dispatches.length === 1 && ts.isObjectLiteralExpression(dispatches[0].arguments[0])
     && dispatches[0].arguments[0].properties.some(property => ts.isPropertyAssignment(property)
       && property.name.getText(http) === 'modules' && property.initializer.getText(http) === 'options.modules')
@@ -319,7 +332,7 @@ export async function createReleaseReadinessReport({ mode = 'development', rootD
   });
   await check('REPORTS_PARSEABLE', '必要的本地证据均存在且可解析', Object.values(evidencePaths), () => Object.values(reports).every(value => value && typeof value === 'object'));
   const configurations = ['development', 'production'].map(profile => publicConfiguration(read, environment, profile));
-  await check('CONFIGURATION_SAFETY', '实际开发配置可解析；未知模式和生产 Mock 被拒绝', [configPath, 'packages/config/src/scenarios.ts', 'apps/web/vite.config.ts'], () => {
+  await check('CONFIGURATION_SAFETY', '实际开发配置可解析；未知模式和所有 Mock 被拒绝', [configPath, 'apps/web/src/local-snapshot.ts', 'apps/web/vite.config.ts'], () => {
     const { configuration } = load(configPath);
     const active = configurations[0];
     configuration(active.input, active.input.VITE_DEPLOYMENT === 'production');
@@ -329,10 +342,10 @@ export async function createReleaseReadinessReport({ mode = 'development', rootD
     if (nodes(config, node => ts.isPropertyAssignment(node) && ['envDir', 'envPrefix', 'root'].includes(node.name.getText(config))).length > 0) return false;
     if (active.summary.apiMode === 'real' && active.summary.apiEndpoint !== 'loopback') return false;
     let rejected = 0;
-    for (const [input, production] of [[{ VITE_API_MODE: 'mock' }, true], [{ VITE_API_MODE: 'unknown' }, false], [{ VITE_API_MODE: 'real', VITE_MOCK_SCENARIO: 'offline' }, false]]) {
+    for (const [input, production] of [[{ VITE_API_MODE: 'mock' }, true], [{ VITE_API_MODE: 'mock' }, false], [{ VITE_API_MODE: 'unknown' }, false], [{ VITE_API_MODE: 'real', VITE_MOCK_SCENARIO: 'offline' }, false]]) {
       try { configuration(input, production); } catch { rejected += 1; }
     }
-    return rejected === 3;
+    return rejected === 4;
   });
   const closure = {};
   closure.windows = await check('WINDOWS_CLOSED', '执行当前 Windows 能力策略及 IPC 返回，采集/远端媒体/原生浮层均关闭', [desktopPath, 'apps/desktop/main.cjs'], () => {
@@ -346,9 +359,19 @@ export async function createReleaseReadinessReport({ mode = 'development', rootD
   });
   closure.android = await check('ANDROID_CLOSED', '静态核对 Android 本地隔离捕获、未验证检测器和帧关闭路径；不宣称真机执行', [androidRoot + 'NativeCaptureRuntime.kt', androidRoot + 'NativeCaptureService.kt', androidRoot + 'LocalFrameGate.kt'], () => androidCaptureClosed(source));
   closure.privacy = await check('PRIVACY_DENIALS', '执行无同意/无系统授权/未知风险/检测失败/停止后发送拒绝路径', [privacyPath], () => privacyDenials(load));
-  closure.server = await check('SERVER_EXTERNAL_MODULES_UNMOUNTED', '静态核对默认本地服务未装配供应、资产或媒体真实模块', ['apps/server/src/main.ts', 'apps/server/src/http.ts', 'apps/server/src/service-modules.ts'], () => {
+  closure.server = await check('SERVER_EXTERNAL_MODULES_UNMOUNTED', '常规同步、资产与远端媒体不默认装配，独立视觉只允许明确的按需工厂端口', ['apps/server/src/main.ts', 'apps/server/src/http.ts', 'apps/server/src/service-modules.ts'], () => {
     source('apps/server/src/service-modules.ts');
     return serverModulesUnmounted(source);
+  });
+  closure.standaloneGuidance = await check('STANDALONE_GUIDANCE_DEFAULT_CLOSED', '无真实配置时独立桌宠视觉端口拒绝请求，未鉴权或缺配置均不调用外部供应', [standaloneGuidancePath], async () => {
+    const standalone = load(standaloneGuidancePath);
+    let networkAttempts = 0;
+    const service = standalone.createStandaloneGuidanceService({ fetch: async () => { networkAttempts += 1; throw new Error('Offline probe forbids network'); } });
+    const codes = [];
+    for (const actor of [null, { account_id: 'offline-standalone-owner' }]) {
+      try { await service.analyze({}, actor); } catch (error) { codes.push(error.code); }
+    }
+    return codes.length === 2 && codes[0] === 'GUIDANCE_AUTH_REQUIRED' && codes[1] === 'GUIDANCE_UNAVAILABLE' && networkAttempts === 0;
   });
   const providerClosures = {};
   for (const provider of providers) {
@@ -371,20 +394,21 @@ export async function createReleaseReadinessReport({ mode = 'development', rootD
     && ['realNetworkEnabled', 'productionDataEnabled', 'realDevicesEnabled'].every(key => f[key] === false));
   const definitions = [
     { id: 'android_device', title: 'Android 系统授权、捕获/浮层、通知与生命周期', nv: ['NV-01', 'NV-02', 'NV-04', 'NV-05'], closed: closure.android && closure.privacy,
-      refs: [androidRoot + 'NativeCaptureRuntime.kt', androidRoot + 'NativeCaptureService.kt', privacyPath],
-      missing: '目标设备/系统版本、本人系统授权、捕获与停止计数、通知/后台/浮层及生命周期真实回执', fallback: '仅本地隔离捕获或应用内教学；外部帧与远端媒体关闭；系统通知仍须系统权限' },
+      refs: [androidRoot + 'NativeCaptureRuntime.kt', androidRoot + 'NativeCaptureService.kt', privacyPath, 'apps/android/standalone-runtime.md'],
+      missing: '目标设备/系统版本、本人系统授权、捕获与停止计数、通知/后台/浮层及生命周期真实回执', fallback: '普通包无捕获/浮层组件；独立包默认关闭，缺完整本地检测器时拒绝系统采集授权流程；无远端媒体' },
     { id: 'windows_device', title: 'Windows 捕获、多屏 DPI、浮层与通知', nv: ['NV-03', 'NV-04', 'NV-05'], closed: closure.windows && closure.privacy,
-      refs: [desktopPath, 'apps/desktop/main.cjs', privacyPath], missing: '目标 Windows 设备、混合 DPI/负坐标、多屏移动、真实权限/通知和停止回执', fallback: '外部采集/原生浮层/远端媒体关闭；本地存储与应用内界面可继续' },
+      refs: [desktopPath, 'apps/desktop/main.cjs', 'apps/desktop/standalone-host.cjs', privacyPath], missing: '目标 Windows 设备、混合 DPI/负坐标、多屏移动、真实权限/通知和停止回执', fallback: '管理桥仍关闭高风险媒体；独立桌宠捕获另需本人选源和同意、逐帧安全门控，默认关闭；代码及自身UI测试不等于外部软件验收' },
     { id: 'local_detector_top20', title: '真实检测/脱敏模型与目标应用 Top20', nv: ['NV-06', 'NV-08', 'NV-09'], closed: closure.android && closure.privacy,
       refs: [androidRoot + 'LocalFrameGate.kt', privacyPath, evidencePaths.c16], missing: '真实模型、目标应用版本、20 项设备适配和儿童指向实测；开发候选不是已适配证明', fallback: '检测未知、页面未知或敏感时拒绝发送，不做输入注入' },
     { id: 'generated_assets', title: '真实生成 2D/3D 资产及许可', nv: ['NV-10'], closed: closure.server && providerClosures.pet_generation,
       refs: [providerPath, 'apps/server/src/main.ts'], missing: '真实生成资产、授权许可、完整动作/格式/骨骼兼容和目标设备质量验证', fallback: '保留画布、草稿和既有 2D；无真实生成模块自动挂载' },
     ...providers.map(provider => ({ id: provider, title: `真实供应：${provider}`, nv: [provider === 'carrier_auth' || provider === 'face_auth' ? 'NV-12' : 'NV-11'],
-      closed: providerClosures[provider] && closure.server, refs: [providerPath, 'apps/server/src/main.ts'],
+      closed: providerClosures[provider] && closure.server && (provider !== 'multimodal' || closure.standaloneGuidance), refs: [providerPath, 'apps/server/src/main.ts', ...(provider === 'multimodal' ? [standaloneGuidancePath] : [])],
       missing: provider === 'carrier_auth' || provider === 'face_auth'
         ? '受管供应凭据引用、供应条款、本人同意、服务端证明/防重放及无 SIM/拒绝/撤销实测'
         : '受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执',
-      fallback: provider === 'tts' ? '保留字幕，不调用网络供应' : provider === 'pet_generation' ? '保留草稿与既有 2D，不调用网络供应' : '使用明确标注的本地适配/文字或亲情兜底，不调用网络供应' })),
+      fallback: provider === 'tts' ? '保留字幕，不调用网络供应' : provider === 'pet_generation' ? '保留草稿与既有 2D，不调用网络供应'
+        : provider === 'multimodal' ? '通用供应沙盒拒绝网络；独立视觉端口无配置503，需真实服务鉴权、本人用途同意和合规脱敏帧才按需请求，不回退Mock' : '使用明确标注的本地适配/文字或亲情兜底，不调用网络供应' })),
     { id: 'media_relay', title: '真实编码、信令与 TURN 中继', nv: ['NV-07'], closed: closure.android && closure.windows && closure.privacy && closure.server,
       refs: [privacyPath, androidRoot + 'NativeCaptureRuntime.kt', desktopPath, 'apps/server/src/main.ts'], missing: '授权信令/TURN、实际编码/中继、动态同意/撤权、断连和清理计数', fallback: '默认服务不挂载媒体模块；外部采集和远端媒体关闭；不输出 TURN 凭据' },
     { id: 'consent_pilot', title: '真实参与者/监护同意与 F09/F10 试点', nv: [], closed: closure.privacy && closure.android && closure.windows,

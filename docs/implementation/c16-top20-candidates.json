@@ -1,6 +1,6 @@
 {
   "schemaVersion": "c16-top20-candidates/v1",
-  "generatedAt": "2026-10-17T15:14:27.548Z",
+  "generatedAt": "2026-10-18T07:46:48.535Z",
   "generatedBy": "automated",
   "mode": "development",
   "status": "candidate",
@@ -14,7 +14,7 @@
       "contentSha256": "8c5ce682d678930e0965be3407cb7440d3457d79eedf0cfae094654331e4aa32"
     },
     {
-      "path": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
+      "path": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md",
       "exists": true,
       "bytes": 54538,
       "contentSha256": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
@@ -41,7 +41,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -60,7 +60,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -79,7 +79,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -98,7 +98,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -117,7 +117,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -136,7 +136,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -155,7 +155,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -174,7 +174,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -193,7 +193,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -212,7 +212,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L180",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -231,7 +231,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -250,7 +250,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -269,7 +269,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -288,7 +288,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -307,7 +307,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -326,7 +326,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -345,7 +345,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -364,7 +364,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -383,7 +383,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     },
     {
@@ -402,7 +402,7 @@
       "targetVerified": false,
       "riskBoundary": "仅提供用户自主操作的安全入口指引；未知页面、凭证、支付、医疗或敏感配对立即暂停，不自动点击。",
       "fallbackPlan": "退回上一步或停止；设备/版本不适用时保持 external_pending，不猜测菜单，不扩大权限。",
-      "sourceReference": "暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
+      "sourceReference": "docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md#L182",
       "sourceHash": "7de509f0441a32e9d4a641e64a985dff3303fedf460c300864ad4f9925eac64f"
     }
   ]

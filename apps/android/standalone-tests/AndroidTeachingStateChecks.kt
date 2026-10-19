@@ -1,0 +1,45 @@
+package org.nuanban.assistant.nativehost
+
+object AndroidTeachingStateChecks {
+    fun run(): List<String> {
+        val cases = mutableListOf<String>()
+        fun scenario(name: String, action: () -> Unit) { action(); cases.add(name) }
+        fun frame(sequence: Long, captured: Long = 100, signature: String = "settings-1", labels: List<String> = listOf("设置", "显示", "字体")): TeachingScreenContext = TeachingScreenContext("frame-" + sequence, 2, sequence, captured, "display:1", signature, 300, 300, labels.mapIndexed { index, label -> LocalScreenElement("element_" + sequence + "_" + index, label, LocalScreenRect(10, index * 30, 90, 20)) })
+        fun guiding(state: AndroidTeachingState): AndroidTeachingJob {
+            state.beginObservation(2, true)
+            check(state.ask("请教我调整字体大小"))
+            check(state.onFrame(frame(1)))
+            val job = requireNotNull(state.takeJob())
+            check(state.apply(job, AndroidTeachingReply("step", "请您点击字体", "element_1_2", "confirmed", listOf("字体大小"))))
+            return job
+        }
+        scenario("android_teaching_default_off") { check(AndroidTeachingState { 100 }.takeJob() == null) }
+        scenario("android_teaching_local_only_consent_never_sends") { val state = AndroidTeachingState { 100 }; state.beginObservation(2, false); state.ask("调整字体"); state.onFrame(frame(1)); check(state.takeJob() == null && state.snapshot().phase == "unavailable") }
+        scenario("android_teaching_private_question_rejected") { check(!AndroidTeachingState { 100 }.ask("帮我输入银行卡密码")) }
+        scenario("android_teaching_first_frame_cannot_complete") { val state = AndroidTeachingState { 100 }; state.beginObservation(2, true); state.ask("调整字体"); state.onFrame(frame(1)); check(!state.apply(requireNotNull(state.takeJob()), AndroidTeachingReply("completed", "已经完成", evidenceLabels = listOf("字体")))) }
+        scenario("android_teaching_binds_current_local_target") { val state = AndroidTeachingState { 100 }; guiding(state); check(state.snapshot().target?.id == "element_1_2") }
+        scenario("android_teaching_made_up_target_rejected") { val state = AndroidTeachingState { 100 }; state.beginObservation(2, true); state.ask("调整字体"); state.onFrame(frame(1)); check(!state.apply(requireNotNull(state.takeJob()), AndroidTeachingReply("step", "点击这里", "invented", "confirmed"))) }
+        scenario("android_teaching_uncertain_candidate_is_explicit") { val state = AndroidTeachingState { 100 }; state.beginObservation(2, true); state.ask("调整字体"); state.onFrame(frame(1)); check(state.apply(requireNotNull(state.takeJob()), AndroidTeachingReply("step", "请您核对字体入口", "element_1_2", "uncertain_candidate"))); check(state.snapshot().uncertain && state.snapshot().instruction.contains("不确定")) }
+        scenario("android_teaching_verify_waits_for_new_frame") { val state = AndroidTeachingState { 100 }; guiding(state); check(state.verify()); check(state.takeJob() == null); check(state.onFrame(frame(2))); check(state.takeJob()?.reason == "verification") }
+        scenario("android_teaching_layout_change_not_completion") { val state = AndroidTeachingState { 100 }; guiding(state); state.verify(); state.onFrame(frame(2, signature = "layout-changed")); check(!state.apply(requireNotNull(state.takeJob()), AndroidTeachingReply("completed", "完成", evidenceLabels = listOf("字体大小")))); check(state.snapshot().phase == "needs_verification") }
+        scenario("android_teaching_new_expected_label_can_complete") { val state = AndroidTeachingState { 100 }; guiding(state); state.verify(); state.onFrame(frame(2, signature = "font-size-page", labels = listOf("设置", "显示", "字体大小"))); check(state.apply(requireNotNull(state.takeJob()), AndroidTeachingReply("completed", "已看到字体大小设置", evidenceLabels = listOf("字体大小")))); check(state.snapshot().phase == "completed") }
+        scenario("android_teaching_old_labels_cannot_complete") { val state = AndroidTeachingState { 100 }; state.beginObservation(2, true); state.ask("调整字体"); state.onFrame(frame(1)); state.apply(requireNotNull(state.takeJob()), AndroidTeachingReply("step", "点击显示", expectedLabels = listOf("显示"))); state.verify(); state.onFrame(frame(2)); check(!state.apply(requireNotNull(state.takeJob()), AndroidTeachingReply("completed", "完成", evidenceLabels = listOf("显示")))) }
+        scenario("android_teaching_late_response_after_stop_rejected") { val state = AndroidTeachingState { 100 }; state.beginObservation(2, true); state.ask("调整字体"); state.onFrame(frame(1)); val job = requireNotNull(state.takeJob()); state.stopObservation("locked"); check(!state.isCurrent(job) && !state.apply(job, AndroidTeachingReply("step", "点击字体"))) }
+        scenario("android_teaching_new_question_invalidates_old_reply") { val state = AndroidTeachingState { 100 }; state.beginObservation(2, true); state.ask("调整字体"); state.onFrame(frame(1)); val job = requireNotNull(state.takeJob()); state.ask("调整颜色"); check(!state.isCurrent(job)) }
+        scenario("android_teaching_slow_reply_requires_fresh_same_context") { var now = 100L; val state = AndroidTeachingState { now }; state.beginObservation(2, true); state.ask("调整字体"); state.onFrame(frame(1)); val job = requireNotNull(state.takeJob()); now = 7000; check(!state.isCurrent(job)); check(state.onFrame(frame(2, captured = now))); check(state.isCurrent(job)) }
+        scenario("android_teaching_context_change_invalidates_pending") { val state = AndroidTeachingState { 100 }; state.beginObservation(2, true); state.ask("调整字体"); state.onFrame(frame(1)); val job = requireNotNull(state.takeJob()); state.onFrame(frame(2, signature = "other-page")); check(!state.isCurrent(job)) }
+        scenario("android_teaching_stale_frame_rejected") { check(!AndroidTeachingState { 1000 }.onFrame(frame(1, captured = 100))) }
+        scenario("android_teaching_single_flight") { val state = AndroidTeachingState { 100 }; state.beginObservation(2, true); state.ask("调整字体"); state.onFrame(frame(1)); check(state.takeJob() != null); check(state.takeJob() == null) }
+        scenario("android_teaching_end_preserves_observation") { val state = AndroidTeachingState { 100 }; guiding(state); state.finishTeaching(); check(state.ask("调整颜色")); check(state.onFrame(frame(2))); check(state.takeJob() != null) }
+        scenario("android_teaching_marker_expires_without_fresh_frame") { var now = 100L; val state = AndroidTeachingState { now }; guiding(state); now = 1400; check(state.snapshot().target == null) }
+        scenario("android_teaching_first_frame_generation_must_match_observation") { val state = AndroidTeachingState { 100 }; state.beginObservation(3, true); check(!state.onFrame(frame(1))) }
+        scenario("android_teaching_verification_invalidates_inflight_without_losing_pending") { val state = AndroidTeachingState { 100 }; guiding(state); state.onFrame(frame(2, signature = "changed", labels = listOf("设置", "显示", "字体大小"))); val old = requireNotNull(state.takeJob()); check(state.verify() && !state.isCurrent(old)); state.discard(old); state.onFrame(frame(3, signature = "changed", labels = listOf("设置", "显示", "字体大小"))); check(state.takeJob()?.reason == "verification") }
+        scenario("android_teaching_new_observation_resets_sequence_requirement") { val state = AndroidTeachingState { 100 }; guiding(state); state.onFrame(frame(99)); state.verify(); state.beginObservation(2, true); check(state.onFrame(frame(0))); check(state.takeJob() != null) }
+        scenario("android_teaching_invalid_initial_completion_is_not_analyzing") { val state = AndroidTeachingState { 100 }; state.beginObservation(2, true); state.ask("调整字体"); state.onFrame(frame(1)); state.apply(requireNotNull(state.takeJob()), AndroidTeachingReply("completed", "完成", evidenceLabels = listOf("字体"))); check(state.snapshot().phase == "unavailable") }
+        scenario("android_teaching_network_failure_does_not_automatically_retry") { val state = AndroidTeachingState { 100 }; state.beginObservation(2, true); state.ask("调整字体"); state.onFrame(frame(1)); check(state.takeJob() != null); state.unavailable("网络不可用"); state.onFrame(frame(2)); check(state.takeJob() == null) }
+        scenario("android_teaching_control_disappearance_does_not_auto_upload") { val state = AndroidTeachingState { 100 }; guiding(state); state.onFrame(frame(2, signature = "occluded", labels = listOf("设置", "显示"))); check(state.takeJob() == null && state.snapshot().target == null && state.snapshot().phase == "needs_verification") }
+        scenario("android_teaching_restoring_baseline_does_not_loop_or_repaint") { val state = AndroidTeachingState { 100 }; guiding(state); state.onFrame(frame(2, signature = "occluded", labels = listOf("设置", "显示"))); state.onFrame(frame(3)); state.onFrame(frame(4)); check(state.takeJob() == null && state.snapshot().target == null) }
+        scenario("android_teaching_new_page_controls_trigger_bounded_analysis") { val state = AndroidTeachingState { 100 }; guiding(state); state.onFrame(frame(2, signature = "font-size-page", labels = listOf("设置", "显示", "字体大小"))); check(state.takeJob()?.reason == "page_changed" && state.takeJob() == null) }
+        return cases
+    }
+}

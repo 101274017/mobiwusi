@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readConversation, type ConversationPort } from '@nuanban/application';
 import type { ConversationEvent } from '@nuanban/contracts';
-import { DemoConversation } from '@nuanban/mocks';
+import { DemoConversation } from '../fixtures/business-scenarios';
 
 const started: ConversationEvent = { request_id: 'request', sequence: 0, type: 'started' };
 const delta: ConversationEvent = { request_id: 'request', sequence: 1, type: 'delta', text: '下一步' };

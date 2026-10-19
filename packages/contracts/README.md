@@ -1,16 +1,19 @@
 # 服务契约草案与交接边界
 
-当前版本：`0.2.0`，60 个操作、118 个服务定义。它是 A02/A03/A10 的可执行评审草案，不是已冻结协议、真实服务或 D 关口批准。
+当前版本：`0.2.0`，61 个操作、127 个服务定义。它是 A02/A03/A10 的可执行评审来源；C14 自动技术冻结不等于独立人工协议签收、真实供应接入或 D07 正式批准。
 
 ## 单一来源与生成
 
 - `src/spec/primitives.ts`：版本、UUID、时间等原语。
 - `src/spec/models.ts`、`events.ts`、`errors.ts`：业务 DTO、wire 事件和错误。
 - `src/spec/operations.ts`：HTTP/流/信令操作及授权、幂等、版本等元数据。
+- `src/spec/standalone-guidance.ts`：独立桌宠同帧分析的严格请求、四种结果、复习建议与错误形状；JSON Schema 不证明本地检测可信、真实脱敏质量、本人同意或提醒送达。
 - `src/spec/catalog.ts`：统一定义目录和服务 Schema。
 - 在项目根目录执行 `pnpm contracts:generate`，生成 `openapi.json`、`src/types.generated.ts`、`kotlin/src/main/kotlin/org/nuanban/contracts/ServiceDtos.generated.kt`、`ContractRules.generated.kt` 和相关 Schema；不要手改生成文件。
 - `src/active-bridge.ts` 单独定义当前活动桥请求与 Android 回复：能力查询、停止，以及受限提醒排程/取消/到期操作；生成 `bridge.schema.json`、`android-bridge-reply.schema.json`，不引用未来宽桥 DTO 授权其他原生方法。
-- `pnpm contracts:check` 检查 TS/Kotlin/OpenAPI/Schema 生成漂移、6 个 Schema、118 个服务定义的编译。`tests/contract` 覆盖定义夹具、分支、操作元数据、非法字段、生成器不支持特性和适配边界。测试夹具为合成数据，不证明真实服务可用。
+- `pnpm contracts:check` 检查 TS/Kotlin/OpenAPI/Schema 生成漂移、6 个 Schema、127 个服务定义的编译。`tests/contract` 覆盖定义夹具、分支、操作元数据、非法字段、生成器不支持特性和适配边界。测试夹具为合成数据，不证明真实服务可用。
+
+独立 `POST /v1/standalone/guidance/analyze` 使用真实 Bearer 账号会话鉴权；关联头可省略，由服务端补 UUID；它是只读按需分析，不要求幂等头，也不代表旧操作的幂等要求可以删除。只有 completed 可附 AI 复习建议；本机仍须用当前新帧核验完成，本人确认后才能创建提醒。服务端无供应配置返回 503，不返回演示答案。
 
 ## Kotlin 生成与对照验证
 

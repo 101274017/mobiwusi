@@ -9,6 +9,8 @@ import { createInMemoryRepositories, type ServerRepositories } from './repositor
 import { createSqliteRepositories, defaultSqlitePath } from './sqlite.ts';
 import { dispatchServiceRoute, type ServerServiceModules } from './service-modules.ts';
 import { readIfMatch as ifMatch } from './versioning.ts';
+import { createStandaloneGuidanceService, StandaloneGuidanceError, type StandaloneGuidanceService } from './standalone-guidance.ts';
+import { createDesktopVoiceService, type DesktopVoiceService } from './desktop-voice.ts';
 
 export type ServerStorageOptions =
   | { kind: 'memory' }
@@ -62,6 +64,8 @@ export interface ServerOptions {
   family?: Omit<FamilyOptions, 'now'>;
   hooks?: ServerHooks;
   modules?: ServerServiceModules;
+  standaloneGuidance?: StandaloneGuidanceService;
+  desktopVoice?: DesktopVoiceService;
 }
 
 export interface ServerApplication {
@@ -90,13 +94,13 @@ function send(response: ServerResponse, status: number, requestIdValue: string, 
   response.end(JSON.stringify({ data, request_id: requestIdValue, schema_version: contractVersion }));
 }
 
-function errorPayload(error: DomainError): { error: { code: string; message: string; retryable: boolean; details?: DomainError['details'] } } {
+function errorPayload(error: DomainError | StandaloneGuidanceError): { error: { code: string; message: string; retryable: boolean; details?: DomainError['details'] } } {
   const errorBody: { code: string; message: string; retryable: boolean; details?: DomainError['details'] } = { code: error.code, message: error.message, retryable: error.retryable };
-  if (error.details) errorBody.details = error.details;
+  if ('details' in error && error.details) errorBody.details = error.details;
   return { error: errorBody };
 }
 
-function sendError(response: ServerResponse, status: number, requestIdValue: string, error: DomainError): void {
+function sendError(response: ServerResponse, status: number, requestIdValue: string, error: DomainError | StandaloneGuidanceError): void {
   response.statusCode = status;
   response.setHeader('content-type', 'application/json; charset=utf-8');
   response.setHeader('x-request-id', requestIdValue);
@@ -110,13 +114,13 @@ async function notifyResponse(hooks: ServerHooks | undefined, context: RequestHo
   }
 }
 
-async function readBody(request: IncomingMessage): Promise<Record<string, unknown>> {
+async function readBody(request: IncomingMessage, limit = maxBodyBytes): Promise<Record<string, unknown>> {
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const chunk of request) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     size += buffer.byteLength;
-    if (size > maxBodyBytes) throw invalidRequest('Request body is too large');
+    if (size > limit) throw invalidRequest('Request body is too large');
     chunks.push(buffer);
   }
   if (size === 0) return {};
@@ -164,19 +168,27 @@ export function createApplication(options: ServerOptions = {}): ServerApplicatio
   const now = options.clock;
   const auth = new AuthService(repositories, { ...options.auth, now });
   const family = new FamilyService(repositories, { ...options.family, now });
+  const standaloneGuidance = options.standaloneGuidance ?? createStandaloneGuidanceService();
+  const desktopVoice = options.desktopVoice ?? createDesktopVoiceService();
 
   const server = createNodeServer(async (request, response) => {
     const correlationId = requestId(request);
     const method = request.method ?? 'GET';
     const url = request.url ?? '/';
     const parts = pathParts(url);
+    const isStandaloneGuidance = method === 'POST' && parts.join('/') === 'v1/standalone/guidance/analyze';
+    const isVoiceStatus = method === 'GET' && parts.join('/') === 'internal/desktop/voice/status';
+    const isVoiceCall = method === 'POST' && parts.join('/') === 'internal/desktop/voice/call';
+    const isDesktopVoice = isVoiceStatus || isVoiceCall;
     const context: RequestHookContext = { requestId: correlationId, method, url, path: parts, body: {}, request, extensions: {} };
+    const hookContext = isStandaloneGuidance ? { ...context, body: { standalone_guidance: true } }
+      : isDesktopVoice ? { ...context, body: { desktop_voice: true } } : context;
     try {
-      context.body = method === 'GET' || method === 'DELETE' ? {} : await readBody(request);
-      await options.hooks?.onRequest?.(context);
+      context.body = method === 'GET' || method === 'DELETE' ? {} : await readBody(request, isStandaloneGuidance ? 3 * 1024 * 1024 : isVoiceCall ? 96 * 1024 : maxBodyBytes);
+      await options.hooks?.onRequest?.(hookContext);
       const emit = async (status: number, data: unknown, version?: number): Promise<void> => {
-        const envelope = { data, request_id: context.requestId, schema_version: contractVersion };
-        await notifyResponse(options.hooks, context, response, status, envelope);
+        const envelope = { data, request_id: hookContext.requestId, schema_version: contractVersion };
+        await notifyResponse(options.hooks, hookContext, response, status, isDesktopVoice ? { desktop_voice: true, request_id: hookContext.requestId } : envelope);
         send(response, status, context.requestId, data, version);
       };
       const actor = async (): Promise<AuthenticatedSession> => {
@@ -184,16 +196,56 @@ export function createApplication(options: ServerOptions = {}): ServerApplicatio
         const token = bearer(request);
         const authenticate = () => auth.authenticateAccessToken(token);
         const resolved = options.hooks?.resolveActor
-          ? await options.hooks.resolveActor({ ...context, bearerToken: token, authenticate })
+          ? await options.hooks.resolveActor({ ...hookContext, bearerToken: token, authenticate })
           : authenticate();
         if (!resolved) throw authenticationFailed('Authenticated actor is required');
         context.actor = resolved;
+        hookContext.actor = resolved;
         return resolved;
       };
-      const routeResult = await options.hooks?.onRoute?.({ ...context, getActor: actor, respond: emit });
+      const routeResult = await options.hooks?.onRoute?.({ ...hookContext, getActor: actor, respond: emit });
       if (routeResult === true) return;
       if (routeResult && typeof routeResult === 'object') {
         await emit(routeResult.status, routeResult.data);
+        return;
+      }
+
+      if (isDesktopVoice) {
+        const session = await actor();
+        response.setHeader('cache-control', 'no-store');
+        if (isVoiceStatus) {
+          await emit(200, desktopVoice.status());
+          return;
+        }
+        const controller = new AbortController();
+        const abort = () => controller.abort();
+        request.once('aborted', abort);
+        response.once('close', abort);
+        if (request.aborted || response.destroyed) controller.abort();
+        try {
+          const result = await desktopVoice.connect(context.body, session, { signal: controller.signal });
+          if (!controller.signal.aborted && !response.destroyed) await emit(200, result);
+        } finally {
+          request.removeListener('aborted', abort);
+          response.removeListener('close', abort);
+        }
+        return;
+      }
+
+      if (isStandaloneGuidance) {
+        const session = await actor();
+        const controller = new AbortController();
+        const abort = () => controller.abort();
+        request.once('aborted', abort);
+        response.once('close', abort);
+        if (request.aborted || response.destroyed) controller.abort();
+        try {
+          const result = await standaloneGuidance.analyze(context.body, session, { signal: controller.signal });
+          if (!controller.signal.aborted && !response.destroyed) await emit(200, result);
+        } finally {
+          request.removeListener('aborted', abort);
+          response.removeListener('close', abort);
+        }
         return;
       }
 
@@ -257,7 +309,7 @@ export function createApplication(options: ServerOptions = {}): ServerApplicatio
       }
       throw new DomainError(404, 'INVALID_REQUEST', 'Route not found');
     } catch (error) {
-      const normalized = error instanceof DomainError ? error : new DomainError(500, 'PARTIAL_FAILURE', 'Internal server error', true);
+      const normalized = error instanceof DomainError || error instanceof StandaloneGuidanceError ? error : new DomainError(500, 'PARTIAL_FAILURE', 'Internal server error', true);
       const envelope = { ...errorPayload(normalized), request_id: context.requestId, schema_version: contractVersion };
       await notifyResponse(options.hooks, context, response, normalized.status, envelope);
       sendError(response, normalized.status, correlationId, normalized);
@@ -270,4 +322,3 @@ export function createApplication(options: ServerOptions = {}): ServerApplicatio
 export function createServer(options: ServerOptions = {}): Server {
   return createApplication(options).server;
 }
-

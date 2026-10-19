@@ -6,6 +6,7 @@ android {
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
     sourceSets["main"].java.srcDir(rootProject.file("../../packages/contracts/kotlin/src/main/kotlin"))
+    sourceSets["main"].java.srcDir("src/normal/java")
 }
 dependencies {
     implementation("androidx.webkit:webkit:1.14.0")

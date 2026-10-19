@@ -20,6 +20,7 @@ const sourceFiles = [
   ['catalog', 'packages/contracts/src/spec/catalog.ts'],
   ['primitives', 'packages/contracts/src/spec/primitives.ts'],
   ['errors', 'packages/contracts/src/spec/errors.ts'],
+  ['standalone_guidance', 'packages/contracts/src/spec/standalone-guidance.ts'],
 ];
 
 function localDate() {
@@ -99,12 +100,12 @@ export function runC14HandoffCheck({ evidencePath, mode = 'development', runComm
   check('contract counts and generated version', () => {
     assert.ok(sourceInventory.every(item => item.exists && /^[0-9a-f]{64}$/.test(item.contentSha256)), 'contract source inventory is incomplete or unhashed');
     assert.equal(schemaVersion, '0.2.0');
-    assert.equal(operations.length, 60);
-    assert.equal(Object.keys(serviceDefinitions).length, 118);
+    assert.equal(operations.length, 61);
+    assert.equal(Object.keys(serviceDefinitions).length, 127);
     assert.equal(openapi.info.version, schemaVersion);
     const operationCount = Object.values(openapi.paths).reduce((count, pathItem) => count + Object.keys(pathItem).filter(method => ['get', 'post', 'put', 'patch', 'delete'].includes(method)).length, 0);
-    assert.equal(operationCount, 60);
-    return '0.2.0, 60 operations, 118 definitions and 60 generated paths are aligned';
+    assert.equal(operationCount, 61);
+    return '0.2.0, 61 operations, 127 definitions and 61 generated operations are aligned';
   }, checks);
 
   check('authentication and object authorization metadata', () => {
@@ -119,13 +120,17 @@ export function runC14HandoffCheck({ evidencePath, mode = 'development', runComm
   check('mutation idempotency and optimistic version guards', () => {
     for (const currentOperation of operations) {
       const generated = openApiOperation(openapi, currentOperation);
-      if (currentOperation.method !== 'get') assert.equal(hasParameter(generated, 'Idempotency-Key'), true, `${currentOperation.id} lacks Idempotency-Key`);
+      if (currentOperation.method !== 'get') {
+        const requiresIdempotency = currentOperation.id !== 'standaloneGuidanceAnalyze';
+        assert.equal(hasParameter(generated, 'Idempotency-Key'), requiresIdempotency, `${currentOperation.id} has incorrect Idempotency-Key policy`);
+        if (!requiresIdempotency) assert.equal(currentOperation.idempotencyKey, false);
+      }
       if (currentOperation.versioned) {
         assert.equal(hasParameter(generated, 'If-Match'), true, `${currentOperation.id} lacks If-Match`);
         assert.ok(generated.responses['200']?.headers?.ETag || generated.responses[String(currentOperation.successStatus)]?.headers?.ETag, `${currentOperation.id} lacks ETag`);
       }
     }
-    return 'all mutations carry idempotency metadata and all versioned writes carry If-Match/ETag';
+    return 'mutations carry idempotency metadata; standalone read-only analysis does not claim idempotency; versioned writes carry If-Match/ETag';
   }, checks);
 
   check('error envelope and safety statuses', () => {
@@ -133,10 +138,40 @@ export function runC14HandoffCheck({ evidencePath, mode = 'development', runComm
     assert.ok(requiredErrors.every(code => serviceErrorCodes.includes(code)));
     for (const currentOperation of operations) {
       const generated = openApiOperation(openapi, currentOperation);
-      for (const status of ['400', '401', '403', '404', '409', '410', '422', '429', '503', '504']) assert.ok(generated.responses[status], `${currentOperation.id} lacks safe ${status} response`);
-      assert.ok(generated.responses['400'].content['application/json'].schema.$ref.endsWith('/ErrorEnvelope'));
+      const standalone = currentOperation.id === 'standaloneGuidanceAnalyze';
+      const statuses = standalone ? ['400', '401', '403', '499', '500', '502', '503', '504'] : ['400', '401', '403', '404', '409', '410', '422', '429', '503', '504'];
+      for (const status of statuses) assert.ok(generated.responses[status], `${currentOperation.id} lacks safe ${status} response`);
+      assert.ok(generated.responses['400'].content['application/json'].schema.$ref.endsWith(standalone ? '/StandaloneGuidanceErrorEnvelope' : '/ErrorEnvelope'));
     }
     return 'all operations expose the shared safe error envelope and required refusal categories';
+  }, checks);
+
+  check('standalone current-frame guidance and owner-confirmed review boundary', () => {
+    const standalone = operation('standaloneGuidanceAnalyze');
+    assert.equal(standalone.path, '/v1/standalone/guidance/analyze');
+    assert.equal(standalone.method, 'post');
+    assert.equal(standalone.authentication, 'bearer');
+    assert.equal(standalone.authorization, 'self');
+    assert.equal(standalone.successStatus, 200);
+    assert.equal(standalone.request, 'StandaloneGuidanceAnalyzeRequest');
+    assert.equal(standalone.response, 'StandaloneGuidanceResult');
+    assert.equal(standalone.requestId.required, false);
+    assert.equal(standalone.errorEnvelope, 'StandaloneGuidanceErrorEnvelope');
+    const request = serviceDefinitions.StandaloneGuidanceAnalyzeRequest;
+    assert.equal(request.additionalProperties, false);
+    for (const name of ['observation_id', 'guide_id', 'observation_generation', 'task_generation', 'trigger_id', 'frame_id', 'frame_hash', 'sanitized_sha256', 'local_safety', 'redaction_profile']) assert.ok(request.required.includes(name));
+    assert.equal(request.properties.local_safety.const, 'safe');
+    assert.equal(request.properties.redaction_profile.const, 'all_text_and_faces_v1');
+    const variants = serviceDefinitions.StandaloneGuidanceResult.oneOf;
+    assert.equal(variants.length, 4);
+    for (const variant of variants) {
+      assert.equal(variant.additionalProperties, false);
+      if (variant.properties.kind.const === 'completed') assert.ok(variant.properties.review_proposal);
+      else assert.equal(variant.properties.review_proposal, undefined);
+    }
+    assert.match(standalone.description, /本人确认不得创建提醒/);
+    assert.match(standalone.description, /不能证明本地检测可信/);
+    return 'bearer-authenticated same-frame analysis retains strict correlation, client privacy checks, local completion verification and owner-confirmed review';
   }, checks);
 
   check('capture and upload consent boundary', () => {

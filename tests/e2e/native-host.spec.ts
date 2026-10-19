@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { installTextBridge } from '../helpers/text-bridge';
 
 test('普通网页不能因同名消息对象取得 Android 宿主身份', async ({ page }) => {
   await page.addInitScript(() => {
@@ -25,7 +26,8 @@ test('模拟宿主停止失败时告知未确认，不产生未处理异常', as
 });
 
 test('模拟原生暂停事件会停止讲解，恢复页面也不自动续播', async ({ page }) => {
-  await page.goto('/#/chat/new?scenario=loading');
+  await installTextBridge(page, 'pending');
+  await page.goto('/#/chat/new');
   await page.getByLabel('想问暖伴的问题').fill('合成暂停问题');
   await page.getByRole('button', { name: '发送', exact: true }).click();
   await expect(page.getByRole('button', { name: '讲解中', exact: true })).toBeDisabled();
@@ -51,7 +53,19 @@ for (const native of [true, false]) {
       if (native) window.nuanbanHost = { platform: 'windows', capabilities: async () => ({ platform: 'windows' }), stopAll: async () => ({ stopped: true }) };
     }, { native });
     await page.goto('/#/');
-    await expect(page.getByRole('heading', { name: '你好，今天也有暖伴陪着你。' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '今天想学点什么？' })).toBeVisible();
+    await page.goto('/#/todos');
+    await page.getByRole('button', { name: '添加提醒', exact: true }).click();
+    await page.getByLabel('提醒标题', { exact: true }).fill('本人创建的通知检查');
+    const future = await page.evaluate(() => {
+      const date = new Date(Date.now() + 120000);
+      return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    });
+    await page.getByLabel('什么时候提醒').fill(future);
+    await page.getByRole('button', { name: '下一步：核对提醒时间' }).click();
+    await page.getByRole('button', { name: '确认这个时间并保存' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.clock.setSystemTime(new Date('2027-01-01T09:05:00Z'));
     await page.clock.runFor(16000);
     await expect(page.locator('.toast[role="status"]')).toContainText('复习时间到了');
     expect(await page.evaluate(() => (window as unknown as { syntheticNotifications: string[] }).syntheticNotifications)).toHaveLength(native ? 0 : 1);

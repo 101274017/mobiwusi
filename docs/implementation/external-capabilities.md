@@ -1,14 +1,14 @@
 # 一次性外部能力清单与发布就绪
 
-生成时间：2026-10-17T15:58:49.030Z；审查类型：automated；输入指纹：`03001913c16151a562fece8bb96f40f16a1521c8d6219405172f0c0837ab5176`。
+生成时间：2026-10-18T09:24:24.762Z；审查类型：automated；输入指纹：`15280d6810a21cd577e9d217ea838f0d9a85c9a8b1268ef7986e75feb2d6f2ce`。
 
 本文件由 `node scripts/check-release-readiness.mjs` 从根计划 V1.2、共享门禁、当前本地源码/配置及既有证据计算生成。重复执行更新同一份台账，不要求逐任务补材料。
 
 ## 当前结论
 
-- 开发：`DEV_READY_WITH_EXTERNAL_PENDING`；可继续：`true`。
-- 发布：`EXTERNAL_PENDING`；正式 ready：`false`。
-- 外部待项：13 项；关闭/本地检查：15/15。
+- 开发：`DEV_BLOCKED`；可继续：`false`。
+- 发布：`BLOCKED`；正式 ready：`false`。
+- 外部待项：13 项；关闭/本地检查：14/16。
 - 不更新正式 D07、任务卡或其他门禁证据；开发 go 不代替正式 Go。
 - 本报告不验证本地服务启动；启动检查由主线程执行。
 
@@ -16,19 +16,19 @@
 
 | 能力 | 验证状态 | 当前真实路径 | 缺项 | 关闭与降级证据 |
 | --- | --- | --- | --- | --- |
-| Android 系统授权、捕获/浮层、通知与生命周期 | EXTERNAL_PENDING | 关闭证据已核对 | 目标设备/系统版本、本人系统授权、捕获与停止计数、通知/后台/浮层及生命周期真实回执 | `apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt`、`apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt`、`packages/privacy/src/index.ts`；仅本地隔离捕获或应用内教学；外部帧与远端媒体关闭；系统通知仍须系统权限 |
-| Windows 捕获、多屏 DPI、浮层与通知 | EXTERNAL_PENDING | 关闭证据已核对 | 目标 Windows 设备、混合 DPI/负坐标、多屏移动、真实权限/通知和停止回执 | `apps/desktop/native-runtime.cjs`、`apps/desktop/main.cjs`、`packages/privacy/src/index.ts`；外部采集/原生浮层/远端媒体关闭；本地存储与应用内界面可继续 |
-| 真实检测/脱敏模型与目标应用 Top20 | EXTERNAL_PENDING | 关闭证据已核对 | 真实模型、目标应用版本、20 项设备适配和儿童指向实测；开发候选不是已适配证明 | `apps/android/app/src/main/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt`、`packages/privacy/src/index.ts`、`docs/implementation/evidence/c16-decision-readiness-results.json`；检测未知、页面未知或敏感时拒绝发送，不做输入注入 |
+| Android 系统授权、捕获/浮层、通知与生命周期 | EXTERNAL_PENDING | 关闭未证明，开发阻断 | 目标设备/系统版本、本人系统授权、捕获与停止计数、通知/后台/浮层及生命周期真实回执 | `apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt`、`apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt`、`packages/privacy/src/index.ts`、`apps/android/standalone-runtime.md`；普通包无捕获/浮层组件；独立包默认关闭，缺完整本地检测器时拒绝系统采集授权流程；无远端媒体 |
+| Windows 捕获、多屏 DPI、浮层与通知 | EXTERNAL_PENDING | 关闭证据已核对 | 目标 Windows 设备、混合 DPI/负坐标、多屏移动、真实权限/通知和停止回执 | `apps/desktop/native-runtime.cjs`、`apps/desktop/main.cjs`、`apps/desktop/standalone-host.cjs`、`packages/privacy/src/index.ts`；管理桥仍关闭高风险媒体；独立桌宠捕获另需本人选源和同意、逐帧安全门控，默认关闭；代码及自身UI测试不等于外部软件验收 |
+| 真实检测/脱敏模型与目标应用 Top20 | EXTERNAL_PENDING | 关闭未证明，开发阻断 | 真实模型、目标应用版本、20 项设备适配和儿童指向实测；开发候选不是已适配证明 | `apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt`、`packages/privacy/src/index.ts`、`docs/implementation/evidence/c16-decision-readiness-results.json`；检测未知、页面未知或敏感时拒绝发送，不做输入注入 |
 | 真实生成 2D/3D 资产及许可 | EXTERNAL_PENDING | 关闭证据已核对 | 真实生成资产、授权许可、完整动作/格式/骨骼兼容和目标设备质量验证 | `packages/provider-sandbox/src/index.ts`、`apps/server/src/main.ts`；保留画布、草稿和既有 2D；无真实生成模块自动挂载 |
 | 真实供应：carrier_auth | EXTERNAL_PENDING | 关闭证据已核对 | 受管供应凭据引用、供应条款、本人同意、服务端证明/防重放及无 SIM/拒绝/撤销实测 | `packages/provider-sandbox/src/index.ts`、`apps/server/src/main.ts`；使用明确标注的本地适配/文字或亲情兜底，不调用网络供应 |
 | 真实供应：face_auth | EXTERNAL_PENDING | 关闭证据已核对 | 受管供应凭据引用、供应条款、本人同意、服务端证明/防重放及无 SIM/拒绝/撤销实测 | `packages/provider-sandbox/src/index.ts`、`apps/server/src/main.ts`；使用明确标注的本地适配/文字或亲情兜底，不调用网络供应 |
-| 真实供应：multimodal | EXTERNAL_PENDING | 关闭证据已核对 | 受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执 | `packages/provider-sandbox/src/index.ts`、`apps/server/src/main.ts`；使用明确标注的本地适配/文字或亲情兜底，不调用网络供应 |
+| 真实供应：multimodal | EXTERNAL_PENDING | 关闭证据已核对 | 受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执 | `packages/provider-sandbox/src/index.ts`、`apps/server/src/main.ts`、`apps/server/src/standalone-guidance.ts`；通用供应沙盒拒绝网络；独立视觉端口无配置503，需真实服务鉴权、本人用途同意和合规脱敏帧才按需请求，不回退Mock |
 | 真实供应：asr | EXTERNAL_PENDING | 关闭证据已核对 | 受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执 | `packages/provider-sandbox/src/index.ts`、`apps/server/src/main.ts`；使用明确标注的本地适配/文字或亲情兜底，不调用网络供应 |
 | 真实供应：tts | EXTERNAL_PENDING | 关闭证据已核对 | 受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执 | `packages/provider-sandbox/src/index.ts`、`apps/server/src/main.ts`；保留字幕，不调用网络供应 |
 | 真实供应：pet_generation | EXTERNAL_PENDING | 关闭证据已核对 | 受管供应凭据引用、授权端点/配额、用途与留存条款、真实质量/成本/取消和故障回执 | `packages/provider-sandbox/src/index.ts`、`apps/server/src/main.ts`；保留草稿与既有 2D，不调用网络供应 |
-| 真实编码、信令与 TURN 中继 | EXTERNAL_PENDING | 关闭证据已核对 | 授权信令/TURN、实际编码/中继、动态同意/撤权、断连和清理计数 | `packages/privacy/src/index.ts`、`apps/android/app/src/main/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt`、`apps/desktop/native-runtime.cjs`、`apps/server/src/main.ts`；默认服务不挂载媒体模块；外部采集和远端媒体关闭；不输出 TURN 凭据 |
-| 真实参与者/监护同意与 F09/F10 试点 | EXTERNAL_PENDING | 关闭证据已核对 | 有效真实参与者/监护同意、撤回/到期记录、真实试点及效果记录；无可接受的真人证明验证器 | `packages/privacy/src/index.ts`、`docs/implementation/evidence/c16-decision-readiness-results.json`、`docs/implementation/evidence/f-execution-results.json`；仅合成账户和本地验证；真实采集/分享须独立系统授权和有效同意 |
-| 正式部署、签名、恢复/回滚与对外交付 | EXTERNAL_PENDING | 关闭证据已核对 | 目标环境、生产运维/保留策略、签名与安装升级、备份恢复/回滚、真实对外交付证据；本地演练不是签收 | `apps/server/src/main.ts`、`docs/implementation/evidence/f-execution-results.json`；保持本地服务/开发模式，不开启真实供应、生产数据或正式 F 执行 |
+| 真实编码、信令与 TURN 中继 | EXTERNAL_PENDING | 关闭未证明，开发阻断 | 授权信令/TURN、实际编码/中继、动态同意/撤权、断连和清理计数 | `packages/privacy/src/index.ts`、`apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt`、`apps/desktop/native-runtime.cjs`、`apps/server/src/main.ts`；默认服务不挂载媒体模块；外部采集和远端媒体关闭；不输出 TURN 凭据 |
+| 真实参与者/监护同意与 F09/F10 试点 | EXTERNAL_PENDING | 关闭未证明，开发阻断 | 有效真实参与者/监护同意、撤回/到期记录、真实试点及效果记录；无可接受的真人证明验证器 | `packages/privacy/src/index.ts`、`docs/implementation/evidence/c16-decision-readiness-results.json`、`docs/implementation/evidence/f-execution-results.json`；仅合成账户和本地验证；真实采集/分享须独立系统授权和有效同意 |
+| 正式部署、签名、恢复/回滚与对外交付 | EXTERNAL_PENDING | 关闭未证明，开发阻断 | 目标环境、生产运维/保留策略、签名与安装升级、备份恢复/回滚、真实对外交付证据；本地演练不是签收 | `apps/server/src/main.ts`、`docs/implementation/evidence/f-execution-results.json`；保持本地服务/开发模式，不开启真实供应、生产数据或正式 F 执行 |
 
 ## 可自动重跑的验证入口
 
@@ -52,7 +52,8 @@ node scripts/check-d07-decision.mjs --mode release --no-write
 
 ## 本地失败（若有）
 
-- 当前报告范围内未发现本地检查失败。
+- `D07_CURRENT_INPUTS`：只读复用 D07 当前源码指纹、Schema 和共享门禁判定；`scripts/project-gate.mjs`、`docs/implementation/evidence/c15-nv-readiness-results.json`、`docs/implementation/evidence/c16-decision-readiness-results.json`、`docs/implementation/evidence/d07-decision.json`。
+- `ANDROID_CLOSED`：静态核对 Android 本地隔离捕获、未验证检测器和帧关闭路径；不宣称真机执行；`apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureRuntime.kt`、`apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/NativeCaptureService.kt`、`apps/android/app/src/standalone/java/org/nuanban/assistant/nativehost/LocalFrameGate.kt`。
 
 ## 证据与边界
 

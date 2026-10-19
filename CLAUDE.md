@@ -6,9 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 暖伴 (nuanban) is an AI public-welfare assistant. The repo is a pnpm monorepo (`apps/*`, `packages/*`) with a shared React frontend, a TypeScript backend, and Android and Windows (Electron) hosts. Node >= 24 and pnpm 9.12.0 are required (see `package.json`). Docs, UI strings and many comments are in Chinese.
 
-The app is not production ready. The frontend defaults to demo mode (synthetic data, in-app teaching sandbox). Starting the backend does not switch the frontend to real auth or real suppliers. Real devices, real suppliers, user consent, pilots and signed release are not accepted. Keep high-risk capabilities closed. Do not fake external evidence.
+The app is not production ready. The frontend defaults to a real empty local workspace without runtime mocks. Desktop text, image and read-only guidance use an explicitly configured OpenAI-compatible provider; provider credentials remain encrypted outside the repo and are decrypted only in the main process. Starting the backend does not grant real auth. Real devices, complete supplier integration, user consent, pilots and signed release are not accepted. Keep high-risk capabilities closed. Do not fake external evidence. See `docs/implementation/real-ai-provider.md`.
 
-The baseline plan is `暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md` (V1.2). The latest run state and resume point are in `docs/execution/RUN.md`. Requirements and technical docs are in the root `暖伴AI公益助手-*.md` files.
+The current core product shape is defined by the three root `暖伴AI公益助手-*独立桌宠*.md` documents. The older V1.2 work-package plan is archived at `docs/暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md`; keep its development/release gates separate. The latest run state and resume point are in `docs/execution/RUN.md`; migration scope and verification limits are in `docs/implementation/standalone-pet-migration.md`.
+
+The Windows host now starts a standalone pet and lazily opens management. Closing management must not end the pet runtime. Observation and teaching are separate sessions; third-party applications are operated only by the user. Screen and microphone are off by default. Local detection and same-frame redaction precede every cloud egress; unknown, sensitive, stale, invalid-source or detector-failure states fail closed. Privacy resumption requires a new owner action, not background capture. Local wake must never fall back to continuous cloud ASR. Synthetic/self-UI checks are not external-app acceptance.
 
 ## Commands
 
@@ -39,7 +41,7 @@ Notes:
 - Playwright starts `pnpm dev` itself and reuses an existing server outside CI. Check for existing listeners on `:5173` and `:3000` before starting servers. Locally set `$env:PLAYWRIGHT_CHANNEL='chrome'` to use installed Chrome. CI installs Playwright Chromium instead.
 - Vitest is capped at 2 workers with serial files. Many tests spawn child processes, so long ones may need a larger timeout.
 - The server runs TypeScript directly via `node --experimental-transform-types`. Use `NUANBAN_SERVER_STORAGE=sqlite` and `NUANBAN_SERVER_DB_PATH` for SQLite storage. `HOST` and `PORT` override the bind address.
-- Frontend env (see `.env.example`): `VITE_API_MODE` (`mock` or `real`), `VITE_PLATFORM_MODE`, `VITE_MOCK_SCENARIO`, `VITE_API_BASE_URL`. Real mode requires `VITE_API_BASE_URL` and never falls back to mocks. The scenario can also be set with `?scenario=` or in the hash.
+- Frontend env (see `.env.example`): `VITE_API_MODE` (`local` or `real`), `VITE_PLATFORM_MODE`, `VITE_API_BASE_URL`. Mock mode and `VITE_MOCK_SCENARIO` are rejected; scenario URL parameters no longer alter runtime. Remote business mode requires `VITE_API_BASE_URL`. AI credentials must never be placed in `VITE_*`.
 - Desktop: `pnpm desktop` (build, then Electron), `pnpm desktop:package`. Android: `pnpm android:build -Offline`, `pnpm android:sync`, plus `android:lab:*`. These need the Windows PowerShell scripts in `scripts/`.
 - CI (`.github/workflows/ci.yml`, windows-latest) runs `pnpm check`, `contracts:check`, `build`, then `test:e2e`.
 
@@ -56,7 +58,7 @@ The development gate and the release gate are separate:
 
 ### Layering
 
-The frontend is a ports-and-adapters design. `apps/web/src/composition.ts` is the composition root. It reads config and builds `AppServices` (`ownerId`, `repository`, `conversation`), choosing the mock stack (`@nuanban/mocks` with `local-data` IndexedDB) or the real stack (`@nuanban/api-client` Remote* classes). UI code must not import adapters directly.
+The frontend is a ports-and-adapters design. `apps/web/src/composition.ts` is the composition root. It reads config and builds `AppServices` (`ownerId`, `repository`, `conversation`), selecting real local IndexedDB or explicit remote business adapters. Text and image questions use restricted desktop IPC; missing ports fail closed without fixed-answer fallback. Synthetic adapters live only in `tests/fixtures` and must not enter the product. UI code must not import adapters directly.
 
 `scripts/check-boundaries.mjs` (part of `pnpm check`) enforces this:
 - `packages/domain` must not import react, zustand, electron or other `@nuanban/*` packages.
@@ -66,7 +68,7 @@ Packages live under `packages/*` and are consumed as `@nuanban/<name>`. They res
 
 Main groups:
 - Core: `domain` (rules), `application` (service interfaces), `config`, `contracts`.
-- Adapters: `api-client`, `local-data`, `mocks`, `platform-ports`, `sync-engine`.
+- Adapters: `api-client`, `local-data`, `platform-ports`, `sync-engine`.
 - UI: `ui`, `design-tokens`, `accessibility-assets`, `flow-library`.
 - Capability and safety engines, each with its own README and tests: `privacy` (frame gating), `media-relay`, `media-session`, `guidance-engine`, `reminder-engine`, `pet-engine`, `provider-sandbox`, `asset-service`, `quality-gates`.
 
@@ -85,7 +87,7 @@ Main groups:
 
 - Capture and media paths are fenced by "stop generations". Every frame, ticket, scheduled reminder and bridge message carries a generation, and late results after stop must be dropped. Lifecycle cleanup is coordinated in `platform-ports` (C09/C10).
 - Per-account isolation uses `ownerId` in stores (IndexedDB, Room, SQLite).
-- Dev scenario switching (13 fixed scenarios) isolates data per scenario namespace, and reset only clears the current one.
+- Runtime starts with empty `local-owner` data; legacy demo namespaces are not loaded or destructively erased. Scenario fixtures exist only in tests.
 - Content that drives behavior lives in `content/` (personas, safety policy, flow drafts).
 
 ### Tests

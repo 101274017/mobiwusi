@@ -1,5 +1,38 @@
 const { randomUUID } = require('node:crypto');
 const { evaluateLocalFrame, isAdmittedFrame, isRestrictedText, normalizeLabel, safeSummary } = require('./observation-policy.cjs');
+const { captureFailureReason, captureFailureMessage } = require('./observation/observation-common.cjs');
+
+function checkedLabels(value) {
+  if (!Array.isArray(value) || value.length > 10 || value.some(label => typeof label !== 'string'
+    || !normalizeLabel(label) || label.length > 80 || isRestrictedText(label))) throw new Error('invalid_analysis_labels');
+  return [...new Map(value.map(label => [normalizeLabel(label), label])).values()];
+}
+
+function reviewSuggestion(value, sourceGuideId, timestamp) {
+  if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) return null;
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const keys = ['remind_at', 'timezone', 'reason'];
+  if (Reflect.ownKeys(descriptors).length !== keys.length
+    || !keys.every(key => Object.hasOwn(descriptors, key) && Object.hasOwn(descriptors[key], 'value'))) return null;
+  const { remind_at: remindAt, timezone, reason } = value;
+  if (typeof reason !== 'string' || !reason.trim() || reason.length > 240 || isRestrictedText(reason)
+    || /[<>\x00-\x1F]/u.test(reason) || typeof timezone !== 'string' || timezone.length > 64
+    || !/^[A-Za-z][A-Za-z0-9_+-]*(?:\/[A-Za-z0-9_+-]+)*$/.test(timezone)) return null;
+  const parts = typeof remindAt === 'string'
+    ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,3})?(Z|[+-](\d{2}):(\d{2}))$/.exec(remindAt) : null;
+  if (!parts) return null;
+  const [, year, month, day, hour, minute, second, zone, zoneHour, zoneMinute] = parts;
+  const calendar = new Date(0);
+  calendar.setUTCFullYear(Number(year), Number(month) - 1, Number(day));
+  calendar.setUTCHours(Number(hour), Number(minute), Number(second), 0);
+  const dueAt = Date.parse(remindAt);
+  if (calendar.getUTCFullYear() !== Number(year) || calendar.getUTCMonth() + 1 !== Number(month) || calendar.getUTCDate() !== Number(day)
+    || Number(hour) > 23 || Number(minute) > 59 || Number(second) > 59
+    || (zone !== 'Z' && (Number(zoneHour) > 14 || Number(zoneMinute) > 59 || (Number(zoneHour) === 14 && Number(zoneMinute) !== 0)))
+    || !Number.isFinite(timestamp) || !Number.isFinite(dueAt) || dueAt <= timestamp || dueAt - timestamp > 365 * 86400000) return null;
+  try { new Intl.DateTimeFormat('en-US', { timeZone: timezone }); } catch { return null; }
+  return { sourceGuideId, remindAt, timezone, reason: safeSummary(reason, 240).trim(), source: 'ai' };
+}
 
 function createDesktopRuntime(options) {
   if (!options?.source || typeof options.source.capture !== 'function' || typeof options.source.detect !== 'function') throw new TypeError('本地观察端口不完整');
@@ -11,11 +44,14 @@ function createDesktopRuntime(options) {
   let observationGeneration = 0;
   let taskGeneration = 0;
   let analysisSequence = 0;
+  let questionSequence = 0;
   let timer = null;
   let captureController = null;
   let captureJob = null;
   let analysisController = null;
   let analysisJob = null;
+  let questionController = null;
+  let questionJob = null;
   let cleanupJob = null;
   let pendingReason = null;
   let pendingAnalysis = null;
@@ -23,13 +59,15 @@ function createDesktopRuntime(options) {
   let analysisFrame = null;
   let previousStep = null;
   let sourceId = null;
+  let observationRegion = null;
   let cloudConsent = false;
   let gateOpen = false;
   let disposed = false;
   const recordedTasks = new Set();
+  const recordingTasks = new Map();
   const state = {
     observation: { state: 'off', generation: 0, sourceName: '', reason: null, captureActive: false },
-    task: { state: 'idle', id: null, question: '', instruction: '', explanation: '', presentation: null, result: null },
+    task: { state: 'idle', id: null, observationGeneration: 0, question: '', instruction: '', explanation: '', presentation: null, result: null },
     analysis: { state: 'idle', message: '默认不采集。请本人选择观察范围并开启。' },
     captions: { enabled: true, text: '' },
     wake: { state: 'unsupported', reason: '尚未配置经本机验证的本地唤醒引擎；点击和文字提问仍可用。' },
@@ -58,6 +96,12 @@ function createDesktopRuntime(options) {
     if (frame && frame !== latestFrame && frame !== analysisFrame && frame !== pendingAnalysis?.frame) frame.sanitizedPng?.fill(0);
   }
 
+  function sameFrameContext(first, second) {
+    return Boolean(first && second && first.sourceId === second.sourceId && first.displayId === second.displayId
+      && first.width === second.width && first.height === second.height && first.signature === second.signature
+      && JSON.stringify(first.geometry) === JSON.stringify(second.geometry));
+  }
+
   function invalidateAnalysis() {
     analysisSequence += 1;
     analysisController?.abort();
@@ -66,36 +110,145 @@ function createDesktopRuntime(options) {
     release(obsolete);
   }
 
-  async function recordTeaching(result) {
-    if (!state.task.id || recordedTasks.has(state.task.id)) return;
-    const note = {
-      sourceGuideId: state.task.id, question: safeSummary(state.task.question),
-      summary: safeSummary(state.task.instruction || state.task.explanation || '教学未完成。'),
-      result, mastery: 'unmastered', startedAt: state.task.startedAt, endedAt: now(),
-    };
-    if (options.recordTeaching) await options.recordTeaching(note);
-    recordedTasks.add(state.task.id);
-    if (recordedTasks.size > 128) recordedTasks.delete(recordedTasks.values().next().value);
+  function invalidateQuestion() {
+    questionSequence += 1;
+    questionController?.abort();
+    questionController = null;
   }
 
-  async function finishTeaching(result = 'unfinished') {
-    taskGeneration += 1;
+  function textQuestionFailure(error) {
+    const messages = {
+      AUTH_FAILED: '模型凭证或模型权限无效，未使用模拟答案。',
+      RATE_LIMITED: '模型网关暂时限流，请稍后手动重试。',
+      TIMEOUT: '等待模型超时，已停止请求，未使用模拟答案。',
+      CANCELLED: '本次文字提问已停止。',
+    };
+    return messages[error?.code] ?? '真实文字模型接口暂不可用，未使用模拟答案。';
+  }
+
+  function cleanTextAnswer(value) {
+    return typeof value === 'string' && value.length <= 24000 ? value.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '').trim() : '';
+  }
+
+  async function answerTextQuestion(questionText, taskId, taskGenerationAtStart) {
+    if (typeof options.questioner?.answer !== 'function') return false;
+    const sequence = questionSequence;
+    const observation = observationGeneration;
+    const controller = new AbortController();
+    questionController = controller;
+    const stillCurrent = () => !disposed && sequence === questionSequence
+      && state.task.id === taskId && taskGeneration === taskGenerationAtStart && observationGeneration === observation;
+    let timedOut = false;
+    let rejectCancellation;
+    const cancellation = new Promise((_resolve, reject) => {
+      rejectCancellation = () => reject(Object.assign(new Error('CANCELLED'), { code: 'CANCELLED' }));
+    });
+    controller.signal.addEventListener('abort', rejectCancellation, { once: true });
+    const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, 45000);
+    timeout.unref?.();
+    const job = (async () => {
+      state.task.state = 'analyzing';
+      state.analysis = { state: 'analyzing', message: '正在请求文字模型；本次仅发送输入文字，不附带屏幕或音频。' };
+      publish();
+      try {
+        controller.signal.throwIfAborted();
+        const reply = await Promise.race([options.questioner.answer({ question: questionText, signal: controller.signal,
+          instructions: '这是独立桌宠的文字提问，没有提供当前屏幕画面。只回答一般性的操作准备、功能说明和安全提示；不得声称看到了桌面、当前软件状态或已经完成操作。若问题需要判断当前画面，请提示本人先选择真实屏幕范围并开启本地观察。用户必须亲手打开软件、切换窗口、点击和输入；不得索取或处理密码、验证码、支付、转账或私人信息。' }), cancellation]);
+        if (!stillCurrent() || controller.signal.aborted) return false;
+        const answer = cleanTextAnswer(reply?.text);
+        if (!answer) throw Object.assign(new Error('empty_text_answer'), { code: 'PROVIDER_UNAVAILABLE' });
+        state.task.state = 'ended';
+        state.task.explanation = answer;
+        state.task.result = 'answered';
+        state.analysis = { state: 'idle', message: '文字模型已返回；本次未发送屏幕或音频，不代表教学已完成。' };
+        state.captions.text = answer;
+        message(answer, 'assistant');
+      } catch (error) {
+        if (!stillCurrent() || (controller.signal.aborted && !timedOut)) return false;
+        const detail = textQuestionFailure(timedOut ? { code: 'TIMEOUT' } : error);
+        state.task.state = 'ended';
+        state.task.explanation = detail;
+        state.task.result = 'failed';
+        state.analysis = { state: 'error', message: '文字模型未返回有效回答。' };
+        state.captions.text = detail;
+        message(detail, 'assistant');
+      } finally {
+        clearTimeout(timeout);
+        controller.signal.removeEventListener('abort', rejectCancellation);
+        if (questionController === controller) questionController = null;
+      }
+      publish();
+      return true;
+    })();
+    questionJob = job;
+    try { return await job; } finally { if (questionJob === job) questionJob = null; }
+  }
+
+  async function recordTeaching(result, task = { ...state.task }) {
+    if (!task.id || task.kind === 'text' || recordedTasks.has(task.id)) return false;
+    if (recordingTasks.has(task.id)) return recordingTasks.get(task.id);
+    const note = {
+      sourceGuideId: task.id, question: safeSummary(task.question),
+      summary: safeSummary(task.instruction || task.explanation || '教学未完成。'),
+      result, mastery: 'unmastered', startedAt: task.startedAt, endedAt: now(),
+    };
+    const recording = Promise.resolve().then(async () => {
+      if (options.recordTeaching) await options.recordTeaching(note);
+      recordedTasks.add(task.id);
+      if (recordedTasks.size > 128) recordedTasks.delete(recordedTasks.values().next().value);
+      return typeof options.recordTeaching === 'function';
+    });
+    recordingTasks.set(task.id, recording);
+    try { return await recording; } finally { recordingTasks.delete(task.id); }
+  }
+
+  async function finishTeaching(result = 'unfinished', completion = null) {
+    if (result === 'completed' && !completion) throw new Error('教学完成必须通过新画面的实际变化核验');
+    const task = { ...state.task };
+    const observation = observationGeneration;
+    const generation = ++taskGeneration;
+    const stillCurrent = () => !disposed && state.task.id === task.id && taskGeneration === generation && observationGeneration === observation;
+    questionController?.abort();
     invalidateAnalysis();
     clearTarget();
     previousStep = null;
-    if (state.task.id) {
-      try { await recordTeaching(result); }
+    if (task.kind === 'text') {
+      if (task.state !== 'ended') {
+        state.task.state = 'ended';
+        state.task.result = 'cancelled';
+        state.task.explanation = '本次文字提问已停止，不会自动恢复。';
+      }
+      if (state.observation.state === 'observing' || state.analysis.state !== 'error') state.analysis = { state: 'idle', message: '文字提问已结束；没有记录为屏幕教学完成。' };
+      state.captions.text = '';
+      publish();
+      return snapshot();
+    }
+    if (task.id && !['completed', 'ended'].includes(task.state)) {
+      state.task.state = 'finishing';
+      let saved;
+      try { saved = await recordTeaching(result, task); }
       catch {
+        if (!stillCurrent()) return snapshot();
         message('本次教学记录未保存，请保留当前窗口稍后重试。');
         state.task.state = 'needs_help';
+        state.analysis = { state: 'error', message: '教学记录未保存，不会创建复习建议或提醒。' };
         publish();
         return snapshot();
       }
+      if (!stillCurrent()) return snapshot();
       state.task.state = result === 'completed' ? 'completed' : 'ended';
       state.task.result = result;
       state.task.instruction = '';
+      if (saved && completion?.review && options.suggestReview && state.observation.state === 'observing' && gateOpen) {
+        const suggestion = reviewSuggestion(completion.review, task.id, now());
+        if (suggestion) {
+          try { await options.suggestReview(suggestion); }
+          catch { if (stillCurrent()) message('教学记录已保存，但复习建议未保存；未创建提醒，请稍后重试。'); }
+          if (!stillCurrent()) return snapshot();
+        }
+      }
     }
-    state.analysis = { state: 'idle', message: '本次教学已结束；仍获授权的本地观察可继续。' };
+    if (state.observation.state === 'observing' || state.analysis.state !== 'error') state.analysis = { state: 'idle', message: state.observation.state === 'observing' ? '本次教学已结束；仍获授权的本地观察可继续。' : '本次教学已结束；本地观察已停止，不会自动重新开启。' };
     state.captions.text = '';
     publish();
     return snapshot();
@@ -115,6 +268,7 @@ function createDesktopRuntime(options) {
   }
 
   async function performCloseObservation(reason, privacyPaused) {
+    invalidateQuestion();
     gateOpen = false;
     observationGeneration += 1;
     invalidateAnalysis();
@@ -129,7 +283,12 @@ function createDesktopRuntime(options) {
     release(obsolete);
     state.observation.state = privacyPaused ? 'privacy_paused' : 'stopped';
     state.observation.reason = reason;
-    state.analysis = { state: privacyPaused ? 'error' : 'idle', message: privacyPaused ? '本地安全检查未放行，已停止采集和发送。请离开风险页面后本人点击“继续共享”。' : '观察已停止；不会自动重新开启。' };
+    const failureMessage = captureFailureMessage(reason);
+    const safetyMessage = ['unclassified_screen', 'unknown'].includes(reason)
+      ? '本地分类器尚未识别此画面，不等于已发现敏感内容。已停止采集和发送；请在“继续共享”中选择“框选观察区域”，只保留目标软件后重新检查。'
+      : reason === 'sensitive_screen' ? '本地检测发现敏感文字，已停止采集和发送。请先关闭敏感页面，再由本人重新选择观察范围。'
+      : '本地安全检查未完成或未通过，已停止采集和发送。请重新选择观察范围；若仍失败，请停止观察后检查本地检测能力。';
+    state.analysis = { state: failureMessage || privacyPaused ? 'error' : 'idle', message: failureMessage ?? (privacyPaused ? safetyMessage : '观察已停止；不会自动重新开启。') };
     state.captions.text = '';
     let stopped = true;
     try { await options.source.stop?.(); }
@@ -158,11 +317,17 @@ function createDesktopRuntime(options) {
     timer.unref?.();
   }
 
-  function targetFor(frame, element) {
+  function hasVerifiedGeometry(frame) {
     const geometry = frame.geometry;
-    if (!geometry || ![geometry.x, geometry.y, geometry.width, geometry.height].every(Number.isFinite)
-      || geometry.width <= 0 || geometry.height <= 0
-      || Math.abs((frame.width / frame.height) / (geometry.width / geometry.height) - 1) > 0.01) return null;
+    return Boolean(geometry && [geometry.x, geometry.y, geometry.width, geometry.height].every(Number.isFinite)
+      && geometry.width > 0 && geometry.height > 0
+      && (geometry.scaleFactor === undefined || (Number.isFinite(geometry.scaleFactor) && geometry.scaleFactor > 0))
+      && Math.abs((frame.width / frame.height) / (geometry.width / geometry.height) - 1) <= 0.01);
+  }
+
+  function targetFor(frame, element) {
+    if (!hasVerifiedGeometry(frame)) return null;
+    const geometry = frame.geometry;
     return {
       x: geometry.x + element.rect.x * geometry.width / frame.width,
       y: geometry.y + element.rect.y * geometry.height / frame.height,
@@ -172,8 +337,7 @@ function createDesktopRuntime(options) {
   }
 
   function currentElement(original, originalFrame, currentFrame) {
-    if (originalFrame.signature !== currentFrame.signature || originalFrame.sourceId !== currentFrame.sourceId
-      || JSON.stringify(originalFrame.geometry) !== JSON.stringify(currentFrame.geometry)) return null;
+    if (!sameFrameContext(originalFrame, currentFrame)) return null;
     const matches = currentFrame.elements.filter(element => normalizeLabel(element.label) === normalizeLabel(original.label)
       && Math.abs(element.rect.x - original.rect.x) <= 4 && Math.abs(element.rect.y - original.rect.y) <= 4);
     return matches.length === 1 ? matches[0] : null;
@@ -189,30 +353,52 @@ function createDesktopRuntime(options) {
     renderTarget({ visible: true, rect, label: element.label, instruction: state.task.instruction, presentation: state.task.presentation, expiresAt: now() + Math.min(2500, Math.max(0, frame.capturedAt + maxAgeMs - now())) });
   }
 
-  function canUseFrame(frame, observation, task) {
-    return gateOpen && cloudConsent && sameGeneration(observation, task) && isAdmittedFrame(frame, now(), maxAgeMs)
-      && latestFrame?.signature === frame.signature && latestFrame.sourceId === frame.sourceId;
+  function canUseFrame(frame, observation, task, allowRefreshed = false) {
+    const current = latestFrame;
+    const timestamp = now();
+    if (!gateOpen || !cloudConsent || !sameGeneration(observation, task) || !current
+      || !sameFrameContext(current, frame) || current.capturedAt < frame.capturedAt
+      || !isAdmittedFrame(current, timestamp, maxAgeMs)) return false;
+    if (isAdmittedFrame(frame, timestamp, maxAgeMs)) return true;
+    return allowRefreshed && current.capturedAt > frame.capturedAt
+      && typeof frame.displayId === 'string' && Boolean(frame.displayId.trim())
+      && hasVerifiedGeometry(frame) && hasVerifiedGeometry(current)
+      && isAdmittedFrame(current, timestamp, Math.min(maxAgeMs, 5000))
+      && isAdmittedFrame(frame, frame.capturedAt, maxAgeMs);
+  }
+
+  function verifiedTransition(step, frame) {
+    if (!step || frame.sourceId !== step.frame.sourceId || frame.displayId !== step.frame.displayId
+      || frame.capturedAt <= Math.max(step.frame.capturedAt, step.issuedAt)
+      || !isAdmittedFrame(frame, now(), maxAgeMs)) return false;
+    const expected = step.expectedLabels.map(normalizeLabel);
+    const labels = new Set(frame.elements.map(element => normalizeLabel(element.label)));
+    return expected.length > 0 && expected.every(label => labels.has(label))
+      && expected.some(label => !step.baselineLabels.has(label));
   }
 
   async function installAnalysis(result, job) {
     const current = latestFrame;
-    if (!current || !sameGeneration(job.observation, job.task) || !isAdmittedFrame(current, now(), maxAgeMs)
-      || current.signature !== job.frame.signature || current.sourceId !== job.frame.sourceId) return false;
-    if (!result || typeof result.instruction !== 'string' || result.instruction.length > 600 || isRestrictedText(result.instruction)) throw new Error('invalid_analysis');
+    if (!current || !canUseFrame(job.frame, job.observation, job.task, true) || !isAdmittedFrame(current, now(), maxAgeMs)
+      || job.previous !== previousStep) throw new Error('stale_analysis_frame');
+    if (!result || typeof result.instruction !== 'string' || !result.instruction.trim()
+      || result.instruction.length > 600 || isRestrictedText(result.instruction)) throw new Error('invalid_analysis');
     const identity = result.observation_generation === job.observation && result.task_generation === job.task
-      && result.frame_id === job.frame.frameId && result.guide_id === state.task.id && result.trigger_id === job.triggerId;
+      && result.frame_id === job.frame.frameId && result.guide_id === job.guideId && result.trigger_id === job.triggerId
+      && (result.observation_id === undefined || result.observation_id === job.observationId);
     if (!identity) throw new Error('stale_analysis');
     if (result.kind === 'completed') {
       const labels = new Set(current.elements.map(element => normalizeLabel(element.label)));
-      const expected = previousStep?.expectedLabels ?? [];
-      const evidence = result.evidence_labels;
-      if (job.reason === 'question' || !previousStep || current.signature === previousStep.signature || expected.length === 0
-        || !expected.every(label => labels.has(normalizeLabel(label)))
-        || !Array.isArray(evidence) || !expected.every(label => evidence.some(item => normalizeLabel(item) === normalizeLabel(label)))) throw new Error('completion_not_verified');
+      const evidence = checkedLabels(result.evidence_labels).map(normalizeLabel);
+      if (!['verification', 'page_changed'].includes(job.reason) || !verifiedTransition(job.previous, current)
+        || !evidence.every(label => labels.has(label))
+        || !job.previous.expectedLabels.every(label => evidence.includes(normalizeLabel(label)))) throw new Error('completion_not_verified');
+      const proposedReview = reviewSuggestion(Object.getOwnPropertyDescriptor(result, 'review_proposal')?.value, job.guideId, now());
       state.task.explanation = result.instruction;
       state.captions.text = result.instruction;
       message(result.instruction, 'assistant');
-      await finishTeaching('completed');
+      await finishTeaching('completed', { review: proposedReview
+        ? Object.freeze({ remind_at: proposedReview.remindAt, timezone: proposedReview.timezone, reason: proposedReview.reason }) : null });
       return true;
     }
     if (result.kind !== 'step') {
@@ -227,24 +413,31 @@ function createDesktopRuntime(options) {
     const proposed = job.frame.elements.find(element => element.id === result.target_id);
     const element = proposed ? currentElement(proposed, job.frame, current) : null;
     if (!element || !['confirmed', 'uncertain_candidate'].includes(result.presentation)) throw new Error('target_not_in_current_frame');
-    if (previousStep && current.signature !== previousStep.signature && previousStep.expectedLabels.length > 0) {
-      const labels = new Set(current.elements.map(item => normalizeLabel(item.label)));
-      if (!previousStep.expectedLabels.every(label => labels.has(normalizeLabel(label)))) throw new Error('previous_step_not_verified');
+    const expected = result.expected_labels === undefined ? [] : checkedLabels(result.expected_labels);
+    const progressed = verifiedTransition(job.previous, current);
+    if (job.previous && !progressed) {
+      const repeated = currentElement(job.previous.element, job.previous.frame, current);
+      const sameExpectation = expected.length === job.previous.expectedLabels.length
+        && expected.every(label => job.previous.expectedLabels.some(item => normalizeLabel(item) === normalizeLabel(label)));
+      if (!repeated || repeated.id !== element.id || !sameExpectation) throw new Error('previous_step_not_verified');
     }
-    const expected = Array.isArray(result.expected_labels) ? result.expected_labels.filter(label => typeof label === 'string' && label.length <= 80 && !isRestrictedText(label)).slice(0, 10) : [];
     state.task.state = 'awaiting_action';
     state.task.instruction = result.instruction;
     state.task.presentation = result.presentation;
     state.task.explanation = result.presentation === 'uncertain_candidate' ? '这是当前画面中的候选位置，尚未确认；请先核对。' : '请亲手操作；暖伴不会自动点击或输入。';
     state.captions.text = result.instruction;
-    previousStep = { element: { ...element, rect: { ...element.rect } }, signature: current.signature, frame: current, expectedLabels: expected, instruction: result.instruction };
+    previousStep = job.previous && !progressed ? job.previous : {
+      element: { ...element, rect: { ...element.rect } }, signature: current.signature, frame: current,
+      baselineLabels: new Set(current.elements.map(item => normalizeLabel(item.label))), issuedAt: now(),
+      expectedLabels: expected, instruction: result.instruction,
+    };
     showStepTarget(current, element);
     message(result.instruction, 'assistant');
     return true;
   }
 
   function queueAnalysis(frame, reason) {
-    if (!state.task.id || ['completed', 'ended', 'idle'].includes(state.task.state)) return;
+    if (!state.task.id || state.task.kind === 'text' || ['completed', 'ended', 'idle', 'finishing'].includes(state.task.state)) return;
     if (!cloudConsent || !options.analyzer?.analyze) {
       state.analysis = { state: 'unavailable', message: cloudConsent ? '尚未配置已认证的云分析服务；不使用模拟答案。' : '未同意云分析，画面仅在本地处理。可停止或重新选择观察用途。' };
       state.task.state = 'needs_help';
@@ -252,7 +445,8 @@ function createDesktopRuntime(options) {
       return;
     }
     const obsolete = pendingAnalysis?.frame;
-    pendingAnalysis = { frame, reason, observation: observationGeneration, task: taskGeneration, triggerId: randomUUID(), previous: previousStep };
+    pendingAnalysis = { frame, reason, observation: observationGeneration, task: taskGeneration, triggerId: randomUUID(), previous: previousStep,
+      guideId: state.task.id, question: state.task.question, observationId: state.observation.id };
     release(obsolete);
     if (analysisJob) {
       analysisController?.abort();
@@ -264,26 +458,27 @@ function createDesktopRuntime(options) {
         pendingAnalysis = null;
         analysisFrame = job.frame;
         const sequence = ++analysisSequence;
-        analysisController = new AbortController();
+        const controller = new AbortController();
+        analysisController = controller;
         if (!canUseFrame(job.frame, job.observation, job.task)) { analysisFrame = null; release(job.frame); continue; }
         state.analysis = { state: 'analyzing', message: '仅为本次有效触发发送经过本地检查与脱敏的必要画面。' };
         state.task.state = job.reason === 'verification' ? 'verifying' : 'analyzing';
         publish();
         try {
           const result = await options.analyzer.analyze({
-            frame: job.frame, question: state.task.question, reason: job.reason,
-            observationId: state.observation.id, guideId: state.task.id, observationGeneration: job.observation,
+            frame: job.frame, question: job.question, reason: job.reason,
+            observationId: job.observationId, guideId: job.guideId, observationGeneration: job.observation,
             taskGeneration: job.task, triggerId: job.triggerId,
-            previousStep: job.previous ? { instruction: job.previous.instruction, expectedLabels: job.previous.expectedLabels } : null,
-            signal: analysisController.signal, canSend: () => sequence === analysisSequence && canUseFrame(job.frame, job.observation, job.task),
+            previousStep: job.previous ? { instruction: job.previous.instruction, expectedLabels: [...job.previous.expectedLabels] } : null,
+            signal: controller.signal, canSend: () => !controller.signal.aborted && sequence === analysisSequence && canUseFrame(job.frame, job.observation, job.task, true),
           });
-          if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && !analysisController.signal.aborted) {
+          if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && !controller.signal.aborted) {
             const installed = await installAnalysis(result, job);
-            if (installed && state.task.state !== 'completed') state.analysis = { state: 'ready', message: '请按当前一步亲手操作。' };
+            if (installed && state.task.state === 'awaiting_action') state.analysis = { state: 'ready', message: '请按当前一步亲手操作。' };
             publish();
           }
         } catch (error) {
-          if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && !analysisController.signal.aborted) {
+          if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && !controller.signal.aborted) {
             clearTarget();
             state.task.state = 'needs_help';
             state.analysis = { state: 'error', message: error?.code === 'ANALYSIS_UNAVAILABLE' ? '云分析服务尚未配置或未登录；不会用演示数据替代。' : '本次分析未获得可核验的结果。可以重新提问、核验或结束，不会继续指错。' };
@@ -299,11 +494,12 @@ function createDesktopRuntime(options) {
 
   async function captureOne(reason) {
     const generation = observationGeneration;
+    const task = taskGeneration;
     captureController = new AbortController();
     let frame;
     let detection;
     try {
-      frame = await options.source.capture({ sourceId, signal: captureController.signal });
+      frame = await options.source.capture({ sourceId, signal: captureController.signal, ...(observationRegion ? { region: { ...observationRegion } } : {}) });
       if (!sameGeneration(generation)) return;
       detection = await options.source.detect(frame, { signal: captureController.signal });
       if (!sameGeneration(generation)) return;
@@ -313,15 +509,27 @@ function createDesktopRuntime(options) {
         return;
       }
       const old = latestFrame;
-      const changed = Boolean(old && (old.signature !== admitted.signature || JSON.stringify(old.geometry) !== JSON.stringify(admitted.geometry)));
+      if (old && admitted.capturedAt <= old.capturedAt) {
+        release(admitted);
+        if (reason === 'verification' && sameGeneration(generation, task) && previousStep) {
+          state.task.state = 'awaiting_action';
+          state.analysis = { state: 'ready', message: '本次未取得比上次更新的本地安全画面，不能确认操作完成，请重新核验。' };
+          publish();
+        }
+        return;
+      }
+      const changed = Boolean(old && !sameFrameContext(old, admitted));
       latestFrame = admitted;
       gateOpen = true;
+      state.observation.reason = admitted.scene === 'controls_only' ? 'controls_only' : null;
       if (changed) {
         clearTarget();
         invalidateAnalysis();
       }
       release(old);
-      if (reason === 'verification' && previousStep && previousStep.signature === admitted.signature) {
+      if (!sameGeneration(generation, task)) return;
+      if (reason === 'verification' && previousStep
+        && (previousStep.signature === admitted.signature || admitted.capturedAt <= previousStep.issuedAt)) {
         state.task.state = 'awaiting_action';
         state.analysis = { state: 'ready', message: '已检查新画面，尚未观察到预期变化；不会因为点击“我点好了”就进入下一步。' };
         const element = currentElement(previousStep.element, previousStep.frame, admitted);
@@ -332,8 +540,8 @@ function createDesktopRuntime(options) {
         const element = currentElement(previousStep.element, previousStep.frame, admitted);
         if (element) showStepTarget(admitted, element);
       }
-    } catch {
-      if (sameGeneration(generation) && !captureController.signal.aborted) await closeObservation('capture_or_detector_failed', true);
+    } catch (error) {
+      if (sameGeneration(generation) && !captureController.signal.aborted) await closeObservation(captureFailureReason(error?.code), true);
     } finally {
       frame?.png?.fill(0);
       detection?.sanitizedPng?.fill(0);
@@ -363,11 +571,19 @@ function createDesktopRuntime(options) {
     if (state.observation.state === 'cleanup_failed') throw new Error('采集清理尚未确认，不能重新开启');
     if (state.observation.state === 'privacy_paused' && input.resume !== true) throw new Error('隐私暂停仅允许本人点击继续共享后恢复');
     if (state.observation.state === 'observing') await closeObservation('source_changed');
+    invalidateQuestion();
+    if (state.task.kind === 'text' && state.task.state !== 'ended') {
+      state.task.state = 'ended';
+      state.task.result = 'cancelled';
+      state.task.explanation = '观察范围已改变，本次文字提问已停止；需要讲解时请重新提问。';
+    }
     observationGeneration += 1;
     sourceId = input.sourceId;
+    observationRegion = input.region ? { ...input.region } : null;
     cloudConsent = input.cloudConsent === true;
     gateOpen = false;
     state.observation = { state: 'observing', id: randomUUID(), generation: observationGeneration, sourceName: input.sourceName ?? '', reason: null, captureActive: true };
+    if (state.task.id && !['completed', 'ended'].includes(state.task.state)) state.task.observationGeneration = observationGeneration;
     state.analysis = { state: 'idle', message: cloudConsent ? '本地观察已开启；没有有效任务触发时不会持续上传。' : '仅本地观察，不向云端发送画面。' };
     message('观察范围由本人开启；随时可以停止。');
     publish();
@@ -377,9 +593,14 @@ function createDesktopRuntime(options) {
 
   async function ask(text) {
     if (disposed || typeof text !== 'string' || !text.trim() || text.length > 500) throw new Error('请输入不超过500字的问题');
+    if (cleanupJob || !['off', 'stopped', 'observing'].includes(state.observation.state)) throw new Error('请先处理本地观察的安全或停止状态，再重新提问');
+    invalidateQuestion();
+    const question = questionSequence;
     if (state.task.id && !['completed', 'ended'].includes(state.task.state)) await finishTeaching('interrupted');
+    if (question !== questionSequence || disposed) return snapshot();
     taskGeneration += 1;
-    state.task = { id: randomUUID(), state: 'needs_help', question: safeSummary(text.trim()), instruction: '', explanation: '', presentation: null, result: null, startedAt: now() };
+    const textOnly = typeof options.questioner?.answer === 'function' && (state.observation.state !== 'observing' || !cloudConsent);
+    state.task = { id: randomUUID(), kind: textOnly ? 'text' : 'guidance', state: 'needs_help', observationGeneration, question: safeSummary(text.trim()), instruction: '', explanation: '', presentation: null, result: null, startedAt: now() };
     message(safeSummary(text.trim()), 'user');
     if (isRestrictedText(text)) {
       clearTarget();
@@ -389,14 +610,16 @@ function createDesktopRuntime(options) {
       state.captions.text = state.task.explanation;
       message(state.task.explanation, 'assistant');
       await recordTeaching('risk_blocked');
-    } else if (state.observation.state !== 'observing') message('请先本人开启本地观察，选择真实桌面范围，再开始外部软件教学。');
+    } else if (textOnly) await answerTextQuestion(text.trim(), state.task.id, taskGeneration);
+    else if (state.observation.state !== 'observing') message('真实文字模型接口暂不可用；不会使用固定回答。若要进行外部软件教学，请先配置模型并由本人开启本地观察。');
     else requestFrame('question');
     publish();
     return snapshot();
   }
 
   async function verify() {
-    if (state.observation.state !== 'observing' || !state.task.id || !previousStep) throw new Error('当前没有可核验的教学步骤');
+    if (state.observation.state !== 'observing' || !state.task.id || !previousStep
+      || ['completed', 'ended', 'finishing'].includes(state.task.state)) throw new Error('当前没有可核验的教学步骤');
     clearTarget();
     state.task.state = 'verifying';
     state.analysis = { state: 'analyzing', message: '正在重新观察当前画面，不会把按钮点击当成成功。' };
@@ -427,14 +650,15 @@ function createDesktopRuntime(options) {
   }
 
   async function whenIdle() {
-    while (captureJob || analysisJob) {
+    while (captureJob || analysisJob || questionJob) {
       if (captureJob) await captureJob;
       if (analysisJob) await analysisJob;
+      if (questionJob) await questionJob;
     }
   }
 
   return { snapshot, startObservation, stopObservation: reason => closeObservation(reason ?? 'user'),
-    resumeObservation: input => startObservation({ ...input, resume: true }), ask, verify, finishTeaching, repeat,
+    resumeObservation: input => startObservation({ ...input, resume: true }), ask, verify, finishTeaching: result => { invalidateQuestion(); return finishTeaching(result); }, repeat,
     toggleCaptions, dispose, whenIdle };
 }
 

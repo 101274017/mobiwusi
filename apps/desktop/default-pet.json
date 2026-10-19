@@ -1,0 +1,9 @@
+{
+  "id": "xingyun-monkey",
+  "name": "小猴子",
+  "provider": "xingyun",
+  "runtime": "@xmov/avatar/agent",
+  "offlinePreview": "./assets/xingyun-monkey-preview.png",
+  "requiresNetworkFor3D": true,
+  "autoConnect": false
+}

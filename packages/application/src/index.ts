@@ -1,9 +1,9 @@
 import type { Note, Todo, Preferences, Family, OutboxEntry, LocalConflict, ConflictChoice } from '@nuanban/domain';
 import { contractVersion, isConversationEvent, type ConversationEvent, type ServiceErrorCode, type ServiceErrorEnvelope } from '@nuanban/contracts';
-import type { AccountDemoInput } from '@nuanban/domain';
-export interface AccountDemoPort { attempt(input: AccountDemoInput, signal: AbortSignal): Promise<{ source: 'mock'; authenticated: false }>; }
+export type * from './image-question';
+export type * from './text-question';
 export interface LocalSnapshot { notes: Note[]; todos: Todo[]; preferences: Preferences; family: Family[]; outbox: OutboxEntry[]; initialized: boolean; conflicts?: LocalConflict[]; }
-export interface Repository { load(ownerId: string): Promise<LocalSnapshot | null>; commit(ownerId: string, snapshot: LocalSnapshot): Promise<void>; clear(ownerId: string): Promise<void>; commitIfUnchanged?(ownerId: string, expected: LocalSnapshot, next: LocalSnapshot): Promise<void>; resolveConflict?(ownerId: string, conflictId: string, choice: ConflictChoice): Promise<LocalSnapshot>; }
+export interface Repository { load(ownerId: string): Promise<LocalSnapshot | null>; commit(ownerId: string, snapshot: LocalSnapshot): Promise<void>; clear(ownerId: string): Promise<void>; commitIfUnchanged?(ownerId: string, expected: LocalSnapshot | null, next: LocalSnapshot): Promise<void>; resolveConflict?(ownerId: string, conflictId: string, choice: ConflictChoice): Promise<LocalSnapshot>; }
 export interface ConversationPort { stream(text: string, signal: AbortSignal): AsyncIterable<ConversationEvent>; }
 export class ServiceFailure extends Error {
   constructor(public readonly code: ServiceErrorCode, message: string, public readonly retryable = false) {
@@ -16,7 +16,7 @@ export class ServiceFailure extends Error {
 }
 export class LocalConflictFailure extends ServiceFailure {
   constructor(public readonly preserved: LocalSnapshot) {
-    super('VERSION_CONFLICT', '演示版本冲突：修改未保存，本机草稿已保留。请到冲突页逐项比较，不会自动覆盖。');
+    super('VERSION_CONFLICT', '版本冲突：修改未保存，本机草稿已保留。请到冲突页逐项比较，不会自动覆盖。');
   }
 }
 export async function readConversation(port: ConversationPort, text: string, signal: AbortSignal, onDelta: (segment: string, answer: string) => void): Promise<string> {
@@ -35,7 +35,7 @@ export async function readConversation(port: ConversationPort, text: string, sig
     } else {
       if (event.request_id !== requestId || event.type === 'started') throw new ServiceFailure('STREAM_INTERRUPTED', '讲解事件不匹配，已暂停。', true);
       if (event.type === 'delta') {
-        answer += (answer ? '\n' : '') + event.text;
+        answer += event.text;
         if (answer.length > 24000) throw new ServiceFailure('STREAM_INTERRUPTED', '讲解过长，请分成小问题再试。', true);
         onDelta(event.text, answer);
       } else completed = true;

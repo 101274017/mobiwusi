@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { currentPet, applyPet, undoPet, samePet } from '@nuanban/pet-engine';
 import { IndexedDbRepository } from '@nuanban/local-data';
-import { createDemoSnapshot } from '@nuanban/mocks';
+import { createDemoSnapshot } from '../fixtures/business-scenarios';
 import { useApp } from '../../apps/web/src/store';
 import type { Repository } from '@nuanban/application';
 import type { PetConfiguration } from '@nuanban/domain';

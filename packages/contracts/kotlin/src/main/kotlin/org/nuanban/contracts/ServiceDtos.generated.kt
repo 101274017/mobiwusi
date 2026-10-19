@@ -3965,6 +3965,410 @@ data class VoiceTicketResponse(
     }
 }
 
+data class StandaloneGuidanceRect(
+    val `x`: Double,
+    val `y`: Double,
+    val `width`: Double,
+    val `height`: Double
+) : WireObject {
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceRect", linkedMapOf(
+        "x" to `x`,
+        "y" to `y`,
+        "width" to `width`,
+        "height" to `height`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceRect {
+            ContractValidator.validate("StandaloneGuidanceRect", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceRect(
+                `x` = (fields["x"] as Number).toDouble(),
+                `y` = (fields["y"] as Number).toDouble(),
+                `width` = (fields["width"] as Number).toDouble(),
+                `height` = (fields["height"] as Number).toDouble()
+            )
+        }
+    }
+}
+
+data class StandaloneGuidanceElement(
+    val `id`: String,
+    val `label`: String,
+    val `rect`: StandaloneGuidanceRect
+) : WireObject {
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceElement", linkedMapOf(
+        "id" to `id`,
+        "label" to `label`,
+        "rect" to `rect`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceElement {
+            ContractValidator.validate("StandaloneGuidanceElement", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceElement(
+                `id` = fields["id"] as String,
+                `label` = fields["label"] as String,
+                `rect` = StandaloneGuidanceRect.fromWire(fields["rect"])
+            )
+        }
+    }
+}
+
+data class StandaloneGuidanceImage(
+    val `base64`: String
+) : WireObject {
+    val `mime`: String get() = "image/png"
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceImage", linkedMapOf(
+        "mime" to `mime`,
+        "base64" to `base64`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceImage {
+            ContractValidator.validate("StandaloneGuidanceImage", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceImage(
+                `base64` = fields["base64"] as String
+            )
+        }
+    }
+}
+
+data class StandaloneGuidancePreviousStep(
+    val `instruction`: String,
+    val `expected_labels`: List<String>
+) : WireObject {
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidancePreviousStep", linkedMapOf(
+        "instruction" to `instruction`,
+        "expected_labels" to `expected_labels`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidancePreviousStep {
+            ContractValidator.validate("StandaloneGuidancePreviousStep", value)
+            val fields = wireObject(value)
+            return StandaloneGuidancePreviousStep(
+                `instruction` = fields["instruction"] as String,
+                `expected_labels` = (fields["expected_labels"] as List<*>).map { item -> item as String }
+            )
+        }
+    }
+}
+
+data class StandaloneGuidanceReviewProposal(
+    val `remind_at`: String,
+    val `timezone`: String,
+    val `reason`: String
+) : WireObject {
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceReviewProposal", linkedMapOf(
+        "remind_at" to `remind_at`,
+        "timezone" to `timezone`,
+        "reason" to `reason`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceReviewProposal {
+            ContractValidator.validate("StandaloneGuidanceReviewProposal", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceReviewProposal(
+                `remind_at` = fields["remind_at"] as String,
+                `timezone` = fields["timezone"] as String,
+                `reason` = fields["reason"] as String
+            )
+        }
+    }
+}
+
+data class StandaloneGuidanceAnalyzeRequest(
+    val `observation_id`: String,
+    val `guide_id`: String,
+    val `observation_generation`: Long,
+    val `task_generation`: Long,
+    val `trigger_id`: String,
+    val `frame_id`: String,
+    val `trigger_reason`: StandaloneGuidanceAnalyzeRequestTriggerReason,
+    val `frame_hash`: String,
+    val `sanitized_sha256`: String,
+    val `captured_at`: String,
+    val `image`: StandaloneGuidanceImage,
+    val `question`: String,
+    val `elements`: List<StandaloneGuidanceElement>,
+    val `previous_step`: OptionalField<StandaloneGuidancePreviousStep> = OptionalField.Absent
+) : WireObject {
+    val `redaction_profile`: String get() = "all_text_and_faces_v1"
+    val `local_safety`: String get() = "safe"
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceAnalyzeRequest", linkedMapOf(
+        "observation_id" to `observation_id`,
+        "guide_id" to `guide_id`,
+        "observation_generation" to `observation_generation`,
+        "task_generation" to `task_generation`,
+        "trigger_id" to `trigger_id`,
+        "frame_id" to `frame_id`,
+        "trigger_reason" to `trigger_reason`,
+        "frame_hash" to `frame_hash`,
+        "sanitized_sha256" to `sanitized_sha256`,
+        "captured_at" to `captured_at`,
+        "image" to `image`,
+        "redaction_profile" to `redaction_profile`,
+        "local_safety" to `local_safety`,
+        "question" to `question`,
+        "elements" to `elements`,
+        "previous_step" to `previous_step`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceAnalyzeRequest {
+            ContractValidator.validate("StandaloneGuidanceAnalyzeRequest", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceAnalyzeRequest(
+                `observation_id` = fields["observation_id"] as String,
+                `guide_id` = fields["guide_id"] as String,
+                `observation_generation` = (fields["observation_generation"] as Number).toLong(),
+                `task_generation` = (fields["task_generation"] as Number).toLong(),
+                `trigger_id` = fields["trigger_id"] as String,
+                `frame_id` = fields["frame_id"] as String,
+                `trigger_reason` = StandaloneGuidanceAnalyzeRequestTriggerReason.fromWire(fields["trigger_reason"]),
+                `frame_hash` = fields["frame_hash"] as String,
+                `sanitized_sha256` = fields["sanitized_sha256"] as String,
+                `captured_at` = fields["captured_at"] as String,
+                `image` = StandaloneGuidanceImage.fromWire(fields["image"]),
+                `question` = fields["question"] as String,
+                `elements` = (fields["elements"] as List<*>).map { item -> StandaloneGuidanceElement.fromWire(item) },
+                `previous_step` = if (fields.containsKey("previous_step")) OptionalField.Present(StandaloneGuidancePreviousStep.fromWire(fields["previous_step"])) else OptionalField.Absent
+            )
+        }
+    }
+}
+
+enum class StandaloneGuidanceAnalyzeRequestTriggerReason(val wireValue: String) : WireValue {
+    VALUE_QUESTION("question"),
+    VALUE_PAGE_CHANGED("page_changed"),
+    VALUE_VERIFICATION("verification");
+    override fun toWire(): String = wireValue
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceAnalyzeRequestTriggerReason {
+            ContractValidator.validate("StandaloneGuidanceAnalyzeRequestTriggerReason", value)
+            return entries.first { it.wireValue == value }
+        }
+    }
+}
+
+sealed interface StandaloneGuidanceResult : WireValue {
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceResult {
+            ContractValidator.validate("StandaloneGuidanceResult", value)
+            if (ContractValidator.accepts("StandaloneGuidanceResultVariant1", value)) return StandaloneGuidanceResultVariant1.fromWire(value)
+            if (ContractValidator.accepts("StandaloneGuidanceResultVariant2", value)) return StandaloneGuidanceResultVariant2.fromWire(value)
+            if (ContractValidator.accepts("StandaloneGuidanceResultVariant3", value)) return StandaloneGuidanceResultVariant3.fromWire(value)
+            if (ContractValidator.accepts("StandaloneGuidanceResultVariant4", value)) return StandaloneGuidanceResultVariant4.fromWire(value)
+            throw ContractViolation("StandaloneGuidanceResult", "oneOf")
+        }
+    }
+}
+
+data class StandaloneGuidanceResultVariant1(
+    val `observation_id`: String,
+    val `guide_id`: String,
+    val `observation_generation`: Long,
+    val `task_generation`: Long,
+    val `trigger_id`: String,
+    val `frame_id`: String,
+    val `instruction`: String,
+    val `target_id`: OptionalField<String> = OptionalField.Absent,
+    val `presentation`: OptionalField<StandaloneGuidanceResultVariant1Presentation> = OptionalField.Absent,
+    val `expected_labels`: OptionalField<List<String>> = OptionalField.Absent,
+    val `evidence_labels`: OptionalField<List<String>> = OptionalField.Absent
+) : WireObject, StandaloneGuidanceResult {
+    val `kind`: String get() = "step"
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceResultVariant1", linkedMapOf(
+        "observation_id" to `observation_id`,
+        "guide_id" to `guide_id`,
+        "observation_generation" to `observation_generation`,
+        "task_generation" to `task_generation`,
+        "trigger_id" to `trigger_id`,
+        "frame_id" to `frame_id`,
+        "kind" to `kind`,
+        "instruction" to `instruction`,
+        "target_id" to `target_id`,
+        "presentation" to `presentation`,
+        "expected_labels" to `expected_labels`,
+        "evidence_labels" to `evidence_labels`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceResultVariant1 {
+            ContractValidator.validate("StandaloneGuidanceResultVariant1", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceResultVariant1(
+                `observation_id` = fields["observation_id"] as String,
+                `guide_id` = fields["guide_id"] as String,
+                `observation_generation` = (fields["observation_generation"] as Number).toLong(),
+                `task_generation` = (fields["task_generation"] as Number).toLong(),
+                `trigger_id` = fields["trigger_id"] as String,
+                `frame_id` = fields["frame_id"] as String,
+                `instruction` = fields["instruction"] as String,
+                `target_id` = if (fields.containsKey("target_id")) OptionalField.Present(fields["target_id"] as String) else OptionalField.Absent,
+                `presentation` = if (fields.containsKey("presentation")) OptionalField.Present(StandaloneGuidanceResultVariant1Presentation.fromWire(fields["presentation"])) else OptionalField.Absent,
+                `expected_labels` = if (fields.containsKey("expected_labels")) OptionalField.Present((fields["expected_labels"] as List<*>).map { item -> item as String }) else OptionalField.Absent,
+                `evidence_labels` = if (fields.containsKey("evidence_labels")) OptionalField.Present((fields["evidence_labels"] as List<*>).map { item -> item as String }) else OptionalField.Absent
+            )
+        }
+    }
+}
+
+enum class StandaloneGuidanceResultVariant1Presentation(val wireValue: String) : WireValue {
+    VALUE_CONFIRMED("confirmed"),
+    VALUE_UNCERTAIN_CANDIDATE("uncertain_candidate");
+    override fun toWire(): String = wireValue
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceResultVariant1Presentation {
+            ContractValidator.validate("StandaloneGuidanceResultVariant1Presentation", value)
+            return entries.first { it.wireValue == value }
+        }
+    }
+}
+
+data class StandaloneGuidanceResultVariant2(
+    val `observation_id`: String,
+    val `guide_id`: String,
+    val `observation_generation`: Long,
+    val `task_generation`: Long,
+    val `trigger_id`: String,
+    val `frame_id`: String,
+    val `instruction`: String,
+    val `evidence_labels`: List<String>,
+    val `review_proposal`: OptionalField<StandaloneGuidanceReviewProposal> = OptionalField.Absent
+) : WireObject, StandaloneGuidanceResult {
+    val `kind`: String get() = "completed"
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceResultVariant2", linkedMapOf(
+        "observation_id" to `observation_id`,
+        "guide_id" to `guide_id`,
+        "observation_generation" to `observation_generation`,
+        "task_generation" to `task_generation`,
+        "trigger_id" to `trigger_id`,
+        "frame_id" to `frame_id`,
+        "kind" to `kind`,
+        "instruction" to `instruction`,
+        "evidence_labels" to `evidence_labels`,
+        "review_proposal" to `review_proposal`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceResultVariant2 {
+            ContractValidator.validate("StandaloneGuidanceResultVariant2", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceResultVariant2(
+                `observation_id` = fields["observation_id"] as String,
+                `guide_id` = fields["guide_id"] as String,
+                `observation_generation` = (fields["observation_generation"] as Number).toLong(),
+                `task_generation` = (fields["task_generation"] as Number).toLong(),
+                `trigger_id` = fields["trigger_id"] as String,
+                `frame_id` = fields["frame_id"] as String,
+                `instruction` = fields["instruction"] as String,
+                `evidence_labels` = (fields["evidence_labels"] as List<*>).map { item -> item as String },
+                `review_proposal` = if (fields.containsKey("review_proposal")) OptionalField.Present(StandaloneGuidanceReviewProposal.fromWire(fields["review_proposal"])) else OptionalField.Absent
+            )
+        }
+    }
+}
+
+data class StandaloneGuidanceResultVariant3(
+    val `observation_id`: String,
+    val `guide_id`: String,
+    val `observation_generation`: Long,
+    val `task_generation`: Long,
+    val `trigger_id`: String,
+    val `frame_id`: String,
+    val `instruction`: String
+) : WireObject, StandaloneGuidanceResult {
+    val `kind`: String get() = "clarify"
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceResultVariant3", linkedMapOf(
+        "observation_id" to `observation_id`,
+        "guide_id" to `guide_id`,
+        "observation_generation" to `observation_generation`,
+        "task_generation" to `task_generation`,
+        "trigger_id" to `trigger_id`,
+        "frame_id" to `frame_id`,
+        "kind" to `kind`,
+        "instruction" to `instruction`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceResultVariant3 {
+            ContractValidator.validate("StandaloneGuidanceResultVariant3", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceResultVariant3(
+                `observation_id` = fields["observation_id"] as String,
+                `guide_id` = fields["guide_id"] as String,
+                `observation_generation` = (fields["observation_generation"] as Number).toLong(),
+                `task_generation` = (fields["task_generation"] as Number).toLong(),
+                `trigger_id` = fields["trigger_id"] as String,
+                `frame_id` = fields["frame_id"] as String,
+                `instruction` = fields["instruction"] as String
+            )
+        }
+    }
+}
+
+data class StandaloneGuidanceResultVariant4(
+    val `observation_id`: String,
+    val `guide_id`: String,
+    val `observation_generation`: Long,
+    val `task_generation`: Long,
+    val `trigger_id`: String,
+    val `frame_id`: String,
+    val `instruction`: String
+) : WireObject, StandaloneGuidanceResult {
+    val `kind`: String get() = "unsupported"
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceResultVariant4", linkedMapOf(
+        "observation_id" to `observation_id`,
+        "guide_id" to `guide_id`,
+        "observation_generation" to `observation_generation`,
+        "task_generation" to `task_generation`,
+        "trigger_id" to `trigger_id`,
+        "frame_id" to `frame_id`,
+        "kind" to `kind`,
+        "instruction" to `instruction`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceResultVariant4 {
+            ContractValidator.validate("StandaloneGuidanceResultVariant4", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceResultVariant4(
+                `observation_id` = fields["observation_id"] as String,
+                `guide_id` = fields["guide_id"] as String,
+                `observation_generation` = (fields["observation_generation"] as Number).toLong(),
+                `task_generation` = (fields["task_generation"] as Number).toLong(),
+                `trigger_id` = fields["trigger_id"] as String,
+                `frame_id` = fields["frame_id"] as String,
+                `instruction` = fields["instruction"] as String
+            )
+        }
+    }
+}
+
+enum class StandaloneGuidanceErrorCode(val wireValue: String) : WireValue {
+    VALUE_GUIDANCE_AUTH_REQUIRED("GUIDANCE_AUTH_REQUIRED"),
+    VALUE_GUIDANCE_INVALID_REQUEST("GUIDANCE_INVALID_REQUEST"),
+    VALUE_GUIDANCE_UNSAFE_REQUEST("GUIDANCE_UNSAFE_REQUEST"),
+    VALUE_GUIDANCE_UNAVAILABLE("GUIDANCE_UNAVAILABLE"),
+    VALUE_GUIDANCE_PROVIDER_FAILURE("GUIDANCE_PROVIDER_FAILURE"),
+    VALUE_GUIDANCE_INVALID_PROVIDER_RESPONSE("GUIDANCE_INVALID_PROVIDER_RESPONSE"),
+    VALUE_GUIDANCE_UNSAFE_PROVIDER_RESPONSE("GUIDANCE_UNSAFE_PROVIDER_RESPONSE"),
+    VALUE_GUIDANCE_ABORTED("GUIDANCE_ABORTED"),
+    VALUE_GUIDANCE_TIMEOUT("GUIDANCE_TIMEOUT");
+    override fun toWire(): String = wireValue
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceErrorCode {
+            ContractValidator.validate("StandaloneGuidanceErrorCode", value)
+            return entries.first { it.wireValue == value }
+        }
+    }
+}
+
 data class NormalizedRect(
     val `x`: Double,
     val `y`: Double,
@@ -6297,7 +6701,16 @@ enum class ServiceErrorCode(val wireValue: String) : WireValue {
     VALUE_STREAM_INTERRUPTED("STREAM_INTERRUPTED"),
     VALUE_INVALID_REQUEST("INVALID_REQUEST"),
     VALUE_PARTIAL_FAILURE("PARTIAL_FAILURE"),
-    VALUE_INVITE_EXPIRED("INVITE_EXPIRED");
+    VALUE_INVITE_EXPIRED("INVITE_EXPIRED"),
+    VALUE_GUIDANCE_AUTH_REQUIRED("GUIDANCE_AUTH_REQUIRED"),
+    VALUE_GUIDANCE_INVALID_REQUEST("GUIDANCE_INVALID_REQUEST"),
+    VALUE_GUIDANCE_UNSAFE_REQUEST("GUIDANCE_UNSAFE_REQUEST"),
+    VALUE_GUIDANCE_UNAVAILABLE("GUIDANCE_UNAVAILABLE"),
+    VALUE_GUIDANCE_PROVIDER_FAILURE("GUIDANCE_PROVIDER_FAILURE"),
+    VALUE_GUIDANCE_INVALID_PROVIDER_RESPONSE("GUIDANCE_INVALID_PROVIDER_RESPONSE"),
+    VALUE_GUIDANCE_UNSAFE_PROVIDER_RESPONSE("GUIDANCE_UNSAFE_PROVIDER_RESPONSE"),
+    VALUE_GUIDANCE_ABORTED("GUIDANCE_ABORTED"),
+    VALUE_GUIDANCE_TIMEOUT("GUIDANCE_TIMEOUT");
     override fun toWire(): String = wireValue
     companion object {
         fun fromWire(value: Any?): ServiceErrorCode {
@@ -6376,7 +6789,16 @@ enum class ErrorEnvelopeErrorCode(val wireValue: String) : WireValue {
     VALUE_STREAM_INTERRUPTED("STREAM_INTERRUPTED"),
     VALUE_INVALID_REQUEST("INVALID_REQUEST"),
     VALUE_PARTIAL_FAILURE("PARTIAL_FAILURE"),
-    VALUE_INVITE_EXPIRED("INVITE_EXPIRED");
+    VALUE_INVITE_EXPIRED("INVITE_EXPIRED"),
+    VALUE_GUIDANCE_AUTH_REQUIRED("GUIDANCE_AUTH_REQUIRED"),
+    VALUE_GUIDANCE_INVALID_REQUEST("GUIDANCE_INVALID_REQUEST"),
+    VALUE_GUIDANCE_UNSAFE_REQUEST("GUIDANCE_UNSAFE_REQUEST"),
+    VALUE_GUIDANCE_UNAVAILABLE("GUIDANCE_UNAVAILABLE"),
+    VALUE_GUIDANCE_PROVIDER_FAILURE("GUIDANCE_PROVIDER_FAILURE"),
+    VALUE_GUIDANCE_INVALID_PROVIDER_RESPONSE("GUIDANCE_INVALID_PROVIDER_RESPONSE"),
+    VALUE_GUIDANCE_UNSAFE_PROVIDER_RESPONSE("GUIDANCE_UNSAFE_PROVIDER_RESPONSE"),
+    VALUE_GUIDANCE_ABORTED("GUIDANCE_ABORTED"),
+    VALUE_GUIDANCE_TIMEOUT("GUIDANCE_TIMEOUT");
     override fun toWire(): String = wireValue
     companion object {
         fun fromWire(value: Any?): ErrorEnvelopeErrorCode {
@@ -6407,9 +6829,118 @@ data class ErrorEnvelopeErrorDetails(
     }
 }
 
+data class StandaloneGuidanceErrorEnvelope(
+    val `error`: StandaloneGuidanceErrorEnvelopeError,
+    val `request_id`: String
+) : WireObject {
+    val `schema_version`: String get() = "0.2.0"
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceErrorEnvelope", linkedMapOf(
+        "error" to `error`,
+        "request_id" to `request_id`,
+        "schema_version" to `schema_version`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceErrorEnvelope {
+            ContractValidator.validate("StandaloneGuidanceErrorEnvelope", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceErrorEnvelope(
+                `error` = StandaloneGuidanceErrorEnvelopeError.fromWire(fields["error"]),
+                `request_id` = fields["request_id"] as String
+            )
+        }
+    }
+}
+
+data class StandaloneGuidanceErrorEnvelopeError(
+    val `code`: StandaloneGuidanceErrorEnvelopeErrorCode,
+    val `message`: String,
+    val `retryable`: Boolean,
+    val `details`: OptionalField<StandaloneGuidanceErrorEnvelopeErrorDetails> = OptionalField.Absent
+) : WireObject {
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceErrorEnvelopeError", linkedMapOf(
+        "code" to `code`,
+        "message" to `message`,
+        "retryable" to `retryable`,
+        "details" to `details`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceErrorEnvelopeError {
+            ContractValidator.validate("StandaloneGuidanceErrorEnvelopeError", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceErrorEnvelopeError(
+                `code` = StandaloneGuidanceErrorEnvelopeErrorCode.fromWire(fields["code"]),
+                `message` = fields["message"] as String,
+                `retryable` = fields["retryable"] as Boolean,
+                `details` = if (fields.containsKey("details")) OptionalField.Present(StandaloneGuidanceErrorEnvelopeErrorDetails.fromWire(fields["details"])) else OptionalField.Absent
+            )
+        }
+    }
+}
+
+enum class StandaloneGuidanceErrorEnvelopeErrorCode(val wireValue: String) : WireValue {
+    VALUE_AUTH_FAILED("AUTH_FAILED"),
+    VALUE_AUTH_EXPIRED("AUTH_EXPIRED"),
+    VALUE_SCOPE_DENIED("SCOPE_DENIED"),
+    VALUE_CONSENT_REQUIRED("CONSENT_REQUIRED"),
+    VALUE_PERMISSION_DENIED("PERMISSION_DENIED"),
+    VALUE_RISK_PAUSED("RISK_PAUSED"),
+    VALUE_TARGET_STALE("TARGET_STALE"),
+    VALUE_LOW_CONFIDENCE("LOW_CONFIDENCE"),
+    VALUE_NEED_TIME_CONFIRMATION("NEED_TIME_CONFIRMATION"),
+    VALUE_VERSION_CONFLICT("VERSION_CONFLICT"),
+    VALUE_RATE_LIMITED("RATE_LIMITED"),
+    VALUE_PROVIDER_UNAVAILABLE("PROVIDER_UNAVAILABLE"),
+    VALUE_CANCELLED("CANCELLED"),
+    VALUE_TIMEOUT("TIMEOUT"),
+    VALUE_NETWORK_OFFLINE("NETWORK_OFFLINE"),
+    VALUE_STREAM_INTERRUPTED("STREAM_INTERRUPTED"),
+    VALUE_INVALID_REQUEST("INVALID_REQUEST"),
+    VALUE_PARTIAL_FAILURE("PARTIAL_FAILURE"),
+    VALUE_INVITE_EXPIRED("INVITE_EXPIRED"),
+    VALUE_GUIDANCE_AUTH_REQUIRED("GUIDANCE_AUTH_REQUIRED"),
+    VALUE_GUIDANCE_INVALID_REQUEST("GUIDANCE_INVALID_REQUEST"),
+    VALUE_GUIDANCE_UNSAFE_REQUEST("GUIDANCE_UNSAFE_REQUEST"),
+    VALUE_GUIDANCE_UNAVAILABLE("GUIDANCE_UNAVAILABLE"),
+    VALUE_GUIDANCE_PROVIDER_FAILURE("GUIDANCE_PROVIDER_FAILURE"),
+    VALUE_GUIDANCE_INVALID_PROVIDER_RESPONSE("GUIDANCE_INVALID_PROVIDER_RESPONSE"),
+    VALUE_GUIDANCE_UNSAFE_PROVIDER_RESPONSE("GUIDANCE_UNSAFE_PROVIDER_RESPONSE"),
+    VALUE_GUIDANCE_ABORTED("GUIDANCE_ABORTED"),
+    VALUE_GUIDANCE_TIMEOUT("GUIDANCE_TIMEOUT");
+    override fun toWire(): String = wireValue
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceErrorEnvelopeErrorCode {
+            ContractValidator.validate("StandaloneGuidanceErrorEnvelopeErrorCode", value)
+            return entries.first { it.wireValue == value }
+        }
+    }
+}
+
+data class StandaloneGuidanceErrorEnvelopeErrorDetails(
+    val `current_version`: Long,
+    val `conflict_id`: String
+) : WireObject {
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceErrorEnvelopeErrorDetails", linkedMapOf(
+        "current_version" to `current_version`,
+        "conflict_id" to `conflict_id`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceErrorEnvelopeErrorDetails {
+            ContractValidator.validate("StandaloneGuidanceErrorEnvelopeErrorDetails", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceErrorEnvelopeErrorDetails(
+                `current_version` = (fields["current_version"] as Number).toLong(),
+                `conflict_id` = fields["conflict_id"] as String
+            )
+        }
+    }
+}
+
 object GeneratedContractDtos {
     const val schemaVersion: String = "0.2.0"
-    val definitionNames: Set<String> = setOf("Empty", "Mode", "Scope", "AppearanceDto", "VoiceDto", "PreferencesDto", "UserDto", "DeviceDto", "SessionDto", "SessionResponse", "CarrierExchangeRequest", "SubjectProfile", "ClaimRequest", "ClaimResponse", "ClaimConfirmRequest", "ClaimConfirmResponse", "BindingChallengeRequest", "DeviceChallengeResponse", "DeviceExchangeRequest", "FaceChallengeResponse", "FaceExchangeRequest", "RefreshRequest", "RevokedResponse", "MeResponse", "PreferencesRequest", "PreferencesResponse", "RelationInvitationRequest", "RelationInvitationResponse", "RelationAcceptRequest", "RelationDto", "RelationResponse", "RelationPage", "GrantsRequest", "GrantsResponse", "RelationRevokedResponse", "ConsentRequest", "ConsentResponse", "ConsentWithdrawResponse", "ConversationCreateRequest", "ConversationCreateResponse", "ConversationMessageDto", "ConversationMessagePage", "ResponseRequest", "ResponseAccepted", "CancelledResponse", "UploadRequest", "UploadResponse", "MediaCommitRequest", "MediaCommitResponse", "FrameContextDto", "LocalFeaturesDto", "GuidanceCreateRequest", "GuidanceCreateResponse", "GuidanceAnalyzeRequest", "RequestAccepted", "GuidanceVerifyRequest", "GuidanceVerifyResponse", "EndedResponse", "NoteDto", "NoteCreateRequest", "NoteResponse", "NotePage", "NoteUpdateRequest", "NoteDeletedResponse", "ReviewRequest", "ReviewResponse", "RepeatRule", "TodoDto", "TodoCreateRequest", "TodoPatch", "TodoUpdateRequest", "TodoResponse", "TodoPage", "TodoCancelledResponse", "OccurrenceCompleteResponse", "ReceiptRequest", "AcceptedResponse", "PetJobRequest", "PetJobCreated", "AssetDto", "PetJobDto", "PetJobCancelled", "PetDto", "PetCurrentRequest", "PetCurrentResponse", "ManifestDto", "SyncMutationDto", "SyncRequest", "ConflictDto", "SyncResult", "SyncResponse", "SyncChange", "SyncChangesResponse", "AssistRequest", "AssistCreated", "AssistStateResponse", "AssistJoinRequest", "AssistJoinResponse", "AssistEndRequest", "AssistEndedResponse", "SafetyVersions", "SafetyEventRequest", "SafetyEventResponse", "MetricEvent", "MetricsRequest", "MetricsResponse", "ProvisioningRequest", "ProvisioningResponse", "VoiceTicketRequest", "VoiceTicketResponse", "NormalizedRect", "ServiceStreamEvent", "AssistSignal", "VoiceFrameHeader", "BridgeRequestV1", "BridgeReplyV1", "ServiceErrorCode", "ErrorEnvelope")
+    val definitionNames: Set<String> = setOf("Empty", "Mode", "Scope", "AppearanceDto", "VoiceDto", "PreferencesDto", "UserDto", "DeviceDto", "SessionDto", "SessionResponse", "CarrierExchangeRequest", "SubjectProfile", "ClaimRequest", "ClaimResponse", "ClaimConfirmRequest", "ClaimConfirmResponse", "BindingChallengeRequest", "DeviceChallengeResponse", "DeviceExchangeRequest", "FaceChallengeResponse", "FaceExchangeRequest", "RefreshRequest", "RevokedResponse", "MeResponse", "PreferencesRequest", "PreferencesResponse", "RelationInvitationRequest", "RelationInvitationResponse", "RelationAcceptRequest", "RelationDto", "RelationResponse", "RelationPage", "GrantsRequest", "GrantsResponse", "RelationRevokedResponse", "ConsentRequest", "ConsentResponse", "ConsentWithdrawResponse", "ConversationCreateRequest", "ConversationCreateResponse", "ConversationMessageDto", "ConversationMessagePage", "ResponseRequest", "ResponseAccepted", "CancelledResponse", "UploadRequest", "UploadResponse", "MediaCommitRequest", "MediaCommitResponse", "FrameContextDto", "LocalFeaturesDto", "GuidanceCreateRequest", "GuidanceCreateResponse", "GuidanceAnalyzeRequest", "RequestAccepted", "GuidanceVerifyRequest", "GuidanceVerifyResponse", "EndedResponse", "NoteDto", "NoteCreateRequest", "NoteResponse", "NotePage", "NoteUpdateRequest", "NoteDeletedResponse", "ReviewRequest", "ReviewResponse", "RepeatRule", "TodoDto", "TodoCreateRequest", "TodoPatch", "TodoUpdateRequest", "TodoResponse", "TodoPage", "TodoCancelledResponse", "OccurrenceCompleteResponse", "ReceiptRequest", "AcceptedResponse", "PetJobRequest", "PetJobCreated", "AssetDto", "PetJobDto", "PetJobCancelled", "PetDto", "PetCurrentRequest", "PetCurrentResponse", "ManifestDto", "SyncMutationDto", "SyncRequest", "ConflictDto", "SyncResult", "SyncResponse", "SyncChange", "SyncChangesResponse", "AssistRequest", "AssistCreated", "AssistStateResponse", "AssistJoinRequest", "AssistJoinResponse", "AssistEndRequest", "AssistEndedResponse", "SafetyVersions", "SafetyEventRequest", "SafetyEventResponse", "MetricEvent", "MetricsRequest", "MetricsResponse", "ProvisioningRequest", "ProvisioningResponse", "VoiceTicketRequest", "VoiceTicketResponse", "StandaloneGuidanceRect", "StandaloneGuidanceElement", "StandaloneGuidanceImage", "StandaloneGuidancePreviousStep", "StandaloneGuidanceReviewProposal", "StandaloneGuidanceAnalyzeRequest", "StandaloneGuidanceResult", "StandaloneGuidanceErrorCode", "NormalizedRect", "ServiceStreamEvent", "AssistSignal", "VoiceFrameHeader", "BridgeRequestV1", "BridgeReplyV1", "ServiceErrorCode", "ErrorEnvelope", "StandaloneGuidanceErrorEnvelope")
     fun decode(name: String, value: Any?): WireValue = when (name) {
         "Empty" -> Empty.fromWire(value)
         "Mode" -> Mode.fromWire(value)
@@ -6521,6 +7052,14 @@ object GeneratedContractDtos {
         "ProvisioningResponse" -> ProvisioningResponse.fromWire(value)
         "VoiceTicketRequest" -> VoiceTicketRequest.fromWire(value)
         "VoiceTicketResponse" -> VoiceTicketResponse.fromWire(value)
+        "StandaloneGuidanceRect" -> StandaloneGuidanceRect.fromWire(value)
+        "StandaloneGuidanceElement" -> StandaloneGuidanceElement.fromWire(value)
+        "StandaloneGuidanceImage" -> StandaloneGuidanceImage.fromWire(value)
+        "StandaloneGuidancePreviousStep" -> StandaloneGuidancePreviousStep.fromWire(value)
+        "StandaloneGuidanceReviewProposal" -> StandaloneGuidanceReviewProposal.fromWire(value)
+        "StandaloneGuidanceAnalyzeRequest" -> StandaloneGuidanceAnalyzeRequest.fromWire(value)
+        "StandaloneGuidanceResult" -> StandaloneGuidanceResult.fromWire(value)
+        "StandaloneGuidanceErrorCode" -> StandaloneGuidanceErrorCode.fromWire(value)
         "NormalizedRect" -> NormalizedRect.fromWire(value)
         "ServiceStreamEvent" -> ServiceStreamEvent.fromWire(value)
         "AssistSignal" -> AssistSignal.fromWire(value)
@@ -6529,6 +7068,7 @@ object GeneratedContractDtos {
         "BridgeReplyV1" -> BridgeReplyV1.fromWire(value)
         "ServiceErrorCode" -> ServiceErrorCode.fromWire(value)
         "ErrorEnvelope" -> ErrorEnvelope.fromWire(value)
+        "StandaloneGuidanceErrorEnvelope" -> StandaloneGuidanceErrorEnvelope.fromWire(value)
         else -> throw ContractViolation("contract", "unknown definition")
     }
 }

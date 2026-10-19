@@ -164,7 +164,7 @@ export class IndexedDbDrawingJobs implements DrawingJobPort {
   }
 }
 export class IndexedDbRepository implements Repository {
-  async commitIfUnchanged(ownerId: string, expected: LocalSnapshot, next: LocalSnapshot): Promise<void> {
+  async commitIfUnchanged(ownerId: string, expected: LocalSnapshot | null, next: LocalSnapshot): Promise<void> {
     const database = await openDatabase();
     return new Promise((resolve, reject) => {
       const transaction = database.transaction('accounts', 'readwrite');
@@ -172,7 +172,7 @@ export class IndexedDbRepository implements Repository {
       const request = store.get(ownerId);
       let changed = false;
       request.onsuccess = () => {
-        if (JSON.stringify(request.result) !== JSON.stringify(expected)) { changed = true; transaction.abort(); return; }
+        if (JSON.stringify(request.result ?? null) !== JSON.stringify(expected)) { changed = true; transaction.abort(); return; }
         store.put(structuredClone(next), ownerId);
       };
       transaction.oncomplete = () => { database.close(); resolve(); };

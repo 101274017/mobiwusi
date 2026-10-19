@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; media-src blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <title>暖伴 · 面对面语音</title>
+  <link rel="stylesheet" href="./realtime-voice.css">
+  <script defer src="./realtime-voice-session.js"></script>
+  <script defer src="./realtime-voice.js"></script>
+</head>
+<body data-state="connecting">
+  <main class="voice-room">
+    <header class="room-header"><span class="brand">暖伴 / 一起聊聊</span><span class="session-chip"><span class="status-dot" aria-hidden="true"></span><span id="connection-status" role="status">正在连接</span></span></header>
+    <section class="face-to-face" aria-labelledby="voice-title">
+      <p class="eyebrow">不用打字，就像坐在你身边</p>
+      <h1 id="voice-title">暖暖在这里</h1>
+      <div class="avatar-halo" aria-hidden="true">
+        <svg class="voice-cat" viewBox="0 0 240 240">
+          <ellipse cx="120" cy="218" rx="64" ry="10" fill="#745338" opacity=".09"/>
+          <path d="M76 148q-18 53 9 64h70q29-12 9-64" fill="#d98347"/>
+          <ellipse cx="120" cy="186" rx="27" ry="27" fill="#ffe8c8"/>
+          <path d="m54 91 10-65 46 35m23 0 43-36 10 68" fill="#d98347"/>
+          <path d="m72 62 2-19 20 18m58 0 16-18 3 20" fill="#edb7a4"/>
+          <path d="M49 109c0-75 142-77 142 0 0 37-29 63-70 63s-72-24-72-63" fill="#d98347"/>
+          <path d="m106 50 14 24 14-24" fill="#b55f36" opacity=".5"/>
+          <g class="cat-eyes" fill="#392a24"><ellipse cx="85" cy="116" rx="8" ry="10"/><ellipse cx="155" cy="116" rx="8" ry="10"/></g>
+          <g fill="#fff"><circle cx="88" cy="113" r="2.6"/><circle cx="158" cy="113" r="2.6"/></g>
+          <g fill="#ecac86"><ellipse cx="69" cy="133" rx="13" ry="7"/><ellipse cx="171" cy="133" rx="13" ry="7"/></g>
+          <path d="m113 128 7 6 7-6" fill="#754330"/>
+          <path d="M120 135v6m0 0q-8 8-15 0m15 0q8 8 15 0" fill="none" stroke="#754330" stroke-width="3" stroke-linecap="round"/>
+          <ellipse class="cat-mouth" cx="120" cy="147" rx="6" ry="5" fill="#754330"/>
+          <path d="m82 164 38 10 38-10-10 17H93Z" fill="#6c8172"/><circle cx="120" cy="185" r="7" fill="#eac966"/>
+        </svg>
+      </div>
+      <div class="voice-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      <p id="voice-prompt" class="voice-prompt" role="status" aria-live="polite">正在建立本次语音连接…</p>
+      <p class="session-details"><time id="call-duration">00:00</time><span>纯语音 · 不开摄像头</span></p>
+    </section>
+    <section class="captions-card" aria-labelledby="captions-heading">
+      <div class="captions-heading"><h2 id="captions-heading">这一刻的对话</h2><span>仅本次窗口显示</span></div>
+      <p id="caption-empty" class="caption-empty">连接后直接说话。说完稍停，暖暖就会回答。</p>
+      <ol id="voice-transcripts" role="log" aria-live="polite" aria-relevant="additions text"></ol>
+    </section>
+    <footer class="room-footer">
+      <div class="call-controls"><button id="mute-voice" type="button" aria-pressed="false" disabled>静音麦克风</button><button id="interrupt-voice" type="button" disabled>打断暖暖</button><button id="end-voice" class="end-call" type="button">结束对话</button></div>
+      <p id="voice-privacy-note" class="privacy-note">正在确认本次语音模式；不会在本人同意前开启麦克风。</p>
+    </footer>
+  </main>
+  <audio id="voice-playback" autoplay></audio>
+</body>
+</html>

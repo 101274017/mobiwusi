@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { IndexedDbRepository } from '@nuanban/local-data';
-import { ScenarioRepository, createScenarioSnapshot } from '@nuanban/mocks';
+import { ScenarioRepository, createScenarioSnapshot } from '../fixtures/business-scenarios';
 import { conflictSelection, type LocalConflict } from '@nuanban/domain';
 import { useApp } from '../../apps/web/src/store';
 
