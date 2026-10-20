@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { AnimationClip, AnimationMixer, Group, NumberKeyframeTrack } from 'three';
 import type { Mesh } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createModelAnimationController } from '../../apps/web/src/three-d/animation-controller';
 import { inspectRenderedModel } from '../../apps/web/src/three-d/viewer';
 
@@ -54,7 +54,7 @@ describe('露米随包模型与动作', () => {
     controller.play('idle');
     mixer.update(0.25);
     expect(root.position.y).toBeCloseTo(0.25);
-    expect(root.scale.x).toBeCloseTo(1.025);
+    expect(root.scale.x).toBeCloseTo(1);
     controller.play('wave');
     mixer.update(0.25);
     expect(root.position.y).toBeCloseTo(1.5);
@@ -67,6 +67,35 @@ describe('露米随包模型与动作', () => {
     controller.dispose();
     expect(controller.play('wave')).toBe(false);
     mixer.stopAllAction();
+  });
+
+  it('待机眨眼间隔较长，单次眨眼仍保持原始速度', () => {
+    vi.useFakeTimers();
+    const root = new Group();
+    const blink = new AnimationClip('blink', 0.2, [new NumberKeyframeTrack('.scale[x]', [0, 0.1, 0.2], [1, 0.5, 1])]);
+    const idle = new AnimationClip('idle', 1, []);
+    const mixer = new AnimationMixer(root);
+    const controller = createModelAnimationController(mixer, [blink, idle]);
+    try {
+      controller.play('idle');
+      for (let frame = 0; frame < 20; frame++) mixer.update(0.25);
+      expect(root.scale.x).toBeCloseTo(1);
+
+      vi.advanceTimersByTime(5000);
+      mixer.update(0.05);
+      expect(root.scale.x).toBeCloseTo(0.75);
+
+      mixer.update(0.15);
+      mixer.update(0.12);
+      expect(root.scale.x).toBeCloseTo(1);
+      vi.advanceTimersByTime(5000);
+      mixer.update(0.05);
+      expect(root.scale.x).toBeCloseTo(0.75);
+    } finally {
+      controller.dispose();
+      mixer.stopAllAction();
+      vi.useRealTimers();
+    }
   });
 
   it('普通导入模型没有 idle 时保留第一段动画行为', () => {
