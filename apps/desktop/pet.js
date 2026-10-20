@@ -40,6 +40,7 @@
   let syncingPanel = false;
   let retryAction;
   let messagesSignature = '';
+  let guidanceFeedbackSignature = '';
   let draftVersion = 0;
   let dictationGeneration = 0;
   let voiceFindMode = false;
@@ -185,7 +186,7 @@
         if (seenNotificationMessages.has(key)) continue;
         seenNotificationMessages.add(key);
         if (seenNotificationMessages.size > 128) seenNotificationMessages.delete(seenNotificationMessages.values().next().value);
-        if (notificationsInitialized && !faceVoiceActive()) notifications.set('messages', 'question');
+        if (notificationsInitialized && !faceVoiceActive()) notifications.set('messages', state.task.kind === 'guidance' ? 'guidance' : 'question');
       }
       notificationsInitialized = true;
     }
@@ -432,6 +433,10 @@
       : voice.active === true ? '回到面对面语音' : '和暖暖面对面语音';
     element('resume-sharing').textContent = pending.has('observation.resume') ? '等待选择范围与确认…' : '本人继续共享';
     element('feature-guidance-status').textContent = !ready ? '正在确认运行核心，不会开启采集' : state.blocked || state.privacyPaused ? '共享已暂停，先查看隐私与安全状态' : state.safeObserving ? task.state === 'awaiting_action' ? '已有当前步骤，请核对后亲手操作' : '本地观察中；提问后按需分析并定位' : '未观察屏幕；点击了解授权与教学流程';
+    const targetStatus = task.targetState === 'unavailable' ? `本次分析已返回，但未显示箭头。${text(task.explanation)}`
+      : task.targetState === 'stale' || task.targetState === 'hidden' ? '上次位置已隐藏；正在等待新的本地安全画面，不要按旧位置操作。'
+        : task.presentation === 'uncertain_candidate' ? `找到当前画面中的候选位置；请先核对箭头，再亲手操作。${text(task.instruction)}`
+          : `已找到当前画面中的目标；请看箭头并亲手操作。${text(task.instruction)}`;
     const cloudAuthorizing = pending.has('observation.authorize-cloud');
     const voiceFindStatus = !ready ? '正在确认运行核心，不会开启采集。' : state.blocked || state.privacyPaused ? '共享已暂停；先在屏幕观察页检查状态并由你本人重新授权。'
       : !state.safeObserving ? '先开启本地观察，并在系统列表中选择你要查找的屏幕。'
@@ -440,10 +445,12 @@
           : pending.has('dictate') && voiceFindMode ? '请在弹出的系统窗口确认麦克风；说出目标后本机停麦，再按本次授权分析。'
             : state.task.kind !== 'text' && (state.task.state === 'analyzing' || state.analysis.state === 'analyzing') ? '查找请求已受理，正在检查并分析当前授权画面；可点击“结束教学”取消，不会代替你点击或输入。'
               : ['unavailable', 'error'].includes(state.analysis.state) ? text(state.analysis.message, '当前没有可用的屏幕分析结果，可手动重试；不会生成假指引。')
-                : state.task.state === 'awaiting_action' ? '已找到当前画面中的目标；请看箭头并亲手操作。'
+                : state.taskOutdated ? '观察范围已变化，旧位置已隐藏；请等待与当前画面对应的新指引。'
+                  : state.task.state === 'awaiting_action' ? targetStatus
+                    : state.task.state === 'needs_help' ? `本次分析没有生成箭头。${text(task.explanation, text(state.analysis.message, '请重新描述目标，或先亲手打开需要操作的软件。'))}`
                   : '点击并确认后说出目标；音频仅在本机识别，文字与必要的脱敏画面只为本次查找发送。';
     const observationScope = state.safeObserving && source ? `观察范围：${source}。` : '';
-    element('guidance-status').textContent = observationScope + voiceFindStatus;
+    element('guidance-status').textContent = voiceFindStatus + (observationScope ? `\n${observationScope}` : '');
     element('guidance-analysis').hidden = !state.analysis.message || ['idle', 'ready', 'analyzing'].includes(state.analysis.state);
     element('guidance-analysis').textContent = text(state.analysis.message);
     const canReselectObservation = state.safeObserving && observation.cloudConsent === false && !state.blocked && !state.privacyPaused && !state.observationPending
@@ -499,6 +506,10 @@
     renderLearning();
     renderView();
     renderNotifications(state);
+    const feedbackSignature = expanded && activeSection === 'guidance' && task.kind === 'guidance' && task.state !== 'idle'
+      ? JSON.stringify([observation.generation, task.generation, task.state, task.instruction, task.explanation, task.targetState, state.privacyPaused]) : '';
+    if (feedbackSignature && feedbackSignature !== guidanceFeedbackSignature) element('guidance-status').scrollIntoView({ block: 'start' });
+    guidanceFeedbackSignature = feedbackSignature;
   }
 
   function clearError() {

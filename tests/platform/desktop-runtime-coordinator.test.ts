@@ -80,6 +80,87 @@ describe('桌宠大字字幕由本人主动开启', () => {
   });
 });
 
+describe('屏幕分析结果的可见反馈', () => {
+  it.each(['clarify', 'unsupported'] as const)('%s 返回后结束分析态并保留说明，不生成虚假箭头', async kind => {
+    const setup = fixture();
+    setup.analyze.mockImplementation(async input => ({ ...responseIdentity(input), kind,
+      instruction: '当前画面没有可核验的朋友圈入口，请先亲手打开微信。' }));
+    await beginTeaching(setup);
+    expect(setup.runtime.snapshot()).toMatchObject({
+      task: { state: 'needs_help', instruction: '', presentation: null, targetState: 'hidden',
+        explanation: '当前画面没有可核验的朋友圈入口，请先亲手打开微信。' },
+      analysis: { state: 'ready', message: expect.stringContaining('未定位') }, captions: { enabled: false },
+    });
+    expect(setup.onTarget.mock.calls.every(([target]) => target === null)).toBe(true);
+    expect(setup.runtime.snapshot().messages.at(-1)?.text).toContain('亲手打开微信');
+    expect(setup.records).toEqual([]);
+  });
+
+  it('已有步骤转为澄清时撤销旧箭头与候选标记', async () => {
+    const setup = fixture();
+    await beginTeaching(setup);
+    setup.analyze.mockImplementationOnce(async input => ({ ...responseIdentity(input), kind: 'clarify', instruction: '请先确认需要查找的功能。' }));
+    setup.controls.labels.push('帮助');
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot()).toMatchObject({ task: { state: 'needs_help', presentation: null, targetState: 'hidden', instruction: '' }, analysis: { state: 'ready' } });
+    expect(setup.onTarget).toHaveBeenLastCalledWith(null);
+  });
+
+  it('箭头保持到当前安全帧失效，不再在两秒半后提前消失', async () => {
+    vi.useFakeTimers();
+    const setup = fixture();
+    await beginTeaching(setup);
+    const target = setup.onTarget.mock.calls.at(-1)?.[0];
+    expect(target.expiresAt - setup.controls.time).toBe(5000);
+    expect(setup.runtime.snapshot().task.targetState).toBe('visible');
+    setup.controls.time += 3500;
+    await vi.advanceTimersByTimeAsync(3500);
+    expect(setup.onTarget).toHaveBeenLastCalledWith(target);
+    setup.controls.time += 1501;
+    await vi.advanceTimersByTimeAsync(1501);
+    expect(setup.onTarget).toHaveBeenLastCalledWith(null);
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'stale' });
+    expect(setup.analyze).toHaveBeenCalledOnce();
+  });
+
+  it('同一页面的新本地安全帧续期箭头，过期后可恢复而不再次上云', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 6000 });
+    await beginTeaching(setup);
+    await advanceObservation(setup, 5001);
+    expect(setup.runtime.snapshot().task.targetState).toBe('stale');
+    await advanceObservation(setup, 999);
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.targetState).toBe('visible');
+    expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, expiresAt: setup.controls.time + 5000 }));
+    expect(setup.analyze).toHaveBeenCalledOnce();
+  });
+
+  it('指引窗口拒绝显示时明确告知，而不是宣称已有箭头', async () => {
+    const setup = fixture();
+    setup.onTarget.mockImplementation(target => target ? false : undefined);
+    await beginTeaching(setup);
+    expect(setup.runtime.snapshot()).toMatchObject({
+      task: { state: 'awaiting_action', targetState: 'unavailable', explanation: expect.stringContaining('指引窗口') },
+      analysis: { state: 'ready', message: expect.stringContaining('未显示箭头') },
+    });
+    expect(setup.onTarget).toHaveBeenLastCalledWith(null);
+  });
+
+  it('指引窗口恢复后移除旧故障说明，仍只核验本地画面', async () => {
+    const setup = fixture();
+    setup.onTarget.mockImplementation(target => target ? false : undefined);
+    await beginTeaching(setup);
+    setup.onTarget.mockImplementation(() => undefined);
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task).toMatchObject({ targetState: 'visible', explanation: expect.stringContaining('请先核对') });
+    expect(setup.runtime.snapshot().task.explanation).not.toContain('指引窗口');
+    expect(setup.analyze).toHaveBeenCalledOnce();
+  });
+});
+
 describe('当前观察范围的单独画面分析授权', () => {
   it('无需重启采集；同意不自动发送旧问题，新的查找才分析', async () => {
     const setup = fixture();

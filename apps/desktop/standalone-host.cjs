@@ -214,11 +214,11 @@ function createStandaloneHost(options) {
   }
 
   function showGuide(target) {
-    clearGuide();
-    if (!target || !target.visible || !live(guideWindow) || target.expiresAt <= Date.now()) return;
+    if (!target || !target.visible || !live(guideWindow) || target.expiresAt <= Date.now()) { clearGuide(); return false; }
     const display = screen.getDisplayMatching(target.rect);
     const bounds = display.bounds;
-    if (target.rect.x < bounds.x || target.rect.y < bounds.y || target.rect.x + target.rect.width > bounds.x + bounds.width || target.rect.y + target.rect.height > bounds.y + bounds.height) return;
+    if (target.rect.x < bounds.x || target.rect.y < bounds.y || target.rect.x + target.rect.width > bounds.x + bounds.width || target.rect.y + target.rect.height > bounds.y + bounds.height) { clearGuide(); return false; }
+    clearTimeout(guideTimer);
     movePetAwayFrom(target.rect, display.workArea);
     guideWindow.setBounds(bounds);
     pendingGuide = { ...target, rect: { ...target.rect, x: target.rect.x - bounds.x, y: target.rect.y - bounds.y } };
@@ -226,6 +226,7 @@ function createStandaloneHost(options) {
     guideWindow.showInactive();
     guideTimer = setTimeout(clearGuide, target.expiresAt - Date.now());
     guideTimer.unref?.();
+    return true;
   }
 
   function secureWindow(window) {

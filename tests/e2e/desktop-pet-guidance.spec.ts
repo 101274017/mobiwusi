@@ -15,7 +15,7 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
     let listener: ((value: unknown) => void) | undefined;
     const state = {
       observation: { state: 'observing', generation: 7, captureActive: true, cloudConsent, sourceName },
-      task: { id: '', kind: 'guidance', state: 'idle', generation: 1, observationGeneration: 7, instruction: '', question: '' },
+      task: { id: '', kind: 'guidance', state: 'idle', generation: 1, observationGeneration: 7, instruction: '', question: '', explanation: '', presentation: '', targetState: 'hidden' },
       analysis: { state: 'idle', message: '' }, captions: { enabled: false }, wake: { state: 'disabled' },
     };
     const publish = () => listener?.(structuredClone(state));
@@ -71,7 +71,22 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
     window.addEventListener('test-guidance-result', () => {
       state.task.state = 'awaiting_action';
       state.task.instruction = '请核对箭头指引并亲手点击设置。';
+      state.task.presentation = 'confirmed';
+      state.task.targetState = 'visible';
       state.analysis = { state: 'ready', message: '合成目标已定位。' };
+      publish();
+    });
+    window.addEventListener('test-guidance-clarify', () => {
+      state.task.state = 'needs_help';
+      state.task.instruction = '';
+      state.task.explanation = '当前画面没有可核验的朋友圈入口，请先亲手打开微信。';
+      state.task.presentation = '';
+      state.task.targetState = 'hidden';
+      state.analysis = { state: 'ready', message: '本次画面分析已结束，未定位到可核验的目标。' };
+      publish();
+    });
+    window.addEventListener('test-guidance-expire', () => {
+      state.task.targetState = 'stale';
       publish();
     });
   }, { cloudConsent, consentResult, sourceName });
@@ -180,4 +195,84 @@ test('语音查找只发送识别句和授权代次，后续通过状态流显�
   await expect(page.locator('#step-title')).toContainText('亲手点击设置');
   await expect(page.locator('#guidance-status')).toContainText('已找到');
   await expect(page.locator('#screen-voice-find')).toBeEnabled();
+});
+
+test('语音分析未定位时直接展示下一步说明，不滞留分析态或开启大字字幕', async ({ page }, testInfo) => {
+  await guidanceFixture(page);
+  await page.locator('#question').fill('请帮我打开微信朋友圈');
+  await page.locator('#screen-voice-find').click();
+  await expect(page.locator('#send-question')).toHaveText('正在分析画面…');
+  await page.evaluate(() => window.dispatchEvent(new Event('test-guidance-clarify')));
+  await expect(page.locator('#guidance-status')).toContainText('没有生成箭头');
+  await expect(page.locator('#guidance-status')).toContainText('请先亲手打开微信');
+  await expect(page.locator('#step-explanation')).toContainText('请先亲手打开微信');
+  await expect(page.locator('#task-status')).toHaveText('需要再确认一下');
+  await expect(page.locator('#send-question')).toBeEnabled();
+  await expect(page.locator('#screen-voice-find')).toBeEnabled();
+  await expect(page.locator('#caption-line')).toBeHidden();
+  await page.screenshot({ path: testInfo.outputPath('guidance-clarification-visible.png') });
+  expect((await guidanceAudit(page)).questions).toHaveLength(1);
+});
+
+test('窄小桌宠窗口在分析完成后直接露出结果，不被流程说明和输入框挤出可视区', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 400, height: 720 });
+  await guidanceFixture(page);
+  await page.locator('#question').fill('请帮我找到微信朋友圈');
+  await page.locator('#screen-voice-find').click();
+  await page.locator('#panel-body').evaluate(body => { body.scrollTop = body.scrollHeight; });
+  await page.evaluate(() => window.dispatchEvent(new Event('test-guidance-clarify')));
+  const visibility = await page.locator('#guidance-status').evaluate(feedback => {
+    const feedbackBounds = feedback.getBoundingClientRect();
+    const bodyBounds = document.getElementById('panel-body')!.getBoundingClientRect();
+    return { top: feedbackBounds.top, bottom: feedbackBounds.bottom, viewportTop: bodyBounds.top, viewportBottom: bodyBounds.bottom };
+  });
+  expect(visibility.top).toBeGreaterThanOrEqual(visibility.viewportTop);
+  expect(visibility.bottom).toBeLessThanOrEqual(visibility.viewportBottom);
+  await expect(page.locator('#guidance-status')).toContainText('请先亲手打开微信');
+  await page.screenshot({ path: testInfo.outputPath('guidance-small-window-feedback.png') });
+});
+
+test('位置失效明确显示隐藏原因，新安全帧恢复时重新展示当前操作说明', async ({ page }) => {
+  await guidanceFixture(page);
+  await page.locator('#screen-voice-find').click();
+  await page.evaluate(() => window.dispatchEvent(new Event('test-guidance-result')));
+  await expect(page.locator('#guidance-status')).toContainText('亲手点击设置');
+  await page.evaluate(() => window.dispatchEvent(new Event('test-guidance-expire')));
+  await expect(page.locator('#guidance-status')).toContainText('上次位置已隐藏');
+  await expect(page.locator('#guidance-status')).not.toContainText('请看箭头');
+  await page.evaluate(() => window.dispatchEvent(new Event('test-guidance-result')));
+  await expect(page.locator('#guidance-status')).toContainText('请看箭头');
+  expect((await guidanceAudit(page)).questions).toHaveLength(1);
+});
+
+test('只读浮层实际渲染箭头和局部提示，续期不闪空，安全时限到期即隐藏', async ({ page }, testInfo) => {
+  await page.route('http://127.0.0.1:41873/**', async route => {
+    const filename = new URL(route.request().url()).pathname.slice(1);
+    if (!['guide.html', 'guide.css', 'guide.js'].includes(filename)) return route.abort();
+    await route.fulfill({ body: readFileSync(new URL(`../../apps/desktop/${filename}`, import.meta.url)),
+      contentType: filename.endsWith('.html') ? 'text/html; charset=utf-8' : filename.endsWith('.css') ? 'text/css' : 'text/javascript' });
+  });
+  await page.addInitScript(() => {
+    let listener: ((value: unknown) => void) | undefined;
+    Object.assign(window, { nuanbanGuide: { onState: (callback: typeof listener) => { listener = callback; return () => { listener = undefined; }; } } });
+    window.addEventListener('test-guide-state', event => listener?.((event as CustomEvent).detail));
+  });
+  await page.clock.install();
+  await page.goto('http://127.0.0.1:41873/guide.html');
+  const refresh = () => page.evaluate(() => window.dispatchEvent(new CustomEvent('test-guide-state', { detail: {
+    visible: true, rect: { x: 120, y: 180, width: 80, height: 48 }, label: '微信',
+    instruction: '请亲手双击微信图标，打开后再核验。', presentation: 'uncertain_candidate', expiresAt: Date.now() + 5000,
+  } })));
+  await refresh();
+  await expect(page.locator('#guide-arrow')).toBeVisible();
+  await expect(page.locator('#guide-instruction')).toContainText('亲手双击微信');
+  await expect(page.locator('#guide-certainty')).toContainText('请先核对');
+  await page.clock.runFor(3500);
+  await expect(page.locator('#guide-root')).toBeVisible();
+  await refresh();
+  await page.clock.runFor(3500);
+  await expect(page.locator('#guide-arrow')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('guidance-local-arrow.png') });
+  await page.clock.runFor(1600);
+  await expect(page.locator('#guide-root')).toBeHidden();
 });

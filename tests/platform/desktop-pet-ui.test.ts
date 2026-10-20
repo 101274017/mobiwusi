@@ -2168,6 +2168,84 @@ describe('围绕桌宠展开的功能首页', () => {
   });
 });
 
+describe('屏幕分析后的教学反馈', () => {
+  it('分析结果到达时滚到可见提示，重复安全帧不会反复打断阅读', async () => {
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: true }, { kind: 'guidance', state: 'analyzing' }, { state: 'analyzing' }));
+    await settle();
+    harness.click('feature-guidance');
+    await settle();
+    const feedback = harness.element('guidance-status');
+    feedback.scrollIntoView.mockClear();
+    const result = snapshot({ state: 'observing', captureActive: true, cloudConsent: true }, { kind: 'guidance', state: 'needs_help', explanation: '请先亲手打开微信。' }, { state: 'ready' });
+    harness.emit(result);
+    expect(feedback.scrollIntoView).toHaveBeenCalledExactlyOnceWith({ block: 'start' });
+    harness.emit(result);
+    expect(feedback.scrollIntoView).toHaveBeenCalledTimes(1);
+    harness.click('collapse-panel');
+    await settle();
+    harness.emit({ ...result, task: { ...result.task, explanation: '另一条教学说明。' } });
+    expect(feedback.scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('预加载保留目标显示状态，供功能页区分可见与失效箭头', async () => {
+    const harness = preloadHarness('pet-preload.cjs');
+    const state = snapshot({ state: 'observing', captureActive: true }, { kind: 'guidance', state: 'awaiting_action', targetState: 'stale' });
+    harness.ipcRenderer.invoke.mockResolvedValueOnce(state);
+    const reply = await harness.exposed.nuanbanPet.snapshot();
+    expect(reply).toMatchObject({ task: { targetState: 'stale' } });
+    const listener = vi.fn();
+    harness.exposed.nuanbanPet.onState(listener);
+    harness.handlers.get('nuanban:pet:state')?.({}, { ...state, task: { ...state.task, targetState: 'visible' } });
+    expect(listener).toHaveBeenLastCalledWith(expect.objectContaining({ task: expect.objectContaining({ targetState: 'visible' }) }));
+  });
+
+  it('澄清结果在指引页顶部显示原因，不再只显示通用查找说明', async () => {
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: true },
+      { kind: 'guidance', state: 'needs_help', question: '打开朋友圈', instruction: '', presentation: null, targetState: 'hidden',
+        explanation: '当前画面没有朋友圈入口，请先亲手打开微信。' }, { state: 'ready', message: '本次画面分析已结束，未定位到可核验的目标。' }));
+    await settle();
+    harness.click('feature-guidance');
+    await settle();
+    expect(harness.element('guidance-status').textContent).toContain('请先亲手打开微信');
+    expect(harness.element('guidance-status').textContent).toContain('没有生成箭头');
+    expect(harness.element('screen-voice-find').disabled).toBe(false);
+    expect(harness.element('presentation-note').hidden).toBe(true);
+    expect(harness.element('caption-line').hidden).toBe(true);
+  });
+
+  it.each(['unavailable', 'stale'] as const)('目标 %s 时说明箭头未显示，不误报请看箭头', async targetState => {
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: true },
+      { kind: 'guidance', state: 'awaiting_action', instruction: '请亲手点击设置', targetState,
+        explanation: '指引窗口暂不可用，请重新选择观察屏幕。' }, { state: 'ready' }));
+    await settle();
+    expect(harness.element('guidance-status').textContent).toContain(targetState === 'stale' ? '已隐藏' : '未显示箭头');
+    expect(harness.element('guidance-status').textContent).not.toContain('请看箭头');
+  });
+
+  it('已定位目标时把当前操作说明一并显示在状态区', async () => {
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: true },
+      { kind: 'guidance', state: 'awaiting_action', instruction: '请亲手双击微信图标。', presentation: 'uncertain_candidate', targetState: 'visible' }, { state: 'ready' }));
+    await settle();
+    expect(harness.element('guidance-status').textContent).toContain('请亲手双击微信图标');
+    expect(harness.element('guidance-status').textContent).toContain('候选');
+  });
+
+  it('收起桌宠时教学结果仅点亮通知圆点，点击直达指引页', async () => {
+    const harness = petHarness();
+    await settle();
+    harness.emit({ ...snapshot({ state: 'observing', captureActive: true, cloudConsent: true },
+      { kind: 'guidance', state: 'needs_help', explanation: '请先亲手打开微信。', targetState: 'hidden' }, { state: 'ready' }),
+      messages: [{ id: 'guidance-clarification', role: 'assistant', text: '请先亲手打开微信。' }] });
+    expect(harness.element('pet-notification').hidden).toBe(false);
+    expect(harness.element('pet-panel').hidden).toBe(true);
+    harness.click('pet-notification');
+    await settle();
+    expect(harness.element('pet-panel').dataset.view).toBe('guidance');
+    expect(harness.element('guidance-status').textContent).toContain('请先亲手打开微信');
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+  });
+});
+
 describe('合成 DIP 坐标的只读指引隔离测试', () => {
   it('按相对坐标高亮、明确不确定性，HTML 字符串只作为文本', () => {
     const harness = guideHarness();

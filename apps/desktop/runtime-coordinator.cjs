@@ -48,6 +48,7 @@ function createDesktopRuntime(options) {
   let analysisSequence = 0;
   let questionSequence = 0;
   let timer = null;
+  let targetTimer = null;
   let captureController = null;
   let captureJob = null;
   let analysisController = null;
@@ -69,7 +70,7 @@ function createDesktopRuntime(options) {
   const recordingTasks = new Map();
   const state = {
     observation: { state: 'off', generation: 0, sourceName: '', reason: null, captureActive: false, cloudConsent: false },
-    task: { state: 'idle', id: null, observationGeneration: 0, question: '', instruction: '', explanation: '', presentation: null, result: null },
+    task: { state: 'idle', id: null, observationGeneration: 0, question: '', instruction: '', explanation: '', presentation: null, targetState: 'hidden', result: null },
     analysis: { state: 'idle', message: '默认不采集。请本人选择观察范围并开启。' },
     captions: { enabled: false, text: '' },
     wake: { state: 'unsupported', reason: '尚未配置经本机验证的本地唤醒引擎；点击和文字提问仍可用。' },
@@ -91,6 +92,9 @@ function createDesktopRuntime(options) {
   }
 
   function clearTarget() {
+    clearTimeout(targetTimer);
+    targetTimer = null;
+    state.task.targetState = 'hidden';
     renderTarget(null);
   }
 
@@ -348,13 +352,37 @@ function createDesktopRuntime(options) {
   }
 
   function showStepTarget(frame, element) {
+    clearTimeout(targetTimer);
+    targetTimer = null;
     const rect = targetFor(frame, element);
     if (!rect) {
       clearTarget();
-      state.task.explanation = '当前捕获范围的屏幕坐标未验证，暂不绘制位置指引。';
-      return;
+      state.task.targetState = 'unavailable';
+      state.task.explanation = '当前捕获范围的屏幕坐标未验证，暂不绘制位置指引。请重新选择观察屏幕后再查找。';
+      return false;
     }
-    renderTarget({ visible: true, rect, label: element.label, instruction: state.task.instruction, presentation: state.task.presentation, expiresAt: now() + Math.min(2500, Math.max(0, frame.capturedAt + maxAgeMs - now())) });
+    const expiresAt = Math.min(frame.capturedAt + maxAgeMs, now() + 5000);
+    if (expiresAt <= now()) {
+      clearTarget();
+      state.task.targetState = 'stale';
+      return false;
+    }
+    if (renderTarget({ visible: true, rect, label: element.label, instruction: state.task.instruction, presentation: state.task.presentation, expiresAt }) === false) {
+      clearTarget();
+      state.task.targetState = 'unavailable';
+      state.task.explanation = '指引窗口未能在当前屏幕显示，未显示箭头。请重新选择观察屏幕后再查找；不要按旧位置操作。';
+      return false;
+    }
+    state.task.explanation = state.task.presentation === 'uncertain_candidate'
+      ? '这是当前画面中的候选位置，尚未确认；请先核对。' : '请亲手操作；暖伴不会自动点击或输入。';
+    state.task.targetState = 'visible';
+    targetTimer = setTimeout(() => {
+      clearTarget();
+      if (state.task.state === 'awaiting_action') state.task.targetState = 'stale';
+      publish();
+    }, expiresAt - now());
+    targetTimer.unref?.();
+    return true;
   }
 
   function canUseFrame(frame, observation, task, allowRefreshed = false) {
@@ -406,10 +434,13 @@ function createDesktopRuntime(options) {
       return true;
     }
     if (result.kind !== 'step') {
+      if (!['clarify', 'unsupported'].includes(result.kind)) throw new Error('invalid_analysis_kind');
       clearTarget();
       state.task.state = 'needs_help';
       state.task.instruction = '';
+      state.task.presentation = null;
       state.task.explanation = result.instruction;
+      state.analysis = { state: 'ready', message: '本次画面分析已结束，未定位到可核验的目标；没有生成箭头，请查看说明后继续。' };
       state.captions.text = result.instruction;
       message(result.instruction, 'assistant');
       return true;
@@ -486,7 +517,8 @@ function createDesktopRuntime(options) {
           }), cancellation]);
           if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && !controller.signal.aborted) {
             const installed = await installAnalysis(result, job);
-            if (installed && state.task.state === 'awaiting_action') state.analysis = { state: 'ready', message: '请按当前一步亲手操作。' };
+            if (installed && state.task.state === 'awaiting_action') state.analysis = { state: 'ready', message: state.task.targetState === 'visible'
+              ? '请核对箭头与当前一步说明，再亲手操作。' : '本次分析已返回，但未显示箭头；请查看这一步的说明，不要按旧位置操作。' };
             publish();
           }
         } catch (error) {
@@ -495,6 +527,7 @@ function createDesktopRuntime(options) {
             state.task.state = 'needs_help';
             state.analysis = { state: 'error', message: timedOut ? '本次屏幕分析超时，已取消请求；可以手动重新提问或结束教学，不会自动重试。'
               : error?.code === 'ANALYSIS_UNAVAILABLE' ? '云分析服务尚未配置或未登录；不会用演示数据替代。' : '本次分析未获得可核验的结果。可以重新提问、核验或结束，不会继续指错。' };
+            message(state.analysis.message, 'assistant');
             publish();
           }
         } finally {
@@ -553,7 +586,12 @@ function createDesktopRuntime(options) {
       } else if (reason !== 'page_changed' || changed) queueAnalysis(admitted, reason);
       else if (previousStep && state.task.state === 'awaiting_action') {
         const element = currentElement(previousStep.element, previousStep.frame, admitted);
+        const targetState = state.task.targetState;
         if (element) showStepTarget(admitted, element);
+        if (targetState !== state.task.targetState) {
+          if (state.task.targetState === 'visible') state.analysis = { state: 'ready', message: '新的本地安全画面已核对；请核对箭头并亲手操作。' };
+          publish();
+        }
       }
     } catch (error) {
       if (sameGeneration(generation) && !captureController.signal.aborted) await closeObservation(captureFailureReason(error?.code), true);
@@ -641,7 +679,7 @@ function createDesktopRuntime(options) {
     if (requiredObservation !== undefined) requireGuidanceObservation(requiredObservation);
     taskGeneration += 1;
     const textOnly = typeof options.questioner?.answer === 'function' && (state.observation.state !== 'observing' || !cloudConsent);
-    state.task = { id: randomUUID(), kind: textOnly ? 'text' : 'guidance', state: 'needs_help', observationGeneration, question: safeSummary(text.trim()), instruction: '', explanation: '', presentation: null, result: null, startedAt: now() };
+    state.task = { id: randomUUID(), kind: textOnly ? 'text' : 'guidance', state: 'needs_help', observationGeneration, question: safeSummary(text.trim()), instruction: '', explanation: '', presentation: null, targetState: 'hidden', result: null, startedAt: now() };
     message(safeSummary(text.trim()), 'user');
     if (isRestrictedText(text)) {
       clearTarget();

@@ -573,6 +573,48 @@ describe('桌宠查找的补充画面授权（合成屏幕与原生确认，不�
   });
 });
 
+describe('桌宠指引窗口的反馈与续期', () => {
+  async function beginGuidance(current: ReturnType<typeof fixture>) {
+    let capturedAt = Date.now();
+    current.source.capture.mockImplementation(async () => syntheticFrame(undefined, capturedAt = Math.max(Date.now(), capturedAt + 1)));
+    current.analyzer.analyze.mockImplementation(async input => ({ observation_id: input.observationId, guide_id: input.guideId,
+      observation_generation: input.observationGeneration, task_generation: input.taskGeneration, trigger_id: input.triggerId,
+      frame_id: input.frame.frameId, kind: 'step', instruction: '请核对后亲手点击设置。', target_id: input.frame.elements[0].id,
+      presentation: 'confirmed', expected_labels: [] }));
+    await current.host.initialize();
+    current.choose();
+    current.dialog.showMessageBox.mockResolvedValue({ response: 0, checkboxChecked: true });
+    await current.invoke('nuanban:pet:command', { type: 'observation.start' });
+    await vi.waitFor(() => expect(current.source.capture).toHaveBeenCalled());
+    await current.invoke('nuanban:pet:ask', { text: '请帮我找到设置', observationGeneration: current.host.snapshot().observation.generation });
+    await vi.waitFor(() => expect(current.host.snapshot().task.state).toBe('awaiting_action'));
+  }
+
+  it('安全帧续期直接更新指引，不先隐藏窗口或清空箭头', async () => {
+    const current = fixture();
+    await beginGuidance(current);
+    const guide = current.windows[1];
+    expect(guide.visible).toBe(true);
+    expect(current.host.snapshot().task.targetState).toBe('visible');
+    guide.webContents.send.mockClear();
+    await vi.waitFor(() => expect(guide.webContents.send).toHaveBeenCalledWith('nuanban:guide:state', expect.objectContaining({ visible: true })), { timeout: 4000 });
+    expect(guide.webContents.send.mock.calls.every(([, state]) => state.visible === true)).toBe(true);
+    expect(guide.visible).toBe(true);
+    expect(current.analyzer.analyze).toHaveBeenCalledOnce();
+    expect(current.windows[2].visible).toBe(false);
+  });
+
+  it('系统屏幕边界不接受目标时向桌宠返回未显示原因', async () => {
+    const current = fixture();
+    const display = current.screen.getPrimaryDisplay();
+    current.screen.getDisplayMatching = () => ({ ...display, bounds: { ...display.bounds, x: 0 } });
+    await beginGuidance(current);
+    expect(current.windows[1].visible).toBe(false);
+    expect(current.host.snapshot()).toMatchObject({ task: { targetState: 'unavailable', explanation: expect.stringContaining('指引窗口') },
+      analysis: { state: 'ready', message: expect.stringContaining('未显示箭头') } });
+  });
+});
+
 describe('独立桌宠宿主接线（合成依赖，不代表外部软件或系统权限验收）', () => {
   it('语音查找要求有效观察代次和单独画面同意；停麦后方可绑定该代次分析', async () => {
     const current = fixture();
