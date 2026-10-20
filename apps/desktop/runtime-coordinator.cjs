@@ -316,6 +316,7 @@ function createDesktopRuntime(options) {
       : '本地安全检查未完成或未通过，已停止采集和发送。请重新选择观察范围；若仍失败，请停止观察后检查本地检测能力。';
     state.analysis = { state: failureMessage || privacyPaused ? 'error' : 'idle', message: failureMessage ?? (privacyPaused ? safetyMessage : '观察已停止；不会自动重新开启。') };
     state.captions.text = '';
+    publish();
     let stopped = true;
     try { await options.source.stop?.(); }
     catch {

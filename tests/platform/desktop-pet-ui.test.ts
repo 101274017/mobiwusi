@@ -1090,6 +1090,120 @@ describe('已授权屏幕上的语音查找（合成识别，不读取真实屏�
     expect(harness.bridge.ask).toHaveBeenCalledExactlyOnceWith('帮我找到设置', 4);
   });
 
+  it.each(['text', 'voice'])('未收到暂停推送时，%s 查找先核对真实状态，不提交旧授权', async mode => {
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: false, generation: 4 }));
+    await settle();
+    harness.click('feature-guidance');
+    harness.input('帮我找到微信');
+    harness.bridge.snapshot.mockResolvedValue(snapshot({ state: 'privacy_paused', captureActive: false, cloudConsent: false, generation: 5, reason: 'sensitive_screen' }, {},
+      { state: 'error', message: '本地检测发现敏感文字，已停止采集和发送。' }));
+    harness.bridge.command.mockClear();
+    if (mode === 'text') harness.submit();
+    else harness.click('screen-voice-find');
+    await settle();
+    expect(harness.bridge.command).not.toHaveBeenCalled();
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+    expect(harness.bridge.dictate).not.toHaveBeenCalled();
+    expect(harness.element('error-notice').hidden).toBe(true);
+    expect(harness.element('question').value).toBe('帮我找到微信');
+    expect(harness.element('guidance-analysis').textContent).toContain('敏感文字');
+    expect(harness.element('privacy-detail').textContent).toContain('本地检测发现敏感文字');
+    expect(harness.element('privacy-notice').scrollIntoView).toHaveBeenCalledWith({ block: 'start' });
+    expect(harness.element('guidance-start-observation').disabled).toBe(false);
+    expect(harness.element('guidance-start-observation').textContent).toContain('本人继续共享');
+    expect(harness.element('send-question').disabled).toBe(true);
+    harness.click('guidance-start-observation');
+    await settle();
+    expect(harness.bridge.command).toHaveBeenCalledExactlyOnceWith({ type: 'observation.resume' });
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+  });
+
+  it.each(['text', 'voice'])('旧宿主拒绝 %s 授权后重新同步暂停状态，不反复显示 IPC 错误', async mode => {
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: false, generation: 4 }));
+    await settle();
+    harness.click('feature-guidance');
+    harness.input('帮我找到微信');
+    harness.bridge.command.mockImplementationOnce(async () => {
+      harness.bridge.snapshot.mockResolvedValue(snapshot({ state: 'privacy_paused', captureActive: false, cloudConsent: false, generation: 5, reason: 'capture_failed' }, {},
+        { state: 'error', message: '本地采集失败，已停止采集和发送。' }));
+      throw new Error("Error invoking remote method 'nuanban:pet:command': 请先开启屏幕观察");
+    });
+    if (mode === 'text') harness.submit();
+    else harness.click('screen-voice-find');
+    await settle();
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+    expect(harness.bridge.dictate).not.toHaveBeenCalled();
+    expect(harness.element('error-notice').hidden).toBe(true);
+    expect(harness.element('question').value).toBe('帮我找到微信');
+    expect(harness.element('guidance-analysis').textContent).toContain('本地采集失败');
+    expect(harness.element('guidance-start-observation').disabled).toBe(false);
+    expect(harness.element('send-question').disabled).toBe(true);
+  });
+
+  it.each(['text', 'voice'])('核对时观察范围已换代，不能将旧 %s 查找自动发送到新范围', async mode => {
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: true, generation: 4 }));
+    await settle();
+    harness.click('feature-guidance');
+    harness.input('保留原问题');
+    harness.bridge.snapshot.mockResolvedValue(snapshot({ state: 'observing', captureActive: true, cloudConsent: true, generation: 6 }));
+    harness.bridge.command.mockClear();
+    if (mode === 'text') harness.submit();
+    else harness.click('screen-voice-find');
+    await settle();
+    expect(harness.bridge.command).not.toHaveBeenCalled();
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+    expect(harness.bridge.dictate).not.toHaveBeenCalled();
+    expect(harness.element('dictation-status').textContent).toContain('本次查找没有发送');
+    expect(harness.element('question').value).toBe('保留原问题');
+  });
+
+  it.each(['text', 'voice'])('核对 %s 查找状态失败时不录音或发送，重试只恢复状态连接', async mode => {
+    const active = snapshot({ state: 'observing', captureActive: true, cloudConsent: true, generation: 4 });
+    const harness = petHarness(active);
+    await settle();
+    harness.click('feature-guidance');
+    harness.input('保留原问题');
+    harness.bridge.command.mockClear();
+    harness.bridge.snapshot.mockRejectedValueOnce(new Error('合成状态读取失败'));
+    if (mode === 'text') harness.submit();
+    else harness.click('screen-voice-find');
+    await settle();
+    expect(harness.bridge.command).not.toHaveBeenCalled();
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+    expect(harness.bridge.dictate).not.toHaveBeenCalled();
+    expect(harness.element('question').value).toBe('保留原问题');
+    expect(harness.element('send-question').disabled).toBe(true);
+    const reads = harness.bridge.snapshot.mock.calls.length;
+    harness.click('retry-action');
+    await settle();
+    expect(harness.bridge.snapshot).toHaveBeenCalledTimes(reads + 1);
+    expect(harness.element('error-notice').hidden).toBe(true);
+    expect(harness.element('send-question').disabled).toBe(false);
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+    expect(harness.bridge.dictate).not.toHaveBeenCalled();
+  });
+
+  it('等待核对时重复点击不并发授权，停止推送优先于迟到的观察快照', async () => {
+    const active = snapshot({ state: 'observing', captureActive: true, cloudConsent: true, generation: 4 });
+    const harness = petHarness(active);
+    await settle();
+    harness.click('feature-guidance');
+    let finish!: (value: unknown) => void;
+    harness.bridge.snapshot.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    harness.bridge.command.mockClear();
+    harness.click('screen-voice-find');
+    harness.click('screen-voice-find');
+    expect(harness.bridge.snapshot).toHaveBeenCalledTimes(2);
+    harness.emit(snapshot({ state: 'stopped', captureActive: false, cloudConsent: false, generation: 5 }));
+    finish(active);
+    await settle();
+    expect(harness.bridge.command).not.toHaveBeenCalled();
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+    expect(harness.bridge.dictate).not.toHaveBeenCalled();
+    expect(harness.element('error-notice').hidden).toBe(true);
+    expect(harness.element('send-question').disabled).toBe(true);
+  });
+
   it.each(['text', 'voice'])('取消 %s 查找的画面授权后仍可再次点击，原草稿保留', async mode => {
     const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: false, generation: 4 }));
     await settle();

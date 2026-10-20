@@ -130,7 +130,7 @@
     const captureConflict = observation.captureActive === true && observation.state !== 'observing';
     const privacyConflict = privacyPaused && analysis.state === 'analyzing';
     const generationKnown = Number.isSafeInteger(observation.generation) && observation.generation >= 0;
-    const safeObserving = ready && observation.state === 'observing' && observation.captureActive === true && generationKnown;
+    const safeObserving = ready && observation.state === 'observing' && observation.captureActive === true && generationKnown && observation.generation > 0;
     const taskBusy = ['analyzing', 'verifying'].includes(task.state);
     const activeTask = ['analyzing', 'awaiting_action', 'verifying', 'needs_help'].includes(task.state);
     const taskOutdated = activeTask && (!generationKnown || task.observationGeneration !== observation.generation);
@@ -441,7 +441,8 @@
     element('analysis-detail').hidden = !text(analysis.message);
     element('privacy-notice').hidden = !state.privacyPaused && !state.blocked;
     element('privacy-title').textContent = state.cleanupFailed ? '请退出桌宠并重新启动' : unsafe ? '请先停止观察' : state.safetyUnclassified ? '安全待确认，继续共享会重新检查' : '共享已暂停，需本人确认';
-    element('privacy-detail').textContent = state.cleanupFailed ? '不能确认采集是否已停。继续共享、提问与核验均已禁用。可再次尝试停止，或在“管理与退出”中明确退出桌宠。' : unsafe ? '当前信号存在冲突，继续共享已禁用。停止并检查后再操作。' : state.safetyUnclassified ? observation.captureActive === false ? '运行核心报告采集已停止。点击“本人继续共享”重新选择屏幕或框选观察区域并确认授权。请只保留目标软件，避开聊天或敏感窗口；新画面须通过本地安全检查，仍未分类时继续保持暂停，不会发送画面。' : '采集停止尚待确认，请尝试停止观察。' : '提问、重讲或“我点好了”均不会恢复共享。仅本人点击下方按钮后，由运行核心重新检查授权和安全。';
+    const privacyReason = state.privacyPaused && analysis.state === 'error' ? text(analysis.message) : '';
+    element('privacy-detail').textContent = state.cleanupFailed ? '不能确认采集是否已停。继续共享、提问与核验均已禁用。可再次尝试停止，或在“管理与退出”中明确退出桌宠。' : unsafe ? '当前信号存在冲突，继续共享已禁用。停止并检查后再操作。' : state.safetyUnclassified ? observation.captureActive === false ? '运行核心报告采集已停止。点击“本人继续共享”重新选择屏幕或框选观察区域并确认授权。请只保留目标软件，避开聊天或敏感窗口；新画面须通过本地安全检查，仍未分类时继续保持暂停，不会发送画面。' : '采集停止尚待确认，请尝试停止观察。' : `${privacyReason ? `${privacyReason}\n` : ''}提问、重讲或“我点好了”均不会恢复共享。仅本人点击下方按钮后，由运行核心重新检查授权和安全。`;
     element('resume-sharing').disabled = !state.canResume;
     element('start-observation').disabled = !state.canStart;
     element('stop-observation').disabled = !state.canStop;
@@ -461,7 +462,7 @@
         : task.presentation === 'uncertain_candidate' ? `找到当前画面中的候选位置；请先核对箭头，再亲手操作。${text(task.instruction)}`
           : `已找到当前画面中的目标；请看箭头并亲手操作。${text(task.instruction)}`;
     const cloudAuthorizing = pending.has('observation.authorize-cloud');
-    const voiceFindStatus = !ready ? '正在确认运行核心，不会开启采集。' : state.blocked || state.privacyPaused ? '共享已暂停；先在屏幕观察页检查状态并由你本人重新授权。'
+    const voiceFindStatus = !ready ? '正在确认运行核心，不会开启采集。' : state.blocked || state.privacyPaused ? '共享已暂停；请查看下方原因。处理后由你本人点击“继续共享”，重新选择范围并确认；不会自动恢复或重发问题。'
       : !state.safeObserving ? '先开启本地观察，并在系统列表中选择你要查找的屏幕。'
         : cloudAuthorizing ? '请在系统窗口单独确认本次画面分析；确认前不启动查找、不发送画面。'
           : state.observation.cloudConsent !== true ? '屏幕已开启本地观察。可直接点击“查找并指引”或“语音查找并指引”，单独同意按需脱敏分析后继续，无需重新选择屏幕。'
@@ -478,8 +479,8 @@
     element('guidance-analysis').textContent = text(state.analysis.message);
     const canReselectObservation = state.safeObserving && observation.cloudConsent === false && !state.blocked && !state.privacyPaused && !state.observationPending
       && !['analyzing', 'verifying'].includes(task.state) && !pending.has('dictate') && !pending.has('ask');
-    element('guidance-start-observation').disabled = !state.canStart && !canReselectObservation;
-    element('guidance-start-observation').textContent = pending.has('observation.start') || pending.has('observation.reselect') ? '正在等待选择屏幕…' : canReselectObservation
+    element('guidance-start-observation').disabled = !state.canStart && !canReselectObservation && !state.canResume;
+    element('guidance-start-observation').textContent = pending.has('observation.start') || pending.has('observation.reselect') || pending.has('observation.resume') ? '正在等待选择屏幕…' : state.canResume ? '① 本人继续共享' : canReselectObservation
       ? '① 重新选择观察屏幕' : state.safeObserving ? '① 屏幕已就绪' : '① 选择屏幕与授权';
     element('screen-voice-find').disabled = !state.canVoiceFind;
     element('screen-voice-find').textContent = cloudAuthorizing ? '正在等待分析授权…' : pending.has('dictate') && voiceFindMode ? '正在本机听写…' : state.task.kind !== 'text' && state.task.state === 'analyzing' ? '正在分析当前画面…' : clarificationContext() ? '② 语音回答并继续' : '② 语音查找并指引';
@@ -529,9 +530,10 @@
     renderLearning();
     renderView();
     renderNotifications(state);
-    const feedbackSignature = expanded && activeSection === 'guidance' && task.kind === 'guidance' && task.state !== 'idle'
-      ? JSON.stringify([observation.generation, task.generation, task.state, task.instruction, task.explanation, task.targetState, state.privacyPaused]) : '';
-    if (feedbackSignature && feedbackSignature !== guidanceFeedbackSignature) element('guidance-status').scrollIntoView({ block: 'start' });
+    const safetyFeedback = state.privacyPaused || state.blocked;
+    const feedbackSignature = expanded && activeSection === 'guidance' && (safetyFeedback || (task.kind === 'guidance' && task.state !== 'idle'))
+      ? JSON.stringify([observation.generation, task.generation, task.state, task.instruction, task.explanation, task.targetState, state.privacyPaused, state.blocked, observation.reason, privacyReason]) : '';
+    if (feedbackSignature && feedbackSignature !== guidanceFeedbackSignature) element(safetyFeedback ? 'privacy-notice' : 'guidance-status').scrollIntoView({ block: 'start' });
     guidanceFeedbackSignature = feedbackSignature;
   }
 
@@ -651,7 +653,7 @@
       acknowledged = true;
       if (!disposed && refresh) await refreshSnapshot();
     } catch (error) {
-      showError(acknowledged && refresh ? '请求已发送，状态未确认' : label, error, acknowledged && refresh ? connect : retry);
+      showError(acknowledged && refresh ? '请求已发送，状态未确认' : label, error, !ready || (acknowledged && refresh) ? connect : retry);
     } finally {
       pending.delete(key);
       render();
@@ -665,23 +667,42 @@
   }
 
   async function ensureGuidanceCloudConsent(observationGeneration) {
-    const initial = flags();
-    if (!initial.safeObserving || initial.blocked || initial.observation.generation !== observationGeneration) throw new Error('屏幕观察已变化，请先确认当前观察范围；问题未发送。');
-    if (initial.observation.cloudConsent === true) return true;
-    if (initial.observation.cloudConsent !== false || typeof bridge?.command !== 'function') throw new Error('当前画面分析授权未确认，请重新读取桌宠状态。');
-    pending.add('observation.authorize-cloud');
+    const unchanged = () => {
+      const current = flags();
+      return current.safeObserving && !current.blocked && current.observation.generation === observationGeneration;
+    };
+    const changed = () => {
+      dictationNotice = '确认期间观察范围或安全状态已变化，本次查找没有发送；问题草稿已保留。请核对当前状态，再由本人重新确认。';
+      return false;
+    };
+    pending.add('observation.check-guidance');
     clearError();
     render();
     try {
-      const reply = await bridge.command({ type: 'observation.authorize-cloud', observationGeneration });
-      checkReply(reply);
+      await refreshSnapshot();
+      if (disposed) return false;
+      if (!unchanged()) return changed();
+      const initial = flags();
+      if (initial.observation.cloudConsent === true) return true;
+      if (initial.observation.cloudConsent !== false || typeof bridge?.command !== 'function') throw new Error('当前画面分析授权未确认，请重新读取桌宠状态。');
+      pending.add('observation.authorize-cloud');
+      render();
+      let reply;
+      try {
+        reply = await bridge.command({ type: 'observation.authorize-cloud', observationGeneration });
+      } catch {
+        if (disposed) return false;
+        await refreshSnapshot();
+        if (disposed) return false;
+        if (!unchanged()) return changed();
+        throw new Error('本次画面分析授权未完成，没有发送查找或开启麦克风；请稍后重新点击确认。');
+      }
       if (disposed) return false;
       await refreshSnapshot();
+      if (disposed) return false;
+      if (!unchanged() || reply?.status === 'observation_changed') return changed();
+      checkReply(reply);
       const current = flags();
-      if (!current.safeObserving || current.blocked || current.observation.generation !== observationGeneration) {
-        dictationNotice = '确认期间观察范围或安全状态已变化，本次查找没有发送；问题草稿已保留。';
-        return false;
-      }
       if (reply?.status === 'cancelled' || current.observation.cloudConsent !== true) {
         dictationNotice = '本次未同意画面分析，仍仅本地观察；没有发送查找或开启麦克风，问题草稿已保留。';
         return false;
@@ -689,6 +710,7 @@
       dictationNotice = '';
       return true;
     } finally {
+      pending.delete('observation.check-guidance');
       pending.delete('observation.authorize-cloud');
       render();
     }
@@ -816,7 +838,7 @@
       if (clarification) element('guidance-answer').value = recognized;
       await sendVoiceFind(recognized, observationGeneration, clarification);
     } catch (error) {
-      if (!disposed && request === dictationGeneration) showError('语音查找未完成', error, startVoiceFind);
+      if (!disposed && request === dictationGeneration) showError('语音查找未完成', error, ready ? startVoiceFind : connect);
     } finally {
       if (request === dictationGeneration) {
         pending.delete('dictate');
@@ -1188,7 +1210,8 @@
     bind(element(control), 'click', () => requestCommand(type, control));
   }
   bind(element('guidance-start-observation'), 'click', () => {
-    const type = flags().safeObserving && flags().observation.cloudConsent === false ? 'observation.reselect' : 'observation.start';
+    const state = flags();
+    const type = state.canResume ? 'observation.resume' : state.safeObserving && state.observation.cloudConsent === false ? 'observation.reselect' : 'observation.start';
     requestCommand(type, 'guidance-start-observation');
   });
   bind(element('screen-voice-find'), 'click', () => { void startVoiceFind(); });

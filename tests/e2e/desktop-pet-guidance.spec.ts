@@ -15,11 +15,22 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
     const audit: GuidanceAudit = { questions: [], microphones: [], commands: [], replies: [], rescans: [] };
     let listener: ((value: unknown) => void) | undefined;
     const state = {
-      observation: { state: 'observing', generation: 7, captureActive: true, cloudConsent, sourceName },
+      observation: { state: 'observing', generation: 7, captureActive: true, cloudConsent, sourceName, reason: '' },
       task: { id: '', kind: 'guidance', state: 'idle', generation: 1, observationGeneration: 7, instruction: '', question: '', explanation: '', presentation: '', targetState: 'hidden', awaitingReply: false },
       analysis: { state: 'idle', message: '' }, captions: { enabled: false }, wake: { state: 'disabled' },
     };
     const publish = () => listener?.(structuredClone(state));
+    let consentRace = '';
+    const pauseObservation = () => {
+      state.observation = { ...state.observation, state: 'privacy_paused', captureActive: false, cloudConsent: false,
+        generation: state.observation.generation + 1, reason: 'sensitive_screen' };
+      state.analysis = { state: 'error', message: '本地检测发现敏感文字，已停止采集和发送。请先关闭敏感页面，再由本人重新选择观察范围。' };
+    };
+    window.addEventListener('test-guidance-stale', event => {
+      const mode = (event as CustomEvent<string>).detail;
+      if (mode === 'snapshot') pauseObservation();
+      else consentRace = mode;
+    });
     let consentDecision: ((allowed: boolean) => void) | undefined;
     window.addEventListener('test-guidance-consent', () => consentDecision?.(true));
     window.addEventListener('test-guidance-stop', () => {
@@ -41,6 +52,11 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
           state.analysis = { state: 'analyzing', message: '合成连续分析；保留原目标。' };
         }
         if (type === 'observation.authorize-cloud') {
+          if (consentRace) {
+            pauseObservation();
+            if (consentRace === 'legacy') throw new Error("Error invoking remote method 'nuanban:pet:command': 请先开启屏幕观察");
+            return { ok: false, status: 'observation_changed', snapshot: structuredClone(state) };
+          }
           const allowed = consentResult === 'pending' ? await new Promise<boolean>(resolve => { consentDecision = resolve; }) : consentResult === 'allow';
           if (!allowed || state.observation.state !== 'observing' || observationGeneration !== state.observation.generation) return { ok: true, status: 'cancelled' };
           state.observation.cloudConsent = true;
@@ -48,6 +64,11 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
         if (type === 'observation.reselect') {
           state.observation.generation++;
           state.observation.cloudConsent = true;
+        }
+        if (type === 'observation.resume') {
+          state.observation = { ...state.observation, state: 'observing', captureActive: true, cloudConsent: false,
+            generation: state.observation.generation + 1, reason: '' };
+          state.analysis = { state: 'idle', message: '仅本地观察，不向云端发送画面。' };
         }
         if (type === 'guidance.finish') {
           state.task.state = 'ended';
@@ -110,6 +131,38 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
 
 async function guidanceAudit(page: Page) {
   return page.evaluate(() => (window as unknown as { syntheticGuidanceAudit: GuidanceAudit }).syntheticGuidanceAudit);
+}
+
+for (const mode of ['snapshot', 'reply', 'legacy']) {
+  for (const input of ['text', 'voice']) {
+    test(`观察授权竞态 ${mode}/${input} 显示真实暂停原因，恢复需本人点击且不自动重发`, async ({ page }, testInfo) => {
+      await guidanceFixture(page, false);
+      await page.locator('#question').fill('帮我找到微信');
+      await page.evaluate(mode => window.dispatchEvent(new CustomEvent('test-guidance-stale', { detail: mode })), mode);
+      await page.locator(input === 'text' ? '#send-question' : '#screen-voice-find').click();
+      await expect(page.locator('#guidance-analysis')).toContainText('本地检测发现敏感文字');
+      await expect(page.locator('#guidance-analysis')).toBeVisible();
+      await expect(page.locator('#privacy-detail')).toContainText('本地检测发现敏感文字');
+      await expect(page.locator('#privacy-detail')).toBeInViewport();
+      await expect(page.locator('#error-notice')).toBeHidden();
+      await expect(page.locator('#question')).toHaveValue('帮我找到微信');
+      await expect(page.locator('#send-question')).toBeDisabled();
+      await expect(page.locator('#screen-voice-find')).toBeDisabled();
+      await expect(page.locator('#guidance-start-observation')).toBeEnabled();
+      await expect(page.locator('#guidance-start-observation')).toHaveText('① 本人继续共享');
+      const audit = await guidanceAudit(page);
+      expect(audit.questions).toEqual([]);
+      expect(audit.microphones).toEqual([]);
+      expect(audit.commands).not.toContain('observation.resume');
+      expect(audit.commands.filter(command => command === 'observation.authorize-cloud')).toHaveLength(mode === 'snapshot' ? 0 : 1);
+      if (mode === 'snapshot' && input === 'text') await page.screenshot({ path: testInfo.outputPath('guidance-observation-paused.png') });
+      await page.locator('#guidance-start-observation').click();
+      await expect(page.locator('#send-question')).toBeEnabled();
+      expect(await guidanceAudit(page)).toMatchObject({ questions: [], microphones: [] });
+      expect((await guidanceAudit(page)).commands).toContain('observation.resume');
+      expect((await guidanceAudit(page)).commands).not.toContain('observation.start');
+    });
+  }
 }
 
 test('已有屏幕授权可直接点击文字查找，单独同意分析后发送，无需重新选屏', async ({ page }, testInfo) => {

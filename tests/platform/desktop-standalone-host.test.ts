@@ -564,6 +564,27 @@ describe('桌宠查找的补充画面授权（合成屏幕与原生确认，不�
     expect(current.wake.dictate).not.toHaveBeenCalled();
   });
 
+  it('过期授权请求返回最新停止快照，不弹同意窗口、不自动恢复采集', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    current.choose();
+    current.dialog.showMessageBox.mockResolvedValueOnce({ response: 0, checkboxChecked: false });
+    await current.invoke('nuanban:pet:command', { type: 'observation.start' });
+    await vi.waitFor(() => expect(current.source.detect).toHaveBeenCalled());
+    const generation = current.host.snapshot().observation.generation;
+    current.powerMonitor.emit('lock-screen');
+    await vi.waitFor(() => expect(current.host.snapshot().observation.captureActive).toBe(false));
+    const captures = current.source.capture.mock.calls.length;
+    const dialogs = current.dialog.showMessageBox.mock.calls.length;
+    expect(await current.invoke('nuanban:pet:command', { type: 'observation.authorize-cloud', observationGeneration: generation })).toMatchObject({
+      ok: false, status: 'observation_changed', snapshot: { observation: { state: 'stopped', cloudConsent: false, captureActive: false, generation: generation + 1 } },
+    });
+    expect(current.source.capture).toHaveBeenCalledTimes(captures);
+    expect(current.dialog.showMessageBox).toHaveBeenCalledTimes(dialogs);
+    expect(current.analyzer.analyze).not.toHaveBeenCalled();
+    expect(current.wake.dictate).not.toHaveBeenCalled();
+  });
+
   it('缺少当前代次或伪造自动同意参数不能进入授权流程', async () => {
     const current = fixture();
     await current.host.initialize();

@@ -413,6 +413,7 @@ function createStandaloneHost(options) {
   }
 
   async function authorizeObservationCloud(observationGeneration) {
+    if (!Number.isSafeInteger(observationGeneration) || observationGeneration < 1) throw new Error('请先开启屏幕观察；本次画面分析授权必须对应当前观察范围。');
     const observation = runtime.snapshot().observation;
     const consentGeneration = observationConsentGeneration;
     const current = () => {
@@ -421,7 +422,7 @@ function createStandaloneHost(options) {
         && Number.isSafeInteger(observationGeneration) && observationGeneration > 0 && latest.generation === observationGeneration
         && latest.id === observation.id && latest.state === 'observing' && latest.captureActive === true;
     };
-    if (!current()) throw new Error('请先开启屏幕观察；本次画面分析授权必须对应当前观察范围。');
+    if (!current()) return { ok: false, status: 'observation_changed', message: '屏幕观察已变化，本次画面分析授权未生效；请核对当前状态后由本人重新确认。', snapshot: snapshot() };
     if (choosingCloudConsent || choosingSource) throw new Error('正在等待本人确认画面分析，请先完成当前选择。');
     if (observation.cloudConsent === true) return { ok: true, snapshot: snapshot() };
     choosingCloudConsent = true;

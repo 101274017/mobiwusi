@@ -118,7 +118,7 @@ describe('桌宠追问回答保留本人原目标', () => {
   });
 });
 
-function fixture(callbacks: Pick<RuntimeOptions, 'recordTeaching' | 'suggestReview' | 'intervalMs' | 'questioner' | 'analysisTimeoutMs'> = {}) {
+function fixture(callbacks: Pick<RuntimeOptions, 'recordTeaching' | 'suggestReview' | 'intervalMs' | 'questioner' | 'analysisTimeoutMs' | 'onState'> = {}) {
   const controls = { time: Date.now(), labels: ['设置', '显示', '文本大小', '返回'], geometry: { x: -800, y: 0, width: 800, height: 600, scaleFactor: 1 } as ScreenGeometry | null, status: 'complete' as 'complete' | 'unavailable' };
   const source = {
     capture: vi.fn(async () => syntheticFrame(controls.geometry, ++controls.time)),
@@ -860,6 +860,24 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     expect(setup.analyze).not.toHaveBeenCalled();
     expect(setup.records[0]).toMatchObject({ mastery: 'unmastered', result: 'risk_blocked' });
     expect(JSON.stringify(setup.records)).not.toContain('123456');
+  });
+
+  it('开始撤销观察即推送新代次，清理完成前不保留可用的旧授权状态', async () => {
+    const onState = vi.fn();
+    const setup = fixture({ onState });
+    await setup.start(false);
+    const generation = setup.runtime.snapshot().observation.generation;
+    const cleanup = deferred<undefined>();
+    setup.source.stop.mockImplementationOnce(() => cleanup.promise);
+    const stopping = setup.runtime.stopObservation();
+    try {
+      expect(onState).toHaveBeenLastCalledWith(expect.objectContaining({ observation: expect.objectContaining({
+        state: 'stopped', generation: generation + 1, cloudConsent: false, captureActive: true,
+      }) }));
+      await expect(setup.runtime.authorizeCloudAnalysis({ actor: 'owner', confirmed: true, observationGeneration: generation })).rejects.toThrow('观察已变化');
+      expect(setup.analyze).not.toHaveBeenCalled();
+    } finally { cleanup.resolve(undefined); await stopping; }
+    expect(onState).toHaveBeenLastCalledWith(expect.objectContaining({ observation: expect.objectContaining({ state: 'stopped', captureActive: false }) }));
   });
 
   it('本地源清理失败不能谎报停止，也不能重新开启', async () => {
