@@ -39,6 +39,8 @@ function createDesktopRuntime(options) {
   const now = options.now ?? Date.now;
   const intervalMs = options.intervalMs ?? 1500;
   const maxAgeMs = options.maxAgeMs ?? 5000;
+  const analysisTimeoutMs = options.analysisTimeoutMs ?? 15000;
+  if (!Number.isSafeInteger(analysisTimeoutMs) || analysisTimeoutMs < 1 || analysisTimeoutMs > 60000) throw new TypeError('屏幕分析超时配置无效');
   const notify = options.onState ?? (() => undefined);
   const renderTarget = options.onTarget ?? (() => undefined);
   let observationGeneration = 0;
@@ -66,7 +68,7 @@ function createDesktopRuntime(options) {
   const recordedTasks = new Set();
   const recordingTasks = new Map();
   const state = {
-    observation: { state: 'off', generation: 0, sourceName: '', reason: null, captureActive: false },
+    observation: { state: 'off', generation: 0, sourceName: '', reason: null, captureActive: false, cloudConsent: false },
     task: { state: 'idle', id: null, observationGeneration: 0, question: '', instruction: '', explanation: '', presentation: null, result: null },
     analysis: { state: 'idle', message: '默认不采集。请本人选择观察范围并开启。' },
     captions: { enabled: true, text: '' },
@@ -270,6 +272,8 @@ function createDesktopRuntime(options) {
   async function performCloseObservation(reason, privacyPaused) {
     invalidateQuestion();
     gateOpen = false;
+    cloudConsent = false;
+    state.observation.cloudConsent = false;
     observationGeneration += 1;
     invalidateAnalysis();
     pendingReason = null;
@@ -464,27 +468,38 @@ function createDesktopRuntime(options) {
         state.analysis = { state: 'analyzing', message: '仅为本次有效触发发送经过本地检查与脱敏的必要画面。' };
         state.task.state = job.reason === 'verification' ? 'verifying' : 'analyzing';
         publish();
+        let timedOut = false;
+        let rejectCancellation;
+        const cancellation = new Promise((_resolve, reject) => {
+          rejectCancellation = () => reject(Object.assign(new Error('ANALYSIS_CANCELLED'), { code: 'ANALYSIS_CANCELLED' }));
+        });
+        controller.signal.addEventListener('abort', rejectCancellation, { once: true });
+        const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, analysisTimeoutMs);
+        timeout.unref?.();
         try {
-          const result = await options.analyzer.analyze({
+          const result = await Promise.race([options.analyzer.analyze({
             frame: job.frame, question: job.question, reason: job.reason,
             observationId: job.observationId, guideId: job.guideId, observationGeneration: job.observation,
             taskGeneration: job.task, triggerId: job.triggerId,
             previousStep: job.previous ? { instruction: job.previous.instruction, expectedLabels: [...job.previous.expectedLabels] } : null,
             signal: controller.signal, canSend: () => !controller.signal.aborted && sequence === analysisSequence && canUseFrame(job.frame, job.observation, job.task, true),
-          });
+          }), cancellation]);
           if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && !controller.signal.aborted) {
             const installed = await installAnalysis(result, job);
             if (installed && state.task.state === 'awaiting_action') state.analysis = { state: 'ready', message: '请按当前一步亲手操作。' };
             publish();
           }
         } catch (error) {
-          if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && !controller.signal.aborted) {
+          if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && (!controller.signal.aborted || timedOut)) {
             clearTarget();
             state.task.state = 'needs_help';
-            state.analysis = { state: 'error', message: error?.code === 'ANALYSIS_UNAVAILABLE' ? '云分析服务尚未配置或未登录；不会用演示数据替代。' : '本次分析未获得可核验的结果。可以重新提问、核验或结束，不会继续指错。' };
+            state.analysis = { state: 'error', message: timedOut ? '本次屏幕分析超时，已取消请求；可以手动重新提问或结束教学，不会自动重试。'
+              : error?.code === 'ANALYSIS_UNAVAILABLE' ? '云分析服务尚未配置或未登录；不会用演示数据替代。' : '本次分析未获得可核验的结果。可以重新提问、核验或结束，不会继续指错。' };
             publish();
           }
         } finally {
+          clearTimeout(timeout);
+          controller.signal.removeEventListener('abort', rejectCancellation);
           analysisFrame = null;
           release(job.frame);
         }
@@ -582,7 +597,7 @@ function createDesktopRuntime(options) {
     observationRegion = input.region ? { ...input.region } : null;
     cloudConsent = input.cloudConsent === true;
     gateOpen = false;
-    state.observation = { state: 'observing', id: randomUUID(), generation: observationGeneration, sourceName: input.sourceName ?? '', reason: null, captureActive: true };
+    state.observation = { state: 'observing', id: randomUUID(), generation: observationGeneration, sourceName: input.sourceName ?? '', reason: null, captureActive: true, cloudConsent };
     if (state.task.id && !['completed', 'ended'].includes(state.task.state)) state.task.observationGeneration = observationGeneration;
     state.analysis = { state: 'idle', message: cloudConsent ? '本地观察已开启；没有有效任务触发时不会持续上传。' : '仅本地观察，不向云端发送画面。' };
     message('观察范围由本人开启；随时可以停止。');
@@ -591,13 +606,22 @@ function createDesktopRuntime(options) {
     return snapshot();
   }
 
-  async function ask(text) {
+  function requireGuidanceObservation(generation) {
+    if (!Number.isSafeInteger(generation) || generation < 1 || generation !== observationGeneration
+      || state.observation.state !== 'observing' || state.observation.captureActive !== true || !cloudConsent) {
+      throw new Error('屏幕观察或本次画面授权已失效，请重新选择范围并同意按需脱敏分析；问题未发送。');
+    }
+  }
+
+  async function ask(text, requiredObservation) {
     if (disposed || typeof text !== 'string' || !text.trim() || text.length > 500) throw new Error('请输入不超过500字的问题');
     if (cleanupJob || !['off', 'stopped', 'observing'].includes(state.observation.state)) throw new Error('请先处理本地观察的安全或停止状态，再重新提问');
+    if (requiredObservation !== undefined) requireGuidanceObservation(requiredObservation);
     invalidateQuestion();
     const question = questionSequence;
     if (state.task.id && !['completed', 'ended'].includes(state.task.state)) await finishTeaching('interrupted');
     if (question !== questionSequence || disposed) return snapshot();
+    if (requiredObservation !== undefined) requireGuidanceObservation(requiredObservation);
     taskGeneration += 1;
     const textOnly = typeof options.questioner?.answer === 'function' && (state.observation.state !== 'observing' || !cloudConsent);
     state.task = { id: randomUUID(), kind: textOnly ? 'text' : 'guidance', state: 'needs_help', observationGeneration, question: safeSummary(text.trim()), instruction: '', explanation: '', presentation: null, result: null, startedAt: now() };
@@ -612,7 +636,11 @@ function createDesktopRuntime(options) {
       await recordTeaching('risk_blocked');
     } else if (textOnly) await answerTextQuestion(text.trim(), state.task.id, taskGeneration);
     else if (state.observation.state !== 'observing') message('真实文字模型接口暂不可用；不会使用固定回答。若要进行外部软件教学，请先配置模型并由本人开启本地观察。');
-    else requestFrame('question');
+    else {
+      state.task.state = 'analyzing';
+      state.analysis = { state: 'analyzing', message: '查找请求已受理，正在本地检查本次授权画面；可结束教学或停止观察取消。' };
+      requestFrame('question');
+    }
     publish();
     return snapshot();
   }

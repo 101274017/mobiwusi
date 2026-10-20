@@ -17,6 +17,7 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background:
 [hidden] { display: none !important; }
 button, input, select, textarea { font: inherit; }
 button, input, select, textarea, summary { -webkit-app-region: no-drag; }
+input[type="text"], input[type="search"], textarea { caret-color: var(--ink); cursor: text; user-select: text; }
 button { padding: 7px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fffdf7; color: var(--ink); cursor: pointer; line-height: 1.5; }
 button:hover:not(:disabled) { border-color: #b9916c; background: #f4e5d0; }
 button:disabled { cursor: not-allowed; opacity: .48; }
@@ -113,6 +114,9 @@ h1 { margin-top: 1px; font-family: "STKaiti", "KaiTi", "Microsoft YaHei", serif;
 .section-heading { justify-content: space-between; margin-bottom: 8px; }
 h2 { margin: 7px 0; font-size: 19px; line-height: 1.55; }
 .lesson-card h2, .lesson-card > p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.guidance-workflow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 14px 0; padding: 0; list-style: none; }
+.guidance-workflow li { padding: 9px 6px; border: 1px solid var(--line); border-radius: 12px; background: #f5f0e5; text-align: center; font-size: 13px; font-weight: 600; line-height: 1.6; }
+.guidance-workflow small { color: var(--muted); font-size: 11px; font-weight: 400; }
 .lesson-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 14px 0 8px; }
 .lesson-actions > :first-child { grid-column: 1 / -1; }
 .candidate-note { padding: 7px 10px; border: 1px dashed #9c652b; border-radius: 9px; background: #fbefd0; color: #6b4019; font-size: 13px; font-weight: 600; }

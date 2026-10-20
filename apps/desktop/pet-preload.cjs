@@ -104,8 +104,8 @@ function projectSnapshot(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value) || value.ok === false) return null;
   const result = projectRecord(value, { message: 'string', learningUnavailable: 'boolean', learningError: 'string' });
   const sections = {
-    observation: { state: 'string', sourceName: 'string', reason: 'string', generation: 'number', captureActive: 'boolean' },
-    task: { id: 'string', generation: 'number', observationGeneration: 'number', state: 'string', question: 'string', instruction: 'string', explanation: 'string', presentation: 'string', result: 'string' },
+    observation: { state: 'string', sourceName: 'string', reason: 'string', generation: 'number', captureActive: 'boolean', cloudConsent: 'boolean' },
+    task: { id: 'string', kind: 'string', generation: 'number', observationGeneration: 'number', state: 'string', question: 'string', instruction: 'string', explanation: 'string', presentation: 'string', result: 'string' },
     analysis: { state: 'string', message: 'string' },
     captions: { enabled: 'boolean', text: 'string' },
     wake: { state: 'string', reason: 'string', phase: 'string', microphoneActive: 'boolean', dictationAvailable: 'boolean' },
@@ -152,7 +152,7 @@ function projectReply(value) {
   return result;
 }
 
-const commands = new Set(['observation.start', 'observation.stop', 'observation.resume', 'guidance.verify', 'guidance.finish', 'guidance.repeat', 'captions.toggle', 'wake.enable', 'wake.disable', 'voice.open', 'voice.stop', 'voice.mute', 'voice.unmute', 'voice.interrupt', 'panel.set-expanded', 'learning.set-mastery', 'learning.review.confirm', 'learning.review.decline']);
+const commands = new Set(['observation.start', 'observation.stop', 'observation.resume', 'observation.reselect', 'guidance.verify', 'guidance.finish', 'guidance.repeat', 'captions.toggle', 'wake.enable', 'wake.disable', 'voice.open', 'voice.stop', 'voice.mute', 'voice.unmute', 'voice.interrupt', 'panel.set-expanded', 'learning.set-mastery', 'learning.review.confirm', 'learning.review.decline']);
 
 function validIdentifier(value) {
   return typeof value === 'string' && Boolean(value.trim()) && value === value.trim() && value.length <= 128 && !/[\u0000-\u001f\u007f]/.test(value);
@@ -173,7 +173,11 @@ contextBridge.exposeInMainWorld('nuanbanPet', Object.freeze({
     }
     return ipcRenderer.invoke('nuanban:pet:drag', action);
   },
-  dictate: () => ipcRenderer.invoke('nuanban:pet:voice:dictate'),
+  dictate: observationGeneration => {
+    if (observationGeneration === undefined) return ipcRenderer.invoke('nuanban:pet:voice:dictate');
+    if (!Number.isSafeInteger(observationGeneration) || observationGeneration < 1) throw new TypeError('屏幕观察代次无效');
+    return ipcRenderer.invoke('nuanban:pet:voice:dictate', { purpose: 'screen-guidance', observationGeneration });
+  },
   cancelDictation: () => ipcRenderer.invoke('nuanban:pet:voice:cancel-dictation'),
   onState: listener => {
     if (typeof listener !== 'function') throw new TypeError('状态监听器必须是函数');
@@ -217,9 +221,10 @@ contextBridge.exposeInMainWorld('nuanbanPet', Object.freeze({
     if (['learning.review.confirm', 'learning.review.decline'].includes(payload.type)) command.proposalId = requireIdentifier(payload.proposalId);
     return ipcRenderer.invoke('nuanban:pet:command', command).then(projectReply);
   },
-  ask: text => {
+  ask: (text, observationGeneration) => {
     if (typeof text !== 'string' || !text.trim() || text.length > 500) throw new TypeError('请输入 1 至 500 字的问题');
-    return ipcRenderer.invoke('nuanban:pet:ask', { text }).then(projectReply);
+    if (observationGeneration !== undefined && (!Number.isSafeInteger(observationGeneration) || observationGeneration < 1)) throw new TypeError('屏幕观察代次无效');
+    return ipcRenderer.invoke('nuanban:pet:ask', { text, ...(observationGeneration !== undefined ? { observationGeneration } : {}) }).then(projectReply);
   },
   close: () => ipcRenderer.invoke('nuanban:pet:close'),
   openMain: (route = '/') => {

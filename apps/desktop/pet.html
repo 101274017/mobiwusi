@@ -181,12 +181,16 @@
           <div class="status-row"><span id="observation-status" class="status-badge" role="status">观察状态待确认</span><span id="analysis-status" class="analysis-status" role="status">云分析待确认</span></div>
           <p id="observation-detail">默认不开启屏幕观察或麦克风，等待运行核心确认。</p>
           <p id="analysis-detail" class="muted" hidden></p>
-          <div class="button-row"><button id="start-observation" type="button" disabled>开启本地观察</button><button id="view-search" class="text-button" type="button">智能查询</button><button id="view-learning" class="text-button" type="button">本机学习记录 ↓</button></div>
+          <div class="button-row"><button id="start-observation" type="button" disabled>开启本地观察</button><button id="observation-guidance" class="text-button" type="button">语音查找与箭头指引 →</button><button id="view-search" class="text-button" type="button">智能查询</button><button id="view-learning" class="text-button" type="button">本机学习记录 ↓</button></div>
           <p class="fine-print">开启时由系统让你选择共享来源并确认用途。需要云分析时，仅按需发送通过本地检查与脱敏的内容。</p>
         </section>
         <section id="lesson-card" class="lesson-card" aria-labelledby="guidance-title" tabindex="-1" hidden>
           <h2 id="guidance-title">光标指引 · 真实软件教学</h2>
-          <p class="fine-print">先亲手打开目标软件，再在桌宠开启本地观察并单独选择是否允许按需脱敏上云，最后在下方提问。暖暖只绘制高亮和箭头，不移动系统鼠标、不代点或代输。</p>
+          <ol class="guidance-workflow" aria-label="屏幕查找流程"><li>选择屏幕<br><small>本人开启观察与授权</small></li><li>说出目标<br><small>例如“帮我找到设置”</small></li><li>看箭头操作<br><small>由你亲手点击</small></li></ol>
+          <p id="guidance-status" class="muted" role="status">请先选择屏幕并允许按需脱敏分析。</p>
+          <p id="guidance-analysis" class="fine-print" role="status" hidden></p>
+          <div class="button-row"><button id="guidance-start-observation" type="button" disabled>① 选择屏幕与授权</button><button id="screen-voice-find" class="primary-button" type="button" disabled>② 语音查找并指引</button></div>
+          <p class="fine-print">“语音查找”由你点击并确认后，只听写这一句话，停麦后自动结合当前画面查找。下方也可打字查找；“智能查询”不读取屏幕，不会生成箭头。暖暖只绘制高亮和箭头，不移动系统鼠标、不代点或代输。</p>
           <button id="guidance-observation" class="text-button" type="button" aria-controls="observation-section">前往观察与授权 →</button>
           <div class="section-heading"><span class="eyebrow">这一步</span><span id="task-status" class="muted" role="status">等待教学状态</span></div>
           <p id="presentation-note" class="candidate-note" hidden>可能是这里 · 请先核对，再亲手操作</p>

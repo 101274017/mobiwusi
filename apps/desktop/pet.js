@@ -42,6 +42,7 @@
   let messagesSignature = '';
   let draftVersion = 0;
   let dictationGeneration = 0;
+  let voiceFindMode = false;
   let dictationNotice = '';
   let dictationTranscript = '';
   let learningRequested = false;
@@ -133,9 +134,14 @@
     const observationPending = [...pending].some(type => type.startsWith('observation.'));
     const guidancePending = [...pending].some(type => type.startsWith('guidance.'));
     const bridgeAvailable = typeof bridge?.command === 'function';
+    const voice = record(runtime.voice);
     return {
-      observation, task, analysis, privacyPaused, cleanupFailed, safetyUnclassified, captureConflict, privacyConflict, blocked, safeObserving, activeTask, taskOutdated,
-      canAsk: ready && !privacyPaused && !blocked && !taskBusy && !observationPending && !pending.has('ask') && !pending.has('dictate') && (safeObserving || (['off', 'stopped'].includes(observation.state) && observation.captureActive === false)),
+      observation, task, analysis, privacyPaused, cleanupFailed, safetyUnclassified, captureConflict, privacyConflict, blocked, safeObserving, activeTask, taskOutdated, observationPending,
+      canAsk: ready && typeof bridge?.ask === 'function' && !privacyPaused && !blocked && !taskBusy && !observationPending && !pending.has('ask') && !pending.has('dictate') && !pending.has('voice-find')
+        && (activeSection === 'guidance' ? safeObserving && observation.cloudConsent === true : safeObserving || (['off', 'stopped'].includes(observation.state) && observation.captureActive === false)),
+      canVoiceFind: ready && safeObserving && observation.cloudConsent === true && !blocked && !taskBusy && !observationPending && !guidancePending
+        && !pending.has('ask') && !pending.has('dictate') && !pending.has('voice-find') && voice.active !== true
+        && typeof bridge?.ask === 'function' && typeof bridge?.dictate === 'function' && typeof bridge?.cancelDictation === 'function',
       canStart: ready && !blocked && ['off', 'stopped'].includes(observation.state) && observation.captureActive === false && !observationPending,
       canStop: bridgeAvailable && !pending.has('observation.stop') && (!['off', 'stopped'].includes(observation.state) || observation.captureActive !== false
         || pending.has('ask') || (task.kind === 'text' && taskBusy)
@@ -425,6 +431,23 @@
       : voice.active === true ? '回到面对面语音' : '和暖暖面对面语音';
     element('resume-sharing').textContent = pending.has('observation.resume') ? '等待选择范围与确认…' : '本人继续共享';
     element('feature-guidance-status').textContent = !ready ? '正在确认运行核心，不会开启采集' : state.blocked || state.privacyPaused ? '共享已暂停，先查看隐私与安全状态' : state.safeObserving ? task.state === 'awaiting_action' ? '已有当前步骤，请核对后亲手操作' : '本地观察中；提问后按需分析并定位' : '未观察屏幕；点击了解授权与教学流程';
+    const voiceFindStatus = !ready ? '正在确认运行核心，不会开启采集。' : state.blocked || state.privacyPaused ? '共享已暂停；先在屏幕观察页检查状态并由你本人重新授权。'
+      : !state.safeObserving ? '先开启本地观察，并在系统列表中选择你要查找的屏幕。'
+        : state.observation.cloudConsent !== true ? '当前仅本地观察。语音查找需停止后重新开启，并单独同意脱敏画面按需上云。'
+          : pending.has('dictate') && voiceFindMode ? '请在弹出的系统窗口确认麦克风；说出目标后本机停麦，再按本次授权分析。'
+            : state.task.kind !== 'text' && (state.task.state === 'analyzing' || state.analysis.state === 'analyzing') ? '查找请求已受理，正在检查并分析当前授权画面；可点击“结束教学”取消，不会代替你点击或输入。'
+              : ['unavailable', 'error'].includes(state.analysis.state) ? text(state.analysis.message, '当前没有可用的屏幕分析结果，可手动重试；不会生成假指引。')
+                : state.task.state === 'awaiting_action' ? '已找到当前画面中的目标；请看箭头并亲手操作。'
+                  : '点击并确认后说出目标；音频仅在本机识别，文字与必要的脱敏画面只为本次查找发送。';
+    element('guidance-status').textContent = voiceFindStatus;
+    element('guidance-analysis').hidden = !state.analysis.message || ['idle', 'ready', 'analyzing'].includes(state.analysis.state);
+    element('guidance-analysis').textContent = text(state.analysis.message);
+    const canReselectObservation = state.safeObserving && observation.cloudConsent !== true && !state.privacyPaused && !state.observationPending && !pending.has('dictate') && !pending.has('ask');
+    element('guidance-start-observation').disabled = !state.canStart && !canReselectObservation;
+    element('guidance-start-observation').textContent = pending.has('observation.start') ? '正在等待选择屏幕…' : canReselectObservation
+      ? '① 重新选择屏幕并授权' : state.safeObserving ? '① 屏幕已就绪' : '① 选择屏幕与授权';
+    element('screen-voice-find').disabled = !state.canVoiceFind;
+    element('screen-voice-find').textContent = pending.has('dictate') && voiceFindMode ? '正在本机听写…' : state.task.kind !== 'text' && state.task.state === 'analyzing' ? '正在分析当前画面…' : '② 语音查找并指引';
     for (const button of document.querySelectorAll('[data-tool]')) button.disabled = !ready || pending.has('open-tool');
 
     element('task-status').textContent = ready && task.kind === 'text' ? task.state === 'analyzing' ? '正在请求文字模型' : task.result === 'answered' ? '文字回答已返回（未核验屏幕）' : task.result === 'failed' ? '文字回答未完成' : '文字提问已结束' : (ready && Object.hasOwn(taskLabels, task.state) ? taskLabels[task.state] : '') || '等待教学状态';
@@ -441,14 +464,15 @@
     element('finish-lesson').textContent = pending.has('guidance.finish') ? '正在请求结束…' : '结束教学';
     element('question').disabled = typeof bridge?.ask !== 'function';
     element('send-question').disabled = !state.canAsk || !element('question').value.trim();
-    element('send-question').textContent = pending.has('ask') ? '正在发送…' : '问暖暖 ↗';
-    element('question-hint').textContent = state.privacyPaused || state.blocked ? '安全状态待处理，可保留草稿，不能发送' : !ready ? '等待连接，可先写下问题' : '文字发送给已配置模型 · Enter 发送 · Shift + Enter 换行';
+    element('send-question').textContent = pending.has('ask') ? '正在发送…' : task.state === 'analyzing' ? task.kind === 'text' ? '正在等待回答…' : '正在分析画面…' : activeSection === 'guidance' ? '查找并指引 ↗' : '问暖暖 ↗';
+    element('question-hint').textContent = state.privacyPaused || state.blocked ? '安全状态待处理，可保留草稿，不能发送' : !ready ? '等待连接，可先写下问题' : activeSection === 'guidance'
+      ? state.safeObserving && observation.cloudConsent === true ? '结合当前已授权画面查找 · Enter 发送' : '先选择屏幕并同意按需脱敏分析，才可查找指引' : '文字发送给已配置模型 · Enter 发送 · Shift + Enter 换行';
     const dictationPending = pending.has('dictate');
     element('start-dictation').disabled = !state.canAsk || voice.active === true || typeof bridge?.dictate !== 'function' || typeof bridge?.cancelDictation !== 'function';
     element('start-dictation').textContent = dictationPending ? '本次听写中…' : '语音输入';
     element('cancel-dictation').hidden = !dictationPending;
     element('cancel-dictation').disabled = pending.has('dictation.cancel');
-    element('dictation-status').textContent = pending.has('dictation.cancel') ? '正在取消并等待本次麦克风关闭…' : dictationPending ? wake.phase === 'question' ? '正在本机听写，请直接说一句话；最多等待 20 秒。' : wake.phase === 'stopping' ? '已结束识别，正在等待麦克风关闭…' : '请在原生窗口确认本次输入，等候正在本机听写提示。' : dictationNotice || '点击语音输入，本人确认后直接说话；识别文字仅填入，不自动发送。';
+    element('dictation-status').textContent = pending.has('dictation.cancel') ? '正在取消并等待本次麦克风关闭…' : dictationPending ? voiceFindMode ? wake.phase === 'question' ? '正在本机听写查找目标；麦克风关闭前不会发送。' : wake.phase === 'stopping' ? '听写结束，正在确认麦克风关闭…' : '请在系统窗口确认本次语音查找。' : wake.phase === 'question' ? '正在本机听写，请直接说一句话；最多等待 20 秒。' : wake.phase === 'stopping' ? '已结束识别，正在等待麦克风关闭…' : '请在原生窗口确认本次输入，等候正在本机听写提示。' : dictationNotice || '点击语音输入，本人确认后直接说话；识别文字仅填入，不自动发送。';
     element('dictation-result').hidden = !dictationTranscript;
     element('dictation-result').textContent = dictationTranscript ? `本次识别文字：${dictationTranscript}` : '';
 
@@ -598,6 +622,7 @@
   async function startDictation() {
     if (disposed || element('start-dictation').disabled) return;
     const request = ++dictationGeneration;
+    voiceFindMode = false;
     pending.add('dictate');
     dictationNotice = '';
     dictationTranscript = '';
@@ -632,17 +657,80 @@
   async function cancelDictation() {
     if (!pending.has('dictate') || pending.has('dictation.cancel')) return;
     dictationGeneration += 1;
+    const wasVoiceFind = voiceFindMode;
+    voiceFindMode = false;
     pending.add('dictation.cancel');
     render();
     let stopped = false;
     try {
       await bridge.cancelDictation();
       stopped = true;
-      dictationNotice = '本次听写已取消，没有填入或发送文字。';
+      dictationNotice = wasVoiceFind ? '本次语音查找已取消，没有发送文字或屏幕画面。' : '本次听写已取消，没有填入或发送文字。';
     } catch (error) { showError('听写停止尚未确认', error, cancelDictation); }
     finally {
       if (stopped) pending.delete('dictate');
       pending.delete('dictation.cancel');
+      render();
+    }
+  }
+
+  async function sendVoiceFind(question, observationGeneration) {
+    voiceFindMode = true;
+    await perform('ask', '语音查找未完成', async () => {
+      try {
+        const reply = await bridge.ask(question, observationGeneration);
+        checkReply(reply);
+        if (!disposed) {
+          const result = record(record(reply).snapshot);
+          const task = record(result.task);
+          const analysis = record(result.analysis);
+          dictationNotice = task.state === 'awaiting_action' ? task.presentation === 'uncertain_candidate'
+            ? '语音已识别，候选位置已高亮；请先核对，再亲手操作。' : '语音已识别，目标已高亮；请看箭头并亲手操作。'
+            : task.result === 'risk_blocked' ? '本次请求涉及受限操作，已停止指引，没有生成箭头。'
+              : task.state === 'analyzing' ? '本机听写已完成，麦克风已关闭；查找请求已受理，请在上方查看分析进度与箭头指引。'
+                : analysis.state === 'unavailable' ? '语音已识别，但屏幕分析服务不可用；没有使用假答案或生成错误位置。'
+                : '语音已识别，但没有获得可核验的目标位置；请查看教学说明或重新描述。';
+        }
+        return reply;
+      } finally { voiceFindMode = false; }
+    }, () => sendVoiceFind(question, observationGeneration), true);
+  }
+
+  async function startVoiceFind() {
+    const initial = flags();
+    if (disposed || !initial.canVoiceFind) return;
+    const observationGeneration = initial.observation.generation;
+    const request = ++dictationGeneration;
+    voiceFindMode = true;
+    dictationNotice = '';
+    dictationTranscript = '';
+    pending.add('dictate');
+    clearError();
+    render();
+    try {
+      const result = await bridge.dictate(observationGeneration);
+      if (disposed || request !== dictationGeneration) return;
+      if (!result || result.localOnly !== true || !['complete', 'cancelled'].includes(result.status)) throw new Error('本地听写结果未确认');
+      if (result.status === 'cancelled') { dictationNotice = '本次语音查找已取消，没有发送文字或屏幕画面。'; return; }
+      if (result.microphoneActive !== false || typeof result.text !== 'string' || !result.text.trim() || result.text.length > 500) throw new Error('本地听写结果未确认');
+      const recognized = result.text.trim();
+      dictationTranscript = recognized;
+      pending.delete('dictate');
+      const current = flags();
+      if (!current.canVoiceFind || current.observation.generation !== observationGeneration) {
+        dictationNotice = '屏幕观察或授权已变化。识别文字已保留在下方，没有发送画面或问题。';
+        return;
+      }
+      dictationNotice = '本机听写已完成，麦克风已关闭；正在按本次授权查找目标。';
+      render();
+      await sendVoiceFind(recognized, observationGeneration);
+    } catch (error) {
+      if (!disposed && request === dictationGeneration) showError('语音查找未完成', error, startVoiceFind);
+    } finally {
+      if (request === dictationGeneration) {
+        pending.delete('dictate');
+        voiceFindMode = false;
+      }
       render();
     }
   }
@@ -681,15 +769,23 @@
     const draft = element('question').value;
     const version = draftVersion;
     const question = draft.trim();
+    const guidanceGeneration = activeSection === 'guidance' ? flags().observation.generation : undefined;
     if (!question) return;
     if (question.length > 500) {
       showError('问题未发送', new Error('问题不能超过 500 字'), () => element('question').focus());
       return;
     }
     void perform('ask', '问题未确认', async () => {
-      const reply = await bridge.ask(question);
+      const reply = guidanceGeneration === undefined ? await bridge.ask(question) : await bridge.ask(question, guidanceGeneration);
       checkReply(reply);
-      if (reply?.snapshot?.task?.kind === 'text' && reply.snapshot.task.result !== 'answered') return reply;
+      if (guidanceGeneration !== undefined || reply?.snapshot?.task?.kind === 'guidance') {
+        if (!disposed) dictationNotice = '查找请求已受理，问题草稿已保留；请查看上方的分析进度与箭头指引，失败后可手动重试。';
+        return reply;
+      }
+      if (reply?.snapshot?.task?.kind === 'text' && reply.snapshot.task.result !== 'answered') {
+        if (!disposed) dictationNotice = '本次未获得有效回答，问题草稿已保留。请检查模型服务后手动重试。';
+        return reply;
+      }
       if (!disposed && draftVersion === version && element('question').value === draft) {
         element('question').value = '';
         dictationNotice = dictationTranscript ? '草稿已提交给桌宠；下方识别文字未自动发送，仍保留供你整理。' : '问题已提交给桌宠；请在“最近问答”查看回复或运行提示。';
@@ -917,7 +1013,7 @@
     renderNotifications();
   });
   bind(element('collapse-panel'), 'click', () => setExpanded(false));
-  for (const [control, section] of Object.entries({ 'view-features': 'features', 'view-guidance': 'guidance', 'feature-guidance': 'guidance', 'view-voice': 'voice', 'feature-question': 'question', 'feature-dictation': 'dictation', 'feature-observation': 'observation', 'guidance-observation': 'observation', 'feature-learning': 'learning', 'feature-archive': 'archive', 'feature-todos': 'todos', 'archive-learning': 'learning', 'todos-archive': 'archive', 'pet-due-todos': 'todos', 'feature-captions': 'captions', 'feature-wake': 'wake', 'feature-management': 'accessibility' })) {
+  for (const [control, section] of Object.entries({ 'view-features': 'features', 'view-guidance': 'guidance', 'feature-guidance': 'guidance', 'view-voice': 'voice', 'feature-question': 'question', 'feature-dictation': 'dictation', 'feature-observation': 'observation', 'guidance-observation': 'observation', 'observation-guidance': 'guidance', 'feature-learning': 'learning', 'feature-archive': 'archive', 'feature-todos': 'todos', 'archive-learning': 'learning', 'todos-archive': 'archive', 'pet-due-todos': 'todos', 'feature-captions': 'captions', 'feature-wake': 'wake', 'feature-management': 'accessibility' })) {
     bind(element(control), 'click', () => {
       setExpanded(true, { section, focusInput: false });
       if (control === 'feature-dictation') element('start-dictation').focus({ preventScroll: true });
@@ -958,6 +1054,11 @@
   for (const [control, type] of Object.entries({ 'start-observation': 'observation.start', 'stop-observation': 'observation.stop', 'resume-sharing': 'observation.resume', 'verify-step': 'guidance.verify', 'repeat-step': 'guidance.repeat', 'finish-lesson': 'guidance.finish', 'toggle-captions': 'captions.toggle', 'start-voice-chat': 'voice.open', 'pet-voice': 'voice.open', 'feature-voice': 'voice.open', 'pet-voice-interrupt': 'voice.interrupt', 'pet-voice-end': 'voice.stop' })) {
     bind(element(control), 'click', () => requestCommand(type, control));
   }
+  bind(element('guidance-start-observation'), 'click', () => {
+    const type = flags().safeObserving && flags().observation.cloudConsent !== true ? 'observation.reselect' : 'observation.start';
+    requestCommand(type, 'guidance-start-observation');
+  });
+  bind(element('screen-voice-find'), 'click', () => { void startVoiceFind(); });
   bind(element('pet-voice-mute'), 'click', () => requestCommand(record(runtime.voice).state === 'muted' ? 'voice.unmute' : 'voice.mute', 'pet-voice-mute'));
   bind(element('toggle-wake'), 'click', () => requestCommand(record(runtime.wake).state === 'enabled' ? 'wake.disable' : 'wake.enable', 'toggle-wake'));
   bind(element('view-learning'), 'click', () => setExpanded(true, { section: 'learning', focusInput: false }));

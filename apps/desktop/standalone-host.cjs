@@ -35,6 +35,8 @@ function createStandaloneHost(options) {
   let observationConsentGeneration = 0;
   let choosingWake = false;
   let dictating = false;
+  let dictationPurpose = '';
+  let dictationObservationGeneration = 0;
   let wakeConsentGeneration = 0;
   let wakeController = null;
   let wakeFailure = '';
@@ -96,7 +98,7 @@ function createStandaloneHost(options) {
     const microphonePending = localWake.microphoneActive || localWake.enabled || ['starting', 'stopping'].includes(localWake.state);
     state.wake = { ...localWake, phase: localWake.state, state: microphonePending ? 'enabled' : 'disabled',
       reason: wakeFailure || (localWake.state === 'stopping' ? '正在等待本地麦克风进程真实退出，尚未确认停止。'
-        : dictating && localWake.state === 'question' ? '正在本机听写，请直接说话；识别后填入发起输入框，不会自动发送。'
+        : dictating && localWake.state === 'question' ? dictationPurpose === 'screen-guidance' ? '正在本机听写；停麦后按本次授权查找屏幕目标，只绘制指引。' : '正在本机听写，请直接说话；识别后填入发起输入框，不会自动发送。'
           : dictating && localWake.state === 'starting' ? '正在启动本次本机听写，请等候“正在本机听写”提示。'
         : localWake.microphoneActive ? localWake.dictationAvailable ? '本地唤醒监听中；说“暖伴”后可在本机识别问题，未唤醒音频不上传。' : '本地唤醒监听中；说“暖伴”打开桌宠后，请输入问题。本机听写不可用。'
           : ['error', 'unavailable'].includes(localWake.state) ? '本机中文离线语音引擎或麦克风不可用；未改用云端常听。请使用点击和文字提问。'
@@ -173,6 +175,8 @@ function createStandaloneHost(options) {
 
   function publish() {
     const state = snapshot();
+    if (dictationPurpose === 'screen-guidance' && (state.observation.generation !== dictationObservationGeneration
+      || state.observation.state !== 'observing' || state.observation.captureActive !== true || state.observation.cloudConsent !== true)) wakeController?.abort();
     lili.observe(state);
     syncPetProtection(state.observation);
     options.onObservationState?.({ ...state.observation });
@@ -443,7 +447,15 @@ function createStandaloneHost(options) {
     }
   }
 
-  async function requestVoiceDictation({ signal } = {}) {
+  async function requestVoiceDictation({ signal, purpose, observationGeneration } = {}) {
+    const screenGuidance = purpose === 'screen-guidance';
+    const observationValid = () => {
+      const observation = runtime.snapshot().observation;
+      return Number.isSafeInteger(observationGeneration) && observationGeneration > 0 && observation.generation === observationGeneration
+        && observation.state === 'observing' && observation.captureActive === true && observation.cloudConsent === true;
+    };
+    if (purpose !== undefined && !screenGuidance) throw new Error('本次语音用途无效');
+    if (screenGuidance && !observationValid()) throw new Error('请先开启屏幕观察并单独允许按需脱敏分析，再使用语音查找。');
     if (voiceHost?.snapshot().active) throw new Error('请先结束面对面语音，再使用本地听写');
     if (closing || choosingWake) throw new Error('本地语音正在处理，请先结束当前输入');
     if (typeof wake.dictate !== 'function') throw new Error('请重新打开客户端以加载语音输入功能');
@@ -451,6 +463,8 @@ function createStandaloneHost(options) {
     if (signal?.aborted) return cancelled();
     choosingWake = true;
     dictating = true;
+    dictationPurpose = purpose ?? '';
+    dictationObservationGeneration = screenGuidance ? observationGeneration : 0;
     const consentGeneration = ++wakeConsentGeneration;
     const controller = new AbortController();
     const abort = () => controller.abort();
@@ -459,18 +473,21 @@ function createStandaloneHost(options) {
     wakeFailure = '';
     const current = () => !controller.signal.aborted && !closing && consentGeneration === wakeConsentGeneration;
     try {
-      const confirmation = await showDialog({ type: 'question', title: '本次本地语音输入', message: '允许本次使用麦克风，把说话内容填入输入框吗？',
-        detail: '仅使用本机离线中文听写，不需要先说唤醒词。看到“正在本机听写”后直接说一句话，最多等待 20 秒；识别结束即关闭本次麦克风，文字需由你检查后亲手发送。音频不上云、不保存。\n\n如果本地语音唤醒已开启，本次输入会先关闭唤醒，不会自动恢复。此确认不授予屏幕观察或云分析权限。',
+      const confirmation = await showDialog({ type: 'question', title: screenGuidance ? '本次语音查找与屏幕指引' : '本次本地语音输入',
+        message: screenGuidance ? '允许听写这句话，并结合已授权的屏幕查找目标吗？' : '允许本次使用麦克风，把说话内容填入输入框吗？',
+        detail: (screenGuidance ? '仅使用本机离线中文听写。直接说一句“帮我找到……”；最多等待 20 秒，识别结束并关闭麦克风后，识别文字将自动提交，结合当前已授权范围的脱敏画面进行分析。成功定位后绘制高亮和箭头，不控制系统鼠标，不代点或代输。不覆盖已有输入草稿；观察停止或范围改变后，不再发起查找。'
+          : '仅使用本机离线中文听写，不需要先说唤醒词。看到“正在本机听写”后直接说一句话，最多等待 20 秒；识别结束即关闭本次麦克风，文字需由你检查后亲手发送。')
+          + '\n\n音频不上云、不保存。如果本地语音唤醒已开启，本次输入会先关闭唤醒，不会自动恢复。此确认不授予新的屏幕观察或云分析权限。',
         buttons: ['本人同意本次输入', '取消'], defaultId: 1, cancelId: 1, noLink: true });
-      if (confirmation.response !== 0 || !current()) return cancelled();
+      if (confirmation.response !== 0 || !current() || (screenGuidance && !observationValid())) return cancelled();
       const stopped = await wake.disable();
       if (!current()) return cancelled();
       if (stopped.enabled || stopped.microphoneActive) throw new Error('麦克风停止尚未确认');
       const capability = await wake.probe({ signal: controller.signal });
-      if (!current()) return cancelled();
+      if (!current() || (screenGuidance && !observationValid())) return cancelled();
       if (capability.status !== 'complete' || capability.dictationAvailable !== true) throw Object.assign(new Error('wake_dictation_unavailable'), { code: 'wake_dictation_unavailable' });
       const result = await wake.dictate({ actor: 'owner', confirmed: true, signal: controller.signal });
-      return current() ? result : cancelled();
+      return current() && (!screenGuidance || observationValid()) ? result : cancelled();
     } catch (error) {
       if (!current()) return cancelled();
       wakeFailure = error?.code === 'wake_dictation_timeout' ? '20 秒内未识别到完整语句，请靠近默认麦克风说话，再试一次。'
@@ -483,6 +500,8 @@ function createStandaloneHost(options) {
       if (wakeController === controller) wakeController = null;
       choosingWake = false;
       dictating = false;
+      dictationPurpose = '';
+      dictationObservationGeneration = 0;
       publish();
     }
   }
@@ -653,6 +672,11 @@ function createStandaloneHost(options) {
     if (Object.keys(payload).some(key => !allowed.includes(key))) throw new Error('桌宠指令包含不允许的参数');
     switch (payload.type) {
       case 'observation.start': return chooseObservation();
+      case 'observation.reselect': {
+        const stopped = await stop('reselect');
+        if (stopped.stopped !== true || stopped.captureActive !== false) throw new Error('旧屏幕观察停止尚未确认，请勿继续选择或共享。');
+        return chooseObservation();
+      }
       case 'observation.resume': return chooseObservation(true);
       case 'observation.stop': await stop(); break;
       case 'guidance.verify': await runtime.verify(); break;
@@ -735,8 +759,9 @@ function createStandaloneHost(options) {
     for (const event of ['blur', 'hide', 'closed']) listen(petWindow, event, clearPetDrag);
     listen(petWindow.webContents, 'render-process-gone', clearPetDrag);
     handle('nuanban:pet:ask', async input => {
-      if (!input || Object.keys(input).length !== 1 || typeof input.text !== 'string') throw new Error('提问参数无效');
-      await runtime.ask(input.text);
+      if (!input || typeof input.text !== 'string' || !Object.keys(input).every(key => ['text', 'observationGeneration'].includes(key))
+        || (Object.hasOwn(input, 'observationGeneration') && (!Number.isSafeInteger(input.observationGeneration) || input.observationGeneration < 1))) throw new Error('提问参数无效');
+      await runtime.ask(input.text, input.observationGeneration);
       return { ok: true, snapshot: snapshot() };
     });
     handle('nuanban:pet:context-menu', () => { menu().popup({ window: petWindow }); return true; });

@@ -470,6 +470,75 @@ describe('独立桌宠单次听写接线（合成语音，不打开真实麦克�
 });
 
 describe('独立桌宠宿主接线（合成依赖，不代表外部软件或系统权限验收）', () => {
+  it('语音查找要求有效观察代次和单独画面同意；停麦后方可绑定该代次分析', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    current.choose();
+    current.dialog.showMessageBox.mockResolvedValue({ response: 0, checkboxChecked: true });
+    await current.invoke('nuanban:pet:command', { type: 'observation.start' });
+    await vi.waitFor(() => expect(current.source.capture).toHaveBeenCalled());
+    const generation = current.host.snapshot().observation.generation;
+    expect(current.host.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, cloudConsent: true });
+    current.dialog.showMessageBox.mockClear();
+    current.dialog.showMessageBox.mockResolvedValueOnce({ response: 0, checkboxChecked: false });
+    const dictation = await current.host.requestVoiceDictation({ purpose: 'screen-guidance', observationGeneration: generation });
+    expect(current.dialog.showMessageBox).toHaveBeenCalledWith(current.windows[0], expect.objectContaining({ title: '本次语音查找与屏幕指引', detail: expect.stringContaining('不覆盖已有输入草稿') }));
+    expect(dictation).toMatchObject({ status: 'complete', localOnly: true, microphoneActive: false });
+    expect(current.wake.dictate).toHaveBeenCalledOnce();
+    expect(current.questioner.answer).not.toHaveBeenCalled();
+    current.analyzer.analyze.mockImplementationOnce(async input => ({ observation_id: input.observationId, guide_id: input.guideId,
+      observation_generation: input.observationGeneration, task_generation: input.taskGeneration, trigger_id: input.triggerId,
+      frame_id: input.frame.frameId, kind: 'step', instruction: '请看箭头，亲手操作。', target_id: input.frame.elements[0].id,
+      presentation: 'confirmed', expected_labels: [] }));
+    const reply = await current.invoke('nuanban:pet:ask', { text: '帮我找到设置', observationGeneration: generation });
+    expect((reply as { snapshot: { task: Record<string, unknown> } }).snapshot.task).toMatchObject({ kind: 'guidance', question: '帮我找到设置' });
+    await vi.waitFor(() => expect(current.host.snapshot().task.state).toBe('awaiting_action'));
+    expect(current.analyzer.analyze).toHaveBeenCalledOnce();
+    expect(current.windows[1].visible).toBe(true);
+    expect(current.windows[1].webContents.send).toHaveBeenCalledWith('nuanban:guide:state', expect.objectContaining({ visible: true, instruction: '请看箭头，亲手操作。' }));
+    expect(current.source.capture).toHaveBeenCalled();
+    expect(current.dialog.showMessageBox.mock.calls.at(-1)?.[1]).toMatchObject({ message: expect.stringContaining('已授权的屏幕查找') });
+  });
+
+  it('屏幕查找先返回受理回执，不等待挂起的分析；结束后迟到结果不显示箭头', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    current.choose();
+    current.dialog.showMessageBox.mockResolvedValue({ response: 0, checkboxChecked: true });
+    await current.invoke('nuanban:pet:command', { type: 'observation.start' });
+    await vi.waitFor(() => expect(current.source.detect).toHaveBeenCalled());
+    let resolveAnalysis!: (result: unknown) => void;
+    current.analyzer.analyze.mockImplementationOnce(() => new Promise(resolve => { resolveAnalysis = resolve; }));
+    const generation = current.host.snapshot().observation.generation;
+    const reply = await current.invoke('nuanban:pet:ask', { text: '帮我找到设置', observationGeneration: generation });
+    expect(reply).toMatchObject({ ok: true, snapshot: { task: { state: 'analyzing', kind: 'guidance', question: '帮我找到设置' } } });
+    await vi.waitFor(() => expect(current.analyzer.analyze).toHaveBeenCalledOnce());
+    const input = current.analyzer.analyze.mock.calls[0][0];
+    await current.invoke('nuanban:pet:command', { type: 'guidance.finish' });
+    expect(input.signal.aborted).toBe(true);
+    expect(input.canSend()).toBe(false);
+    resolveAnalysis({ observation_id: input.observationId, guide_id: input.guideId, observation_generation: input.observationGeneration,
+      task_generation: input.taskGeneration, trigger_id: input.triggerId, frame_id: input.frame.frameId, kind: 'step',
+      instruction: '已经失效的旧指引', target_id: input.frame.elements[0].id, presentation: 'confirmed', expected_labels: [] });
+    await Promise.resolve();
+    expect(current.host.snapshot().task.state).toBe('ended');
+    expect(current.windows[1].visible).toBe(false);
+  });
+
+  it('未勾选按需脱敏上云时拒绝屏幕语音查找且不启动麦克风', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    current.choose();
+    current.dialog.showMessageBox.mockResolvedValue({ response: 0, checkboxChecked: false });
+    await current.invoke('nuanban:pet:command', { type: 'observation.start' });
+    await vi.waitFor(() => expect(current.source.capture).toHaveBeenCalled());
+    const generation = current.host.snapshot().observation.generation;
+    await expect(current.host.requestVoiceDictation({ purpose: 'screen-guidance', observationGeneration: generation })).rejects.toThrow('单独允许按需脱敏分析');
+    expect(current.dialog.showMessageBox).toHaveBeenCalledOnce();
+    expect(current.wake.dictate).not.toHaveBeenCalled();
+    expect(current.analyzer.analyze).not.toHaveBeenCalled();
+  });
+
   it('本人框选后仍需单独授权，范围明确且默认不允许云端发送', async () => {
     const region = { x: 20, y: 30, width: 320, height: 200 };
     const picker = { select: vi.fn(async () => region), cancel: vi.fn(), dispose: vi.fn() };

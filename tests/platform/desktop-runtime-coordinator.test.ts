@@ -16,7 +16,7 @@ function stepResponse(input: AnalysisInput): AnalysisResult {
     presentation: 'uncertain_candidate', expected_labels: ['字体大小'] };
 }
 
-function fixture(callbacks: Pick<RuntimeOptions, 'recordTeaching' | 'suggestReview' | 'intervalMs' | 'questioner'> = {}) {
+function fixture(callbacks: Pick<RuntimeOptions, 'recordTeaching' | 'suggestReview' | 'intervalMs' | 'questioner' | 'analysisTimeoutMs'> = {}) {
   const controls = { time: Date.now(), labels: ['设置', '显示', '文本大小', '返回'], geometry: { x: -800, y: 0, width: 800, height: 600, scaleFactor: 1 } as ScreenGeometry | null, status: 'complete' as 'complete' | 'unavailable' };
   const source = {
     capture: vi.fn(async () => syntheticFrame(controls.geometry, ++controls.time)),
@@ -60,6 +60,32 @@ async function beginTeaching(setup: ReturnType<typeof fixture>) {
 }
 
 describe('观察与教学快照的独立代次', () => {
+  it('屏幕语音查找必须绑定当前观察代次和单独画面授权，失效时不回退成文字问答', async () => {
+    const setup = fixture();
+    await setup.start(false);
+    const generation = setup.runtime.snapshot().observation.generation;
+    expect(setup.runtime.snapshot().observation.cloudConsent).toBe(false);
+    await expect(setup.runtime.ask('帮我找到设置', generation)).rejects.toThrow('画面授权已失效');
+    expect(setup.analyze).not.toHaveBeenCalled();
+    expect(setup.records).toEqual([]);
+    await setup.runtime.stopObservation('user');
+    await expect(setup.runtime.ask('帮我找到设置', generation)).rejects.toThrow('画面授权已失效');
+    expect(setup.runtime.snapshot().observation.cloudConsent).toBe(false);
+  });
+
+  it('有效语音查找代次进入同一屏幕分析与目标高亮链路', async () => {
+    const setup = fixture();
+    await setup.start(true);
+    const generation = setup.runtime.snapshot().observation.generation;
+    expect(setup.runtime.snapshot().observation.cloudConsent).toBe(true);
+    await setup.runtime.ask('帮我找到设置', generation);
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.analyze.mock.calls[0][0]).toMatchObject({ question: '帮我找到设置', reason: 'question' });
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
+    expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, label: '显示' }));
+  });
+
   it('未确认整页类别时使用安全控件布局持续本地观察，未授权不出云，敏感内容仍停止', async () => {
     vi.useFakeTimers();
     const setup = fixture({ intervalMs: 1500 });
@@ -221,6 +247,56 @@ afterEach(async () => {
 });
 
 describe('驻留运行核心（合成端口单测，不替代原生/供应验收）', () => {
+  it('挂起的屏幕分析超时会解除忙碌状态、关闭发送资格，并丢弃迟到结果', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ analysisTimeoutMs: 100 });
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.start();
+    await setup.runtime.ask('帮我找到设置', setup.runtime.snapshot().observation.generation);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    const input = setup.analyze.mock.calls[0][0];
+    expect(setup.runtime.snapshot().task.state).toBe('analyzing');
+    await vi.advanceTimersByTimeAsync(100);
+    await setup.runtime.whenIdle();
+    expect(input.signal.aborted).toBe(true);
+    expect(input.canSend()).toBe(false);
+    expect(setup.runtime.snapshot()).toMatchObject({ task: { state: 'needs_help' }, analysis: { state: 'error', message: expect.stringContaining('超时') } });
+    response.resolve(stepResponse(input));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+    expect(setup.onTarget.mock.calls.every(([target]) => target === null)).toBe(true);
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    await setup.runtime.ask('请重新查找设置', setup.runtime.snapshot().observation.generation);
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
+    expect(setup.analyze).toHaveBeenCalledTimes(2);
+  });
+
+  it('结束教学不用等待忽略取消的分析器，之后的新问题可以正常分析', async () => {
+    const setup = fixture();
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.start();
+    await setup.runtime.ask('帮我找到设置');
+    await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+    const input = setup.analyze.mock.calls[0][0];
+    await setup.runtime.finishTeaching();
+    await setup.runtime.whenIdle();
+    expect(input.signal.aborted).toBe(true);
+    expect(setup.runtime.snapshot().task.state).toBe('ended');
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true });
+    await setup.runtime.ask('请重新查找设置');
+    await setup.runtime.whenIdle();
+    const current = setup.runtime.snapshot();
+    response.resolve(stepResponse(input));
+    await Promise.resolve();
+    expect(setup.runtime.snapshot()).toEqual(current);
+    expect(current.task.state).toBe('awaiting_action');
+    expect(setup.analyze).toHaveBeenCalledTimes(2);
+  });
+
   it('默认不观察，不因创建桌宠或恢复管理页面而采集', () => {
     const setup = fixture();
     expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'off', captureActive: false });
@@ -799,7 +875,7 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     },
   );
 
-  it('新问题保持独立问题与代次，旧分析迟到不安装；并发仅保留最新待分析任务', async () => {
+  it('新问题保持独立问题与代次；取消旧分析后不等待迟到结果，新任务可立即处理', async () => {
     const setup = fixture();
     const firstResponse = deferred<AnalysisResult>();
     setup.analyze.mockImplementationOnce(() => firstResponse.promise);
@@ -815,14 +891,14 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
       await vi.waitFor(() => expect(setup.source.capture).toHaveBeenCalledTimes(4));
       expect(first.signal.aborted).toBe(true);
       expect(first.canSend()).toBe(false);
-      expect(setup.analyze).toHaveBeenCalledOnce();
+      expect(setup.analyze).toHaveBeenCalledTimes(3);
     } finally {
       if (first) firstResponse.resolve(stepResponse(first));
       else firstResponse.reject(new Error('unit cleanup'));
     }
     await setup.runtime.whenIdle();
-    expect(setup.analyze).toHaveBeenCalledTimes(2);
-    const latest = setup.analyze.mock.calls[1][0];
+    expect(setup.analyze).toHaveBeenCalledTimes(3);
+    const latest = setup.analyze.mock.calls[2][0];
     expect(latest.question).toBe('第三个问题，打开辅助功能');
     expect(latest.guideId).not.toBe(first?.guideId);
     expect(latest.taskGeneration).toBeGreaterThan(first!.taskGeneration);

@@ -13,7 +13,7 @@ function fixture() {
   const handlers = new Map<string, Handler>();
   const event = { sender: new EventEmitter(), senderFrame: {} };
   const trusted = new Set<unknown>([event]);
-  const host = { hasPetWindow: vi.fn(() => true), requestVoiceDictation: vi.fn(async (_input: { signal: AbortSignal }): Promise<unknown> => complete) };
+  const host = { hasPetWindow: vi.fn(() => true), requestVoiceDictation: vi.fn(async (_input: { signal: AbortSignal; purpose?: string; observationGeneration?: number }): Promise<unknown> => complete) };
   const bridge = registerDictationBridge({ ipcMain: { handle: (channel: string, handler: Handler) => handlers.set(channel, handler), removeHandler: (channel: string) => handlers.delete(channel) },
     prefix: 'nuanban:test:voice', isTrusted: (candidate: unknown) => trusted.has(candidate), getHost: () => host });
   bridges.push(bridge);
@@ -31,6 +31,14 @@ describe('本次本地听写的可信 IPC 与发起窗口生命周期（不启�
     expect(await current.invoke('dictate')).toEqual(complete);
     expect(current.host.requestVoiceDictation).toHaveBeenCalledWith({ signal: expect.any(AbortSignal) });
     expect(current.event.sender.eventNames()).toEqual([]);
+  });
+
+  it('屏幕语音查找只接受正整数观察代次，并将固定用途交给宿主二次核验', async () => {
+    const current = fixture();
+    expect(await current.invoke('dictate', current.event, { purpose: 'screen-guidance', observationGeneration: 3 })).toEqual(complete);
+    expect(current.host.requestVoiceDictation).toHaveBeenCalledWith({ signal: expect.any(AbortSignal), purpose: 'screen-guidance', observationGeneration: 3 });
+    expect(() => current.invoke('dictate', current.event, { purpose: 'screen-guidance', observationGeneration: 0 })).toThrow('本人');
+    expect(() => current.invoke('dictate', current.event, { purpose: 'other', observationGeneration: 3 })).toThrow('本人');
   });
 
   it('拒绝不可信窗口、附加授权参数和缺失宿主', async () => {

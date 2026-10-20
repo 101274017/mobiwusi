@@ -96,8 +96,8 @@ function petHarness(initial: unknown = snapshot()) {
     onState: vi.fn((callback: StateListener) => { listener = callback; return unsubscribe; }),
     onPanel: vi.fn((callback: StateListener) => { panelListener = callback; return unsubscribePanel; }),
     command: vi.fn(async (_payload: unknown): Promise<unknown> => ({ ok: true })),
-    ask: vi.fn(async (_question: string): Promise<unknown> => ({ ok: true })),
-    dictate: vi.fn(async (): Promise<unknown> => ({ status: 'cancelled', localOnly: true })),
+    ask: vi.fn(async (_question: string, _observationGeneration?: number): Promise<unknown> => ({ ok: true })),
+    dictate: vi.fn(async (_observationGeneration?: number): Promise<unknown> => ({ status: 'cancelled', localOnly: true })),
     cancelDictation: vi.fn(async () => true),
     openMain: vi.fn(async (_route: string) => true),
     openTool: vi.fn(async (_route: string) => true),
@@ -572,6 +572,19 @@ describe('桌宠面对面语音入口', () => {
 });
 
 describe('桌宠 preload 的最小 IPC 合约', () => {
+  it('保留文字问答类型与结果，不暴露私有状态', async () => {
+    const harness = preloadHarness('pet-preload.cjs');
+    const api = harness.exposed.nuanbanPet;
+    const state = snapshot({}, { kind: 'text', state: 'ended', result: 'failed', secret: 'discard' });
+    harness.ipcRenderer.invoke.mockResolvedValue(state);
+    expect((await api.snapshot() as { task: Record<string, unknown> }).task.kind).toBe('text');
+    const listener = vi.fn();
+    api.onState(listener);
+    harness.handlers.get('nuanban:pet:state')?.({}, state);
+    expect(listener).toHaveBeenCalledWith(expect.objectContaining({ task: expect.objectContaining({ kind: 'text', result: 'failed' }) }));
+    expect(JSON.stringify(listener.mock.calls)).not.toContain('discard');
+  });
+
   it('仅活动桌宠语音向气泡投影有限文字，停止或非桌宠模式不泄露旧字幕', async () => {
     const harness = preloadHarness('pet-preload.cjs');
     const api = harness.exposed.nuanbanPet;
@@ -603,7 +616,8 @@ describe('桌宠 preload 的最小 IPC 合约', () => {
     await api.openMain();
     await api.openMain('/notes');
     await api.ask('如何收藏网页');
-    await api.dictate({ rawFrame: 'discard' });
+    await api.dictate();
+    expect(() => api.dictate({ rawFrame: 'discard' })).toThrow('代次无效');
     await api.cancelDictation({ rawFrame: 'discard' });
     for (const type of ['observation.start', 'observation.stop', 'observation.resume', 'guidance.verify', 'guidance.finish', 'guidance.repeat', 'captions.toggle', 'wake.enable', 'wake.disable', 'voice.open', 'voice.stop', 'voice.mute', 'voice.unmute', 'voice.interrupt']) await api.command({ type, rawFrame: 'discard', click: { x: 1 } });
     await api.command({ type: 'panel.set-expanded', expanded: true, rawFrame: 'discard' });
@@ -647,10 +661,10 @@ describe('桌宠 preload 的最小 IPC 合约', () => {
   it('快照、事件及操作回复只暴露声明字段，不转发原始帧和 OCR', async () => {
     const harness = preloadHarness('pet-preload.cjs');
     const api = harness.exposed.nuanbanPet;
-    const state = { ...snapshot({}, { instruction: '点收藏', result: { ocr: 'private' } }), rawFrame: 'private', ocr: 'private', source: { thumbnail: 'private' } };
+    const state = { ...snapshot({ cloudConsent: true }, { instruction: '点收藏', result: { ocr: 'private' } }), rawFrame: 'private', ocr: 'private', source: { thumbnail: 'private' } };
     harness.ipcRenderer.invoke.mockResolvedValueOnce(state);
     const result = await api.snapshot();
-    expect(result).toMatchObject({ task: { generation: 1, instruction: '点收藏' } });
+    expect(result).toMatchObject({ observation: { cloudConsent: true }, task: { generation: 1, instruction: '点收藏' } });
     expect(JSON.stringify(result)).not.toMatch(/private|rawFrame|ocr|thumbnail/);
     const listener = vi.fn();
     const unsubscribe = api.onState(listener) as () => void;
@@ -885,6 +899,110 @@ describe('桌宠直接语音输入草稿（合成识别，不开启麦克风）'
     expect(harness.element('error-text').textContent).toContain('本地听写结果未确认');
     expect(harness.element('question').value).toBe('');
     expect(harness.bridge.ask).not.toHaveBeenCalled();
+  });
+});
+
+describe('已授权屏幕上的语音查找（合成识别，不读取真实屏幕或麦克风）', () => {
+  it('收到分析中回执即结束发送态；失败后保留草稿并重新开放语音查找', async () => {
+    const active = { state: 'observing', captureActive: true, cloudConsent: true, generation: 7 };
+    const harness = petHarness(snapshot(active));
+    await settle();
+    harness.click('feature-guidance');
+    expect(harness.element('screen-voice-find').disabled).toBe(false);
+    harness.input('帮我找到设置');
+    harness.bridge.ask.mockImplementationOnce(async () => {
+      const accepted = snapshot(active, { id: 'guide-1', kind: 'guidance', state: 'analyzing', observationGeneration: 7 }, { state: 'analyzing' });
+      harness.emit(accepted);
+      return { ok: true, snapshot: accepted };
+    });
+    harness.submit();
+    await settle();
+    expect(harness.element('send-question').textContent).toBe('正在分析画面…');
+    expect(harness.element('question').value).toBe('帮我找到设置');
+    expect(harness.element('finish-lesson').disabled).toBe(false);
+    expect(harness.element('guidance-status').textContent).toContain('结束教学');
+    harness.emit(snapshot(active, { id: 'guide-1', kind: 'guidance', state: 'needs_help', observationGeneration: 7 }, { state: 'error', message: '本次屏幕分析超时，已取消请求。' }));
+    expect(harness.element('send-question').disabled).toBe(false);
+    expect(harness.element('screen-voice-find').disabled).toBe(false);
+    expect(harness.element('question').value).toBe('帮我找到设置');
+    expect(harness.element('guidance-status').textContent).toContain('超时');
+    expect(harness.bridge.ask).toHaveBeenCalledOnce();
+  });
+
+  it('语音查找受理后通过状态流更新进度，不误报没有结果', async () => {
+    const active = { state: 'observing', captureActive: true, cloudConsent: true, generation: 7 };
+    const harness = petHarness(snapshot(active));
+    await settle();
+    harness.click('feature-guidance');
+    harness.bridge.dictate.mockResolvedValueOnce({ status: 'complete', text: '帮我找到设置', localOnly: true, microphoneActive: false });
+    harness.bridge.ask.mockImplementationOnce(async () => {
+      const accepted = snapshot(active, { id: 'guide-1', kind: 'guidance', state: 'analyzing', observationGeneration: 7 }, { state: 'analyzing' });
+      harness.emit(accepted);
+      return { ok: true, snapshot: accepted };
+    });
+    harness.click('screen-voice-find');
+    await settle();
+    expect(harness.element('dictation-status').textContent).toContain('查找请求已受理');
+    expect(harness.element('dictation-status').textContent).not.toContain('没有获得');
+    expect(harness.element('screen-voice-find').textContent).toBe('正在分析当前画面…');
+    harness.emit(snapshot(active, { id: 'guide-1', kind: 'guidance', state: 'awaiting_action', instruction: '请看箭头并亲手点击设置。', observationGeneration: 7 }, { state: 'ready' }));
+    expect(harness.element('guidance-status').textContent).toContain('已找到');
+    expect(harness.element('screen-voice-find').disabled).toBe(false);
+    expect(harness.bridge.ask).toHaveBeenCalledExactlyOnceWith('帮我找到设置', 7);
+  });
+
+  it('必须处于本地观察且已同意脱敏上云，否则禁用麦克风入口', async () => {
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: false, generation: 4 }));
+    await settle();
+    harness.click('feature-guidance');
+    expect(harness.element('screen-voice-find').disabled).toBe(true);
+    expect(harness.element('guidance-status').textContent).toContain('单独同意脱敏画面按需上云');
+    expect(harness.bridge.dictate).not.toHaveBeenCalled();
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+  });
+
+  it('本机停麦后只提交识别句和同一观察代次，保留已有手写草稿并显示箭头结果', async () => {
+    const active = snapshot({ state: 'observing', captureActive: true, cloudConsent: true, generation: 7 });
+    const harness = petHarness(active);
+    await settle();
+    harness.click('feature-guidance');
+    harness.input('保留的手写草稿');
+    harness.bridge.dictate.mockResolvedValueOnce({ status: 'complete', text: '帮我找到设置', localOnly: true, microphoneActive: false });
+    harness.bridge.ask.mockResolvedValueOnce({ ok: true, snapshot: snapshot({ state: 'observing', captureActive: true, cloudConsent: true, generation: 7 },
+      { state: 'awaiting_action', presentation: 'confirmed', instruction: '请看箭头并亲手点击设置。' }, { state: 'ready', message: '请按当前一步亲手操作。' }) });
+    harness.click('screen-voice-find');
+    await settle();
+    expect(harness.bridge.dictate).toHaveBeenCalledExactlyOnceWith(7);
+    expect(harness.bridge.ask).toHaveBeenCalledExactlyOnceWith('帮我找到设置', 7);
+    expect(harness.element('question').value).toBe('保留的手写草稿');
+    expect(harness.element('dictation-result').textContent).toContain('帮我找到设置');
+    expect(harness.element('dictation-status').textContent).toContain('目标已高亮');
+  });
+
+  it('听写后观察代次改变时保留识别文字但不发送', async () => {
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: true, generation: 7 }));
+    await settle();
+    harness.click('feature-guidance');
+    harness.bridge.dictate.mockImplementationOnce(async () => {
+      harness.emit(snapshot({ state: 'stopped', captureActive: false, cloudConsent: false, generation: 8 }));
+      return { status: 'complete', text: '帮我找到设置', localOnly: true, microphoneActive: false };
+    });
+    harness.click('screen-voice-find');
+    await settle();
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+    expect(harness.element('dictation-result').textContent).toContain('帮我找到设置');
+    expect(harness.element('dictation-status').textContent).toContain('没有发送');
+  });
+
+  it('取消语音查找不会向模型发送文字或画面', async () => {
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: true, generation: 2 }));
+    await settle();
+    harness.click('feature-guidance');
+    harness.bridge.dictate.mockResolvedValueOnce({ status: 'cancelled', localOnly: true });
+    harness.click('screen-voice-find');
+    await settle();
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+    expect(harness.element('dictation-status').textContent).toContain('没有发送文字或屏幕画面');
   });
 });
 

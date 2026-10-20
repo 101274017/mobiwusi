@@ -12,7 +12,11 @@ function registerDictationBridge({ ipcMain, prefix, isTrusted, getHost }) {
   }
 
   ipcMain.handle(channels[0], (event, ...argumentsList) => {
-    const host = authorize(event, argumentsList);
+    const host = authorize(event, []);
+    const input = argumentsList[0];
+    if (argumentsList.length && (argumentsList.length !== 1 || !input || typeof input !== 'object' || Array.isArray(input)
+      || Object.keys(input).length !== 2 || input.purpose !== 'screen-guidance'
+      || !Number.isSafeInteger(input.observationGeneration) || input.observationGeneration < 1)) throw new Error('麦克风授权必须由本人在原生窗口确认');
     if (active) throw new Error('本次语音输入尚未结束');
     if (typeof host.requestVoiceDictation !== 'function') throw new Error('请重新打开客户端以加载语音输入功能');
     const operation = { controller: new AbortController(), sender: event.sender, promise: null };
@@ -22,7 +26,8 @@ function registerDictationBridge({ ipcMain, prefix, isTrusted, getHost }) {
     operation.sender?.on('destroyed', abort);
     operation.sender?.on('render-process-gone', abort);
     operation.sender?.on('did-start-navigation', navigate);
-    operation.promise = Promise.resolve().then(() => host.requestVoiceDictation({ signal: operation.controller.signal })).then(result => {
+    operation.promise = Promise.resolve().then(() => host.requestVoiceDictation({ signal: operation.controller.signal,
+      ...(input ? { purpose: 'screen-guidance', observationGeneration: input.observationGeneration } : {}) })).then(result => {
       if (operation.controller.signal.aborted || disposed || !isTrusted(event)) return { status: 'cancelled', localOnly: true };
       if (!result || result.localOnly !== true || !['complete', 'cancelled'].includes(result.status)
         || (result.status === 'complete' && (result.microphoneActive !== false || typeof result.text !== 'string' || !result.text.trim() || result.text.length > 500))) throw new Error('本地听写结果未确认');

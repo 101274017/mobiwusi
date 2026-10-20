@@ -1,7 +1,7 @@
 import type { AdmittedFrame, LocalDetection, ObservationFrame, PixelRect } from './observation-policy.cjs';
 
 export interface RuntimeSnapshot {
-  observation: { state: string; id?: string; generation: number; sourceName: string; reason: string | null; captureActive: boolean };
+  observation: { state: string; id?: string; generation: number; sourceName: string; reason: string | null; captureActive: boolean; cloudConsent: boolean };
   task: { state: string; kind?: 'text' | 'guidance'; id: string | null; generation: number; observationGeneration: number; question: string; instruction: string; explanation: string; presentation: string | null; result: string | null; startedAt?: number };
   analysis: { state: string; message: string }; captions: { enabled: boolean; text: string };
   wake: { state: string; reason: string }; messages: { id: string; role: string; text: string }[]; message: string;
@@ -28,14 +28,14 @@ export interface RuntimeOptions {
   suggestReview?(proposal: ReviewSuggestion): Promise<unknown> | unknown;
   onState?(snapshot: RuntimeSnapshot): void;
   onTarget?(target: { visible: boolean; rect: PixelRect; label: string; instruction: string; presentation: string; expiresAt: number } | null): void;
-  now?(): number; intervalMs?: number; maxAgeMs?: number;
+  now?(): number; intervalMs?: number; maxAgeMs?: number; analysisTimeoutMs?: number;
 }
 export interface ObservationConsent { actor: string; confirmed: boolean; sourceId: string; sourceName?: string; cloudConsent?: boolean; region?: { x: number; y: number; width: number; height: number } }
 export interface StopResult { stopped: boolean; captureActive: boolean; mediaActive: boolean; reason: string }
 export interface DesktopRuntime {
   snapshot(): RuntimeSnapshot; startObservation(input: ObservationConsent): Promise<RuntimeSnapshot>;
   resumeObservation(input: ObservationConsent): Promise<RuntimeSnapshot>; stopObservation(reason?: string): Promise<StopResult>;
-  ask(text: string): Promise<RuntimeSnapshot>; verify(): Promise<RuntimeSnapshot>;
+  ask(text: string, requiredObservation?: number): Promise<RuntimeSnapshot>; verify(): Promise<RuntimeSnapshot>;
   finishTeaching(result?: string): Promise<RuntimeSnapshot>; repeat(): RuntimeSnapshot; toggleCaptions(): RuntimeSnapshot;
   dispose(reason?: string): Promise<StopResult>; whenIdle(): Promise<void>;
 }
