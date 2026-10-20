@@ -71,7 +71,7 @@ function createDesktopRuntime(options) {
     observation: { state: 'off', generation: 0, sourceName: '', reason: null, captureActive: false, cloudConsent: false },
     task: { state: 'idle', id: null, observationGeneration: 0, question: '', instruction: '', explanation: '', presentation: null, result: null },
     analysis: { state: 'idle', message: '默认不采集。请本人选择观察范围并开启。' },
-    captions: { enabled: true, text: '' },
+    captions: { enabled: false, text: '' },
     wake: { state: 'unsupported', reason: '尚未配置经本机验证的本地唤醒引擎；点击和文字提问仍可用。' },
     messages: [], message: '右键查看功能；提问和教学不需要打开管理窗口。',
   };

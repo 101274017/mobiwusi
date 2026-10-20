@@ -59,6 +59,27 @@ async function beginTeaching(setup: ReturnType<typeof fixture>) {
   await setup.runtime.whenIdle();
 }
 
+describe('桌宠大字字幕由本人主动开启', () => {
+  it('默认不显示大字，教学、重讲和后续问题不会重新开启', async () => {
+    const setup = fixture();
+    expect(setup.runtime.snapshot().captions).toEqual({ enabled: false, text: '' });
+    expect(setup.source.capture).not.toHaveBeenCalled();
+    await beginTeaching(setup);
+    const instruction = setup.runtime.snapshot().task.instruction;
+    expect(instruction).not.toBe('');
+    expect(setup.runtime.snapshot().captions).toEqual({ enabled: false, text: instruction });
+    setup.runtime.repeat();
+    expect(setup.runtime.snapshot().captions.enabled).toBe(false);
+    expect(setup.runtime.toggleCaptions().captions).toEqual({ enabled: true, text: instruction });
+    expect(setup.runtime.toggleCaptions().captions.enabled).toBe(false);
+    setup.runtime.repeat();
+    await setup.runtime.ask('再教我打开显示设置');
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().captions.enabled).toBe(false);
+    expect(setup.runtime.snapshot().task.instruction).not.toBe('');
+  });
+});
+
 describe('当前观察范围的单独画面分析授权', () => {
   it('无需重启采集；同意不自动发送旧问题，新的查找才分析', async () => {
     const setup = fixture();

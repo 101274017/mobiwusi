@@ -16,6 +16,16 @@ function requestInput(timestamp = Date.now()): AnalysisInput {
 }
 function provider(answer: AiProvider['answer']) { return { answer: vi.fn(answer) }; }
 
+function crowdedInput(entry = '微信'): AnalysisInput {
+  const raw = syntheticFrame();
+  const detection = syntheticDetection(raw, []);
+  detection.words = [...Array.from({ length: 70 }, () => '设置'), entry, '发现', '同事小李', '未公开项目.docx']
+    .map((text, index) => ({ text, rect: { x: 10 + index % 8 * 95, y: 10 + Math.floor(index / 8) * 35, width: 80, height: 24 } }));
+  const frame = evaluateLocalFrame(raw, detection);
+  if (frame.decision !== 'allow') throw new Error('测试帧未放行');
+  return { ...requestInput(), frame, question: '如何打开微信朋友圈' };
+}
+
 describe('指定模型到桌宠只读教学适配（合成供应测试）', () => {
   it('缺配置时不可用，无默认教学答案', async () => {
     const client = createProviderAnalysisClient();
@@ -52,6 +62,46 @@ describe('指定模型到桌宠只读教学适配（合成供应测试）', () =
     expect(sent.instructions).not.toContain('练习文档');
     expect(sent.image?.bytes).toBe(frame.sanitizedPng);
     expect(sent.image?.bytes).not.toEqual(raw.png);
+  });
+
+  it.each(['微信', 'WeChat', 'Weixin'])('控件超过 64 个时保留中文问题相关的 %s 入口，不把内部功能缺失当成入口缺失', async entry => {
+    const input = crowdedInput(entry);
+    const target = input.frame.elements.find(element => element.label === entry)!;
+    expect(input.frame.elements.indexOf(target)).toBeGreaterThan(63);
+    const endpoint = provider(async () => ({ text: JSON.stringify({ kind: 'step', instruction: '请亲手双击微信图标，打开后再找朋友圈。',
+      target_id: target.id, presentation: 'confirmed', expected_labels: ['发现'] }) }));
+    const result = await createProviderAnalysisClient({ provider: endpoint }).analyze(input);
+    expect(result).toMatchObject({ kind: 'step', target_id: target.id });
+    const sent = endpoint.answer.mock.calls[0][0];
+    const context = JSON.parse(sent.instructions!.split('当前最小上下文：')[1]);
+    expect(context.elements).toHaveLength(64);
+    expect(context.elements[0]).toEqual(target);
+    expect(sent.instructions).toContain('先指引本人打开该软件');
+    expect(sent.instructions).not.toContain('同事小李');
+    expect(sent.instructions).not.toContain('未公开项目.docx');
+    expect(context.elements.some((element: { label: string }) => element.label === '朋友圈')).toBe(false);
+    expect(sent.image?.bytes).toBe(input.frame.sanitizedPng);
+  });
+
+  it('后续页面优先保留上一步待核验标签，仍拒绝未实际发送的目标', async () => {
+    const input = crowdedInput();
+    input.question = '继续下一步';
+    input.reason = 'page_changed';
+    input.previousStep = { instruction: '请亲手打开软件。', expectedLabels: ['发现'] };
+    const target = input.frame.elements.find(element => element.label === '发现')!;
+    const excluded = input.frame.elements.find(element => element.label === '微信')!;
+    expect(target).toBeDefined();
+    expect(excluded).toBeDefined();
+    const endpoint = provider(async () => ({ text: JSON.stringify({ kind: 'step', instruction: '请亲手打开发现。',
+      target_id: target.id, presentation: 'confirmed', expected_labels: ['朋友圈'] }) }));
+    await expect(createProviderAnalysisClient({ provider: endpoint }).analyze(input)).resolves.toMatchObject({ target_id: target.id });
+    const context = JSON.parse(endpoint.answer.mock.calls[0][0].instructions!.split('当前最小上下文：')[1]);
+    expect(context.elements).toHaveLength(64);
+    expect(context.elements[0]).toEqual(target);
+    expect(context.elements.some((element: { id: string }) => element.id === excluded.id)).toBe(false);
+    const invalid = provider(async () => ({ text: JSON.stringify({ kind: 'step', instruction: '请打开软件。',
+      target_id: excluded.id, presentation: 'confirmed', expected_labels: [] }) }));
+    await expect(createProviderAnalysisClient({ provider: invalid }).analyze(input)).rejects.toMatchObject({ code: 'INVALID_ANALYSIS_RESPONSE' });
   });
 
   it('本地门控关闭、过期、伪造准入与敏感问题在发送前被拒绝', async () => {

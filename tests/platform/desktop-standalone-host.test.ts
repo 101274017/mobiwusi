@@ -116,6 +116,33 @@ afterEach(async () => {
   await Promise.all(hosts.splice(0).map(host => host.dispose('test')));
 });
 
+describe('独立桌宠不默认弹出遮挡视野的大字窗口', () => {
+  it('回答保留在桌宠中；只有本人开字幕才显示，关闭后新回答也不弹出', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    const caption = current.windows[2];
+    expect(current.host.snapshot().captions).toEqual({ enabled: false, text: '' });
+    expect(caption.isVisible()).toBe(false);
+    await current.invoke('nuanban:pet:ask', { text: '请教我调大字体' });
+    await vi.waitFor(() => expect(current.host.snapshot().task.result).toBe('answered'));
+    const answer = current.host.snapshot().task.explanation;
+    expect(answer).not.toBe('');
+    expect(current.host.snapshot().captions).toEqual({ enabled: false, text: answer });
+    expect(caption.isVisible()).toBe(false);
+    await current.invoke('nuanban:pet:command', { type: 'captions.toggle' });
+    expect(caption.isVisible()).toBe(true);
+    await current.invoke('nuanban:pet:command', { type: 'captions.toggle' });
+    expect(caption.isVisible()).toBe(false);
+    await current.invoke('nuanban:pet:ask', { text: '如何打开显示设置' });
+    await vi.waitFor(() => expect(current.questioner.answer).toHaveBeenCalledTimes(2));
+    expect(current.host.snapshot().captions.enabled).toBe(false);
+    expect(caption.isVisible()).toBe(false);
+    expect(current.source.capture).not.toHaveBeenCalled();
+    expect(current.analyzer.analyze).not.toHaveBeenCalled();
+    expect(current.showManagement).not.toHaveBeenCalled();
+  });
+});
+
 describe('栗栗可选角色的受信接线', () => {
   it('默认保留现有形象，显式选择后动作与事件通过原桌宠窗口', async () => {
     const current = fixture({ userDataPath: mkdtempSync(join(tmpdir(), 'lili-host-wiring-')) });

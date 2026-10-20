@@ -2,7 +2,7 @@ const { createHash } = require('node:crypto');
 const { createControlLayout } = require('./observation/control-layout.cjs');
 const { LIMITS } = require('./observation/observation-common.cjs');
 
-const policyVersion = 'windows-local-ocr-v5';
+const policyVersion = 'windows-local-ocr-v6';
 const admittedFrames = new WeakSet();
 const privatePattern = /密码|口令|验证码|动态码|私聊|聊天记录|私人聊天|发送给|身份证|银行卡|支付|付款|收款|转账|交易确认|安全密钥|访问令牌|password|passcode|one[ -]?time|verification code|private (?:chat|message)|credit card|bank account|payment|transfer money|bearer\s|api[ _-]?key|secret key/i;
 const personalPattern = /(?:\b1[3-9]\d{9}\b)|(?:\b\d{17}[\dXx]\b)|(?:[\w.+-]+@[\w.-]+\.[A-Za-z]{2,})|(?:\b(?:sk|pk)[-_][A-Za-z0-9]{16,})/;
@@ -13,6 +13,7 @@ const genericLabels = new Set([
   '新建', '新建文件', '撤销', '重做', '剪切', '复制', '粘贴', '全选', '查找', '替换', '自动换行', '另存为', '对齐', '加粗', '斜体', '下划线', '居中', '项目符号',
   'bookmarks', 'bookmark', 'favorites', 'add bookmark', 'add to favorites', 'edit bookmark', 'bookmark manager', 'new tab', 'reload', 'refresh', 'home', 'fullscreen', 'full screen',
   'new', 'new file', 'undo', 'redo', 'cut', 'copy', 'paste', 'select all', 'find', 'replace', 'word wrap', 'save as', 'alignment', 'bold', 'italic', 'underline', 'center', 'bullets',
+  '微信', 'wechat', 'weixin', '朋友圈', 'moments', '发现', 'discover',
 ]);
 const sceneLabels = new Set(['设置', '系统', '显示', '字体', '字体大小', '文本大小', '缩放', '辅助功能', '无障碍', '个性化', '主题', '语言', '网络', '蓝牙', '音量', '声音', 'settings', 'system', 'display', 'font', 'fonts', 'font size', 'text size', 'scale', 'accessibility', 'personalization', 'theme', 'language', 'network', 'bluetooth', 'volume', 'sound']);
 const browserLabels = new Set(['书签', '收藏', '收藏夹', '添加书签', '添加到收藏夹', '添加收藏', '编辑书签', '书签管理器', '新建标签页', '新标签页', '标签页', '重新加载', '刷新', '主页', '全屏', '退出全屏',

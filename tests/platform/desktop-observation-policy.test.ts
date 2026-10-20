@@ -178,6 +178,37 @@ describe('独立桌宠本地帧门控（合成单测，不是真实外部软件�
     expect(unmerged.elements.some(element => element.label === '文件资源管理器')).toBe(false);
   });
 
+  it.each(['微信', 'WeChat', 'Weixin', '朋友圈', '发现', 'Moments', 'Discover'])('保留公共入口 %s 的真实位置，不导出联系人或文件名', label => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, [label, '同事小李', '未公开项目.docx']);
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'allow', scene: 'controls_only' });
+    if (result.decision !== 'allow') throw new Error('missing public entry');
+    expect(result.elements).toEqual([{ id: expect.any(String), label, rect: detection.words[0].rect }]);
+    expect(result.sanitizedPng).toEqual(createControlLayout([detection.words[0]], frame.width, frame.height));
+    expect(result.sanitizedPng).not.toEqual(frame.png);
+  });
+
+  it('同一行的微信分词合并成入口，不跨行拼出未出现的控件', () => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, []);
+    detection.words = [
+      { text: '微', rect: { x: 20, y: 20, width: 20, height: 30 } },
+      { text: '信', rect: { x: 42, y: 20, width: 20, height: 30 } },
+    ];
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'allow', scene: 'controls_only',
+      elements: [{ label: '微信', rect: { x: 20, y: 20, width: 42, height: 30 } }] });
+    detection.words[1].rect.y += 40;
+    expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'pause', reason: 'unclassified_screen' });
+  });
+
+  it.each(['私人聊天', '验证码', '付款确认', '13812345678', 'private@example.com'])('公共微信入口不能绕过敏感页面保护：%s', text => {
+    const frame = syntheticFrame();
+    expect(evaluateLocalFrame(frame, syntheticDetection(frame, ['微信', '朋友圈', text])))
+      .toMatchObject({ decision: 'pause', reason: 'sensitive_screen' });
+  });
+
   it.each(['密码', '验证码', '私人聊天', '付款确认', 'api_key sk-abcdefghijklmnopq', '13812345678', 'private@example.com'])('敏感文字本地拒绝：%s', text => {
     const frame = syntheticFrame();
     expect(evaluateLocalFrame(frame, syntheticDetection(frame, ['设置', '显示', '文本大小', text]))).toMatchObject({ decision: 'pause', reason: 'sensitive_screen' });

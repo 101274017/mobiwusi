@@ -442,7 +442,8 @@
               : ['unavailable', 'error'].includes(state.analysis.state) ? text(state.analysis.message, '当前没有可用的屏幕分析结果，可手动重试；不会生成假指引。')
                 : state.task.state === 'awaiting_action' ? '已找到当前画面中的目标；请看箭头并亲手操作。'
                   : '点击并确认后说出目标；音频仅在本机识别，文字与必要的脱敏画面只为本次查找发送。';
-    element('guidance-status').textContent = voiceFindStatus;
+    const observationScope = state.safeObserving && source ? `观察范围：${source}。` : '';
+    element('guidance-status').textContent = observationScope + voiceFindStatus;
     element('guidance-analysis').hidden = !state.analysis.message || ['idle', 'ready', 'analyzing'].includes(state.analysis.state);
     element('guidance-analysis').textContent = text(state.analysis.message);
     const canReselectObservation = state.safeObserving && observation.cloudConsent === false && !state.blocked && !state.privacyPaused && !state.observationPending

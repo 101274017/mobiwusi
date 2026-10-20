@@ -3,18 +3,18 @@ import { expect, test, type Page } from '@playwright/test';
 
 type GuidanceAudit = { questions: { text: string; generation: number }[]; microphones: number[]; commands: string[] };
 
-async function guidanceFixture(page: Page, cloudConsent = true, consentResult: 'allow' | 'deny' | 'pending' = 'allow') {
+async function guidanceFixture(page: Page, cloudConsent = true, consentResult: 'allow' | 'deny' | 'pending' = 'allow', sourceName = '合成整屏 · 800×600') {
   await page.route('http://127.0.0.1:41873/**', async route => {
     const filename = new URL(route.request().url()).pathname.slice(1);
     if (!['pet.html', 'pet.css', 'pet.js', 'pet-artwork.js', 'pet-search.js'].includes(filename)) return route.abort();
     await route.fulfill({ body: readFileSync(new URL(`../../apps/desktop/${filename}`, import.meta.url)),
       contentType: filename.endsWith('.html') ? 'text/html; charset=utf-8' : filename.endsWith('.css') ? 'text/css' : 'text/javascript' });
   });
-  await page.addInitScript(({ cloudConsent, consentResult }) => {
+  await page.addInitScript(({ cloudConsent, consentResult, sourceName }) => {
     const audit: GuidanceAudit = { questions: [], microphones: [], commands: [] };
     let listener: ((value: unknown) => void) | undefined;
     const state = {
-      observation: { state: 'observing', generation: 7, captureActive: true, cloudConsent },
+      observation: { state: 'observing', generation: 7, captureActive: true, cloudConsent, sourceName },
       task: { id: '', kind: 'guidance', state: 'idle', generation: 1, observationGeneration: 7, instruction: '', question: '' },
       analysis: { state: 'idle', message: '' }, captions: { enabled: false }, wake: { state: 'disabled' },
     };
@@ -74,7 +74,7 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
       state.analysis = { state: 'ready', message: '合成目标已定位。' };
       publish();
     });
-  }, { cloudConsent, consentResult });
+  }, { cloudConsent, consentResult, sourceName });
   await page.goto('http://127.0.0.1:41873/pet.html');
   await page.locator('#pet-toggle').click();
   await page.locator('#feature-guidance').click();
@@ -89,6 +89,7 @@ test('已有屏幕授权可直接点击文字查找，单独同意分析后发�
   await guidanceFixture(page, false);
   await expect(page.locator('#screen-voice-find')).toBeEnabled();
   await expect(page.locator('#guidance-status')).toContainText('无需重新选择屏幕');
+  await expect(page.locator('#guidance-status')).toContainText('观察范围：合成整屏 · 800×600');
   expect(await guidanceAudit(page)).toMatchObject({ questions: [], microphones: [] });
   await page.locator('#question').fill('如何打开微信朋友圈');
   await expect(page.locator('#send-question')).toBeEnabled();
@@ -98,6 +99,14 @@ test('已有屏幕授权可直接点击文字查找，单独同意分析后发�
   await expect(page.locator('#question')).toHaveValue('如何打开微信朋友圈');
   expect(await guidanceAudit(page)).toMatchObject({ questions: [{ text: '如何打开微信朋友圈', generation: 7 }], microphones: [] });
   expect((await guidanceAudit(page)).commands).toContain('observation.authorize-cloud');
+  expect((await guidanceAudit(page)).commands).not.toContain('observation.reselect');
+});
+
+test('光标指引展示本人所选框选范围，不因进入功能页扩大观察范围', async ({ page }) => {
+  await guidanceFixture(page, true, 'allow', '合成屏幕（框选区域 400×300）');
+  await expect(page.locator('#guidance-status')).toContainText('观察范围：合成屏幕（框选区域 400×300）');
+  expect(await guidanceAudit(page)).toMatchObject({ questions: [], microphones: [] });
+  expect((await guidanceAudit(page)).commands).not.toContain('observation.start');
   expect((await guidanceAudit(page)).commands).not.toContain('observation.reselect');
 });
 
