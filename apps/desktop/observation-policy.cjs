@@ -2,7 +2,7 @@ const { createHash } = require('node:crypto');
 const { createControlLayout } = require('./observation/control-layout.cjs');
 const { LIMITS } = require('./observation/observation-common.cjs');
 
-const policyVersion = 'windows-local-ocr-v6';
+const policyVersion = 'windows-local-ocr-v7';
 const admittedFrames = new WeakSet();
 const privatePattern = /密码|口令|验证码|动态码|私聊|聊天记录|私人聊天|发送给|身份证|银行卡|支付|付款|收款|转账|交易确认|安全密钥|访问令牌|password|passcode|one[ -]?time|verification code|private (?:chat|message)|credit card|bank account|payment|transfer money|bearer\s|api[ _-]?key|secret key/i;
 const personalPattern = /(?:\b1[3-9]\d{9}\b)|(?:\b\d{17}[\dXx]\b)|(?:[\w.+-]+@[\w.-]+\.[A-Za-z]{2,})|(?:\b(?:sk|pk)[-_][A-Za-z0-9]{16,})/;
@@ -39,6 +39,7 @@ function recognizedControls(words) {
     const bounds = { ...words[index].rect };
     for (let end = index; end < Math.min(words.length, index + 8); end += 1) {
       const current = words[end];
+      if ((current.ocrPass ?? 0) !== (words[index].ocrPass ?? 0)) break;
       if (end > index) {
         const previous = words[end - 1].rect;
         const overlap = Math.min(previous.y + previous.height, current.rect.y + current.rect.height) - Math.max(previous.y, current.rect.y);
@@ -56,7 +57,13 @@ function recognizedControls(words) {
       if (label) match = { text: label, rect: { ...bounds }, count: end - index + 1 };
     }
     if (match) {
-      controls.push({ text: match.text, rect: match.rect });
+      const duplicate = controls.some(control => {
+        if (normalizeLabel(control.text) !== normalizeLabel(match.text)) return false;
+        const overlapWidth = Math.max(0, Math.min(control.rect.x + control.rect.width, match.rect.x + match.rect.width) - Math.max(control.rect.x, match.rect.x));
+        const overlapHeight = Math.max(0, Math.min(control.rect.y + control.rect.height, match.rect.y + match.rect.height) - Math.max(control.rect.y, match.rect.y));
+        return overlapWidth * overlapHeight >= Math.min(control.rect.width * control.rect.height, match.rect.width * match.rect.height) * 0.7;
+      });
+      if (!duplicate) controls.push({ text: match.text, rect: match.rect });
       matchedCount += match.count;
       index += match.count - 1;
     }

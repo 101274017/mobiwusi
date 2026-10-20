@@ -6,7 +6,7 @@ export interface ObservationFrame {
 }
 export interface LocalDetection {
   status: 'complete' | 'unavailable' | 'failed'; reason?: string; frameHash: string; width: number; height: number;
-  words: { text: string; rect: PixelRect }[]; faces: { rect: PixelRect }[];
+  words: { text: string; rect: PixelRect; ocrPass?: number }[]; faces: { rect: PixelRect }[];
   sanitizedPng: Buffer; redaction: { text: boolean; faces: boolean };
 }
 export interface ScreenElement { id: string; label: string; rect: PixelRect }

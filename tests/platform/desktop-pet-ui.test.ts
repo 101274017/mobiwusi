@@ -151,6 +151,87 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+describe('桌宠指引追问的独立回答入口', () => {
+  const clarification = (generation = 4) => snapshot({ state: 'observing', captureActive: true, cloudConsent: true, generation: 7 },
+    { id: 'guide-wechat', kind: 'guidance', state: 'needs_help', generation, observationGeneration: 7, question: '帮我找到微信',
+      explanation: '请核对当前观察范围。', awaitingReply: true }, { state: 'ready' });
+
+  async function openClarification() {
+    const harness = petHarness(clarification());
+    await settle();
+    harness.click('pet-toggle');
+    harness.click('feature-guidance');
+    harness.input('帮我找到微信');
+    return harness;
+  }
+
+  it('原问题草稿保留，回答走带追问身份的指令而不是新问题', async () => {
+    const harness = await openClarification();
+    expect(harness.element('question-form').hidden).toBe(true);
+    expect(harness.element('guidance-reply-form').hidden).toBe(false);
+    expect(harness.element('guidance-original-question').textContent).toContain('帮我找到微信');
+    expect(harness.element('screen-voice-find').textContent).toContain('语音回答并继续');
+    harness.element('guidance-answer').value = '微信在电脑左上方';
+    dispatch(harness.element('guidance-answer'), 'input');
+    expect(harness.element('guidance-send-answer').disabled).toBe(false);
+    dispatch(harness.element('guidance-reply-form'), 'submit');
+    await settle();
+    expect(harness.bridge.command).toHaveBeenCalledWith({ type: 'guidance.reply', text: '微信在电脑左上方', guideId: 'guide-wechat', taskGeneration: 4, observationGeneration: 7 });
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+    expect(harness.element('question').value).toBe('帮我找到微信');
+    expect(harness.element('caption-line').hidden).toBe(true);
+  });
+
+  it('回答失败保留草稿，重识别不把草稿当作新问题发送', async () => {
+    const harness = await openClarification();
+    harness.element('guidance-answer').value = '电脑左上方';
+    harness.bridge.command.mockRejectedValueOnce(new Error('补充未被接受'));
+    dispatch(harness.element('guidance-reply-form'), 'submit');
+    await settle();
+    expect(harness.element('guidance-answer').value).toBe('电脑左上方');
+    expect(harness.element('error-text').textContent).toContain('补充未被接受');
+    harness.click('guidance-rescan');
+    await settle();
+    expect(harness.bridge.command).toHaveBeenCalledWith({ type: 'guidance.rescan', guideId: 'guide-wechat', taskGeneration: 4, observationGeneration: 7 });
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+  });
+
+  it('改问其他问题恢复原草稿，晚到语音不覆盖新追问的回答', async () => {
+    const harness = await openClarification();
+    let resolveDictation!: (value: unknown) => void;
+    harness.bridge.dictate.mockImplementationOnce(() => new Promise(resolve => { resolveDictation = resolve; }));
+    harness.click('screen-voice-find');
+    await settle();
+    harness.emit(clarification(5));
+    harness.element('guidance-answer').value = '新问题的回答草稿';
+    resolveDictation({ status: 'complete', text: '旧语音回答', localOnly: true, microphoneActive: false });
+    await settle();
+    expect(harness.bridge.command.mock.calls.some(([payload]) => (payload as { type: string }).type === 'guidance.reply')).toBe(false);
+    expect(harness.element('guidance-answer').value).toBe('新问题的回答草稿');
+    expect(harness.element('error-text').textContent).toContain('追问已经变化');
+    harness.click('guidance-new-question');
+    expect(harness.element('guidance-reply-form').hidden).toBe(true);
+    expect(harness.element('question-form').hidden).toBe(false);
+    expect(harness.element('question').value).toBe('帮我找到微信');
+  });
+
+  it('preload仅投影允许的追问状态和参数，拒绝缺失或无效身份', async () => {
+    const harness = preloadHarness('pet-preload.cjs');
+    const api = harness.exposed.nuanbanPet;
+    harness.ipcRenderer.invoke.mockResolvedValueOnce({ task: { awaitingReply: true, privatePayload: 'discard' } });
+    expect(await api.snapshot()).toEqual({ task: { awaitingReply: true } });
+    const identity = { guideId: 'guide-wechat', taskGeneration: 4, observationGeneration: 7 };
+    await api.command({ type: 'guidance.reply', ...identity, text: '微信', rawFrame: 'discard' });
+    expect(harness.ipcRenderer.invoke).toHaveBeenLastCalledWith('nuanban:pet:command', { type: 'guidance.reply', ...identity, text: '微信' });
+    await api.command({ type: 'guidance.rescan', ...identity, text: 'discard' });
+    expect(harness.ipcRenderer.invoke).toHaveBeenLastCalledWith('nuanban:pet:command', { type: 'guidance.rescan', ...identity });
+    for (const invalid of [{ guideId: '' }, { taskGeneration: 0 }, { observationGeneration: NaN }]) {
+      expect(() => api.command({ type: 'guidance.reply', ...identity, text: '微信', ...invalid })).toThrow('无效');
+    }
+    for (const text of ['', ' ', '字'.repeat(501)]) expect(() => api.command({ type: 'guidance.reply', ...identity, text })).toThrow('500');
+  });
+});
+
 describe('直接按住桌宠拖动', () => {
   const actions = (harness: ReturnType<typeof petHarness>) => harness.bridge.drag.mock.calls.map(([action]) => [action]);
   const press = (harness: ReturnType<typeof petHarness>, fields = {}) => dispatch(harness.element('pet-toggle'), 'pointerdown', { pointerId: 1, button: 0, isPrimary: true, screenX: 100, screenY: 100, ...fields });

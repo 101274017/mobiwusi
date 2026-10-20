@@ -692,6 +692,8 @@ function createStandaloneHost(options) {
   async function command(payload) {
     if (!payload || typeof payload !== 'object' || Array.isArray(payload) || typeof payload.type !== 'string') throw new Error('桌宠指令无效');
     const fields = { 'observation.authorize-cloud': ['type', 'observationGeneration'], 'panel.set-expanded': ['type', 'expanded'], 'learning.set-mastery': ['type', 'noteId', 'mastered'],
+      'guidance.reply': ['type', 'text', 'guideId', 'taskGeneration', 'observationGeneration'],
+      'guidance.rescan': ['type', 'guideId', 'taskGeneration', 'observationGeneration'],
       'learning.review.confirm': ['type', 'proposalId'], 'learning.review.decline': ['type', 'proposalId'] };
     const allowed = fields[payload.type] ?? ['type'];
     if (Object.keys(payload).some(key => !allowed.includes(key))) throw new Error('桌宠指令包含不允许的参数');
@@ -708,6 +710,8 @@ function createStandaloneHost(options) {
       case 'guidance.verify': await runtime.verify(); break;
       case 'guidance.finish': await runtime.finishTeaching(); break;
       case 'guidance.repeat': runtime.repeat(); break;
+      case 'guidance.reply': await runtime.replyToClarification(payload); break;
+      case 'guidance.rescan': await runtime.rescanClarification(payload); break;
       case 'captions.toggle': runtime.toggleCaptions(); break;
       case 'wake.enable': await enableWake(); break;
       case 'wake.disable': await disableWake(); break;

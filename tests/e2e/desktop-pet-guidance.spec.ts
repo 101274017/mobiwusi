@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 
-type GuidanceAudit = { questions: { text: string; generation: number }[]; microphones: number[]; commands: string[] };
+type GuidanceReply = { guideId: string; taskGeneration: number; observationGeneration: number; text?: string };
+type GuidanceAudit = { questions: { text: string; generation: number }[]; microphones: number[]; commands: string[]; replies: GuidanceReply[]; rescans: GuidanceReply[] };
 
 async function guidanceFixture(page: Page, cloudConsent = true, consentResult: 'allow' | 'deny' | 'pending' = 'allow', sourceName = '合成整屏 · 800×600') {
   await page.route('http://127.0.0.1:41873/**', async route => {
@@ -11,11 +12,11 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
       contentType: filename.endsWith('.html') ? 'text/html; charset=utf-8' : filename.endsWith('.css') ? 'text/css' : 'text/javascript' });
   });
   await page.addInitScript(({ cloudConsent, consentResult, sourceName }) => {
-    const audit: GuidanceAudit = { questions: [], microphones: [], commands: [] };
+    const audit: GuidanceAudit = { questions: [], microphones: [], commands: [], replies: [], rescans: [] };
     let listener: ((value: unknown) => void) | undefined;
     const state = {
       observation: { state: 'observing', generation: 7, captureActive: true, cloudConsent, sourceName },
-      task: { id: '', kind: 'guidance', state: 'idle', generation: 1, observationGeneration: 7, instruction: '', question: '', explanation: '', presentation: '', targetState: 'hidden' },
+      task: { id: '', kind: 'guidance', state: 'idle', generation: 1, observationGeneration: 7, instruction: '', question: '', explanation: '', presentation: '', targetState: 'hidden', awaitingReply: false },
       analysis: { state: 'idle', message: '' }, captions: { enabled: false }, wake: { state: 'disabled' },
     };
     const publish = () => listener?.(structuredClone(state));
@@ -29,8 +30,16 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
       snapshot: async () => structuredClone(state),
       onState: (callback: typeof listener) => { listener = callback; return () => { listener = undefined; }; },
       onPanel: () => () => {}, focusInput: async () => true,
-      command: async ({ type, observationGeneration }: { type: string; observationGeneration?: number }) => {
+      command: async ({ type, observationGeneration, taskGeneration, guideId, text }: { type: string; observationGeneration?: number; taskGeneration?: number; guideId?: string; text?: string }) => {
         audit.commands.push(type);
+        if (type === 'guidance.reply' || type === 'guidance.rescan') {
+          if (!state.task.awaitingReply || guideId !== state.task.id || taskGeneration !== state.task.generation
+            || observationGeneration !== state.observation.generation || !state.observation.cloudConsent) throw new Error('追问或授权已变化');
+          const entry = { guideId, taskGeneration, observationGeneration, ...(type === 'guidance.reply' ? { text } : {}) } as GuidanceReply;
+          (type === 'guidance.reply' ? audit.replies : audit.rescans).push(entry);
+          state.task = { ...state.task, awaitingReply: false, generation: state.task.generation + 1, state: 'analyzing', explanation: '' };
+          state.analysis = { state: 'analyzing', message: '合成连续分析；保留原目标。' };
+        }
         if (type === 'observation.authorize-cloud') {
           const allowed = consentResult === 'pending' ? await new Promise<boolean>(resolve => { consentDecision = resolve; }) : consentResult === 'allow';
           if (!allowed || state.observation.state !== 'observing' || observationGeneration !== state.observation.generation) return { ok: true, status: 'cancelled' };
@@ -42,6 +51,7 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
         }
         if (type === 'guidance.finish') {
           state.task.state = 'ended';
+          state.task.awaitingReply = false;
           state.task.generation++;
           state.analysis = { state: 'idle', message: '本次教学已结束；本地观察仍由你授权。' };
         }
@@ -52,7 +62,7 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
         if (!state.observation.cloudConsent || generation !== state.observation.generation) throw new Error('本次画面授权已失效');
         audit.questions.push({ text, generation });
         state.task = { ...state.task, id: `guide-${audit.questions.length}`, kind: 'guidance', state: 'analyzing',
-          generation: state.task.generation + 1, observationGeneration: generation, question: text };
+          generation: state.task.generation + 1, observationGeneration: generation, question: text, awaitingReply: false };
         state.analysis = { state: 'analyzing', message: '合成分析进度；不读取屏幕或调用模型。' };
         publish();
         return { ok: true, snapshot: structuredClone(state) };
@@ -70,6 +80,7 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
     });
     window.addEventListener('test-guidance-result', () => {
       state.task.state = 'awaiting_action';
+      state.task.awaitingReply = false;
       state.task.instruction = '请核对箭头指引并亲手点击设置。';
       state.task.presentation = 'confirmed';
       state.task.targetState = 'visible';
@@ -78,6 +89,7 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
     });
     window.addEventListener('test-guidance-clarify', () => {
       state.task.state = 'needs_help';
+      state.task.awaitingReply = true;
       state.task.instruction = '';
       state.task.explanation = '当前画面没有可核验的朋友圈入口，请先亲手打开微信。';
       state.task.presentation = '';
@@ -207,11 +219,50 @@ test('语音分析未定位时直接展示下一步说明，不滞留分析态�
   await expect(page.locator('#guidance-status')).toContainText('请先亲手打开微信');
   await expect(page.locator('#step-explanation')).toContainText('请先亲手打开微信');
   await expect(page.locator('#task-status')).toHaveText('需要再确认一下');
-  await expect(page.locator('#send-question')).toBeEnabled();
+  await expect(page.locator('#question-form')).toBeHidden();
+  await expect(page.locator('#guidance-reply-form')).toBeVisible();
+  await expect(page.locator('#guidance-original-question')).toContainText('帮我找到设置');
+  await expect(page.locator('#guidance-answer')).toBeEditable();
+  await expect(page.locator('#guidance-rescan')).toBeEnabled();
   await expect(page.locator('#screen-voice-find')).toBeEnabled();
   await expect(page.locator('#caption-line')).toBeHidden();
   await page.screenshot({ path: testInfo.outputPath('guidance-clarification-visible.png') });
   expect((await guidanceAudit(page)).questions).toHaveLength(1);
+});
+
+test('追问可直接文字回答，保留原目标和草稿；重识别不是另开问题', async ({ page }, testInfo) => {
+  await guidanceFixture(page);
+  await page.locator('#question').fill('帮我找到微信');
+  await page.locator('#send-question').click();
+  await page.evaluate(() => window.dispatchEvent(new Event('test-guidance-clarify')));
+  await page.locator('#guidance-answer').fill('微信在电脑左上角');
+  await page.screenshot({ path: testInfo.outputPath('guidance-answer-composer.png') });
+  await page.locator('#guidance-answer').press('Enter');
+  await expect(page.locator('#guidance-reply-form')).toBeHidden();
+  expect((await guidanceAudit(page)).replies).toEqual([{ guideId: 'guide-1', taskGeneration: 2, observationGeneration: 7, text: '微信在电脑左上角' }]);
+  await expect(page.locator('#question')).toHaveValue('帮我找到微信');
+  await page.evaluate(() => window.dispatchEvent(new Event('test-guidance-clarify')));
+  await page.locator('#guidance-rescan').click();
+  expect((await guidanceAudit(page)).rescans).toEqual([{ guideId: 'guide-1', taskGeneration: 3, observationGeneration: 7 }]);
+  expect((await guidanceAudit(page)).questions).toEqual([{ text: '帮我找到微信', generation: 7 }]);
+  await expect(page.locator('#caption-line')).toBeHidden();
+});
+
+test('追问语音作为回答继续，改问时恢复原来的问题草稿', async ({ page }) => {
+  await guidanceFixture(page);
+  await page.locator('#question').fill('帮我找到微信');
+  await page.locator('#send-question').click();
+  await page.evaluate(() => window.dispatchEvent(new Event('test-guidance-clarify')));
+  await expect(page.locator('#screen-voice-find')).toContainText('语音回答并继续');
+  await page.locator('#screen-voice-find').click();
+  expect((await guidanceAudit(page)).replies).toEqual([{ guideId: 'guide-1', taskGeneration: 2, observationGeneration: 7, text: '帮我找到设置' }]);
+  expect((await guidanceAudit(page)).questions).toHaveLength(1);
+  await page.evaluate(() => window.dispatchEvent(new Event('test-guidance-clarify')));
+  await page.locator('#guidance-new-question').click();
+  await expect(page.locator('#question-form')).toBeVisible();
+  await expect(page.locator('#guidance-reply-form')).toBeHidden();
+  await expect(page.locator('#question')).toHaveValue('帮我找到微信');
+  await expect(page.locator('#question')).toBeFocused();
 });
 
 test('窄小桌宠窗口在分析完成后直接露出结果，不被流程说明和输入框挤出可视区', async ({ page }, testInfo) => {

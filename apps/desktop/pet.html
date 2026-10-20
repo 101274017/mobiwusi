@@ -257,6 +257,13 @@
           </div>
         </details>
       </div>
+      <form id="guidance-reply-form" class="question-form" aria-label="回答指引追问" hidden>
+        <p id="guidance-original-question" class="muted"></p>
+        <label for="guidance-answer">回答暖暖的追问</label>
+        <textarea id="guidance-answer" rows="2" maxlength="500" placeholder="直接回答上方的问题，不用重复原来的目标" aria-describedby="guidance-reply-hint"></textarea>
+        <p id="guidance-reply-hint" class="fine-print" role="status">在这里回答，暖暖会接着原来的目标继续。Enter 发送 · Shift + Enter 换行</p>
+        <div class="button-row"><button id="guidance-rescan" type="button">重新识别当前画面</button><button id="guidance-new-question" class="text-button" type="button">改问其他问题</button><button id="guidance-send-answer" class="primary-button" type="submit" disabled>回答并继续 ↗</button></div>
+      </form>
       <form id="question-form" class="question-form" aria-label="直接向桌宠提问" hidden>
         <label for="question">说说你想做什么</label>
         <textarea id="question" name="question" rows="2" maxlength="500" placeholder="例如：教我在浏览器里收藏网页" aria-describedby="question-hint" disabled></textarea>

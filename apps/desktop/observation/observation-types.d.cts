@@ -37,7 +37,7 @@ export interface ObservationFrame {
   geometry: ObservationGeometry | null;
 }
 
-export interface DetectionWord { text: string; rect: Rect; globalRect?: Rect }
+export interface DetectionWord { text: string; rect: Rect; globalRect?: Rect; ocrPass?: number; textAngle?: number | null }
 export interface DetectionFace { rect: Rect; globalRect?: Rect }
 
 export type DetectionResult = {

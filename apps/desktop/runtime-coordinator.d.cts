@@ -2,7 +2,7 @@ import type { AdmittedFrame, LocalDetection, ObservationFrame, PixelRect } from 
 
 export interface RuntimeSnapshot {
   observation: { state: string; id?: string; generation: number; sourceName: string; reason: string | null; captureActive: boolean; cloudConsent: boolean };
-  task: { state: string; kind?: 'text' | 'guidance'; id: string | null; generation: number; observationGeneration: number; question: string; instruction: string; explanation: string; presentation: string | null; targetState?: 'hidden' | 'visible' | 'unavailable' | 'stale'; result: string | null; startedAt?: number };
+  task: { state: string; kind?: 'text' | 'guidance'; id: string | null; generation: number; observationGeneration: number; question: string; instruction: string; explanation: string; presentation: string | null; targetState?: 'hidden' | 'visible' | 'unavailable' | 'stale'; awaitingReply?: boolean; result: string | null; startedAt?: number };
   analysis: { state: string; message: string }; captions: { enabled: boolean; text: string };
   wake: { state: string; reason: string }; messages: { id: string; role: string; text: string }[]; message: string;
 }
@@ -19,6 +19,7 @@ export interface AnalysisInput {
   frame: AdmittedFrame; question: string; reason: 'question' | 'page_changed' | 'verification';
   observationId: string; guideId: string; observationGeneration: number; taskGeneration: number; triggerId: string;
   previousStep: { instruction: string; expectedLabels: string[] } | null; signal: AbortSignal; canSend(): boolean;
+  clarificationReplies?: { prompt: string; answer: string }[];
   confirmCurrentFrame?(): Promise<boolean>;
 }
 export interface RuntimeOptions {
@@ -38,6 +39,8 @@ export interface DesktopRuntime {
   resumeObservation(input: ObservationConsent): Promise<RuntimeSnapshot>; stopObservation(reason?: string): Promise<StopResult>;
   authorizeCloudAnalysis(input: { actor: string; confirmed: boolean; observationGeneration: number }): Promise<RuntimeSnapshot>;
   ask(text: string, requiredObservation?: number): Promise<RuntimeSnapshot>; verify(): Promise<RuntimeSnapshot>;
+  replyToClarification(input: { text: string; guideId: string; taskGeneration: number; observationGeneration: number }): Promise<RuntimeSnapshot>;
+  rescanClarification(input: { guideId: string; taskGeneration: number; observationGeneration: number }): Promise<RuntimeSnapshot>;
   finishTeaching(result?: string): Promise<RuntimeSnapshot>; repeat(): RuntimeSnapshot; toggleCaptions(): RuntimeSnapshot;
   dispose(reason?: string): Promise<StopResult>; whenIdle(): Promise<void>;
 }

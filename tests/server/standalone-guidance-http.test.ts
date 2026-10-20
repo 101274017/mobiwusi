@@ -1,9 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AddressInfo } from 'node:net';
+import { createRequire } from 'node:module';
 import { createApplication, type ServerOptions } from '../../apps/server/src/http.ts';
 import { signDeviceChallenge } from '../../apps/server/src/auth.ts';
 import { createStandaloneGuidanceService, StandaloneGuidanceError } from '../../apps/server/src/standalone-guidance.ts';
+import { createDesktopAnalysisClient } from '../../apps/desktop/analysis-client.cjs';
+import { syntheticDetection, syntheticFrame } from '../helpers/standalone-frame.ts';
 
+const { evaluateLocalFrame } = createRequire(import.meta.url)('../../apps/desktop/observation-policy.cjs') as typeof import('../../apps/desktop/observation-policy.cjs');
 const applications: ReturnType<typeof createApplication>[] = [];
 
 async function start(options: ServerOptions = {}) {
@@ -54,6 +58,33 @@ describe('authenticated standalone guidance HTTP route', () => {
     expect(provider).not.toHaveBeenCalled();
   });
 
+  it('carries desktop follow-up replies through authenticated HTTP into the same provider task', async () => {
+    const provider = vi.fn<typeof fetch>(async () => Response.json({ choices: [{ finish_reason: 'stop', message: {
+      role: 'assistant', content: JSON.stringify({ kind: 'step', instruction: '请您亲手打开显示设置。' }),
+    } }] }));
+    const { baseUrl, headers } = await start({ standaloneGuidance: createStandaloneGuidanceService({ env: {
+      NUANBAN_VISION_BASE_URL: 'https://vision.example.com/v1', NUANBAN_VISION_API_KEY: 'synthetic-http-provider-key', NUANBAN_VISION_MODEL: 'synthetic-model',
+    }, fetch: provider }) });
+    const client = createDesktopAnalysisClient({ env: { NUANBAN_DESKTOP_API_BASE_URL: baseUrl, NUANBAN_DESKTOP_API_TOKEN: headers.authorization.slice('Bearer '.length) } });
+    const raw = syntheticFrame();
+    const frame = evaluateLocalFrame(raw, syntheticDetection(raw));
+    if (frame.decision !== 'allow') throw new Error('Synthetic HTTP frame was not admitted');
+    const question = '教我调整文字大小';
+    const replies = [{ prompt: '希望调整哪里的文字？', answer: 'Windows显示设置中的文字' }];
+    const result = await client.analyze({ frame, question, clarificationReplies: replies,
+      reason: 'question', observationId: 'observation-http', guideId: 'guide-http', observationGeneration: 1, taskGeneration: 2,
+      triggerId: 'trigger-http', previousStep: null, signal: new AbortController().signal, canSend: () => true });
+    expect(result).toMatchObject({ kind: 'step', instruction: '请您亲手打开显示设置。', guide_id: 'guide-http', task_generation: 2 });
+    expect(provider).toHaveBeenCalledOnce();
+    const payload = JSON.parse(String(provider.mock.calls[0][1]?.body));
+    expect(JSON.parse(payload.messages[1].content[0].text)).toMatchObject({ question,
+      clarification_replies: [{ question: replies[0].prompt, answer: replies[0].answer }] });
+    expect(payload.messages[0].content).toContain('person-authorized Windows computer');
+    expect(payload.messages[1].content[1].image_url.url).toBe('data:image/png;base64,' + frame.sanitizedPng.toString('base64'));
+    expect(String(provider.mock.calls[0][1]?.body)).not.toContain(raw.png.toString('base64'));
+    expect(String(provider.mock.calls[0][1]?.body)).not.toContain(headers.authorization);
+  });
+
   it('keeps frame bytes and questions out of generic request, authentication and response hooks', async () => {
     const seen: unknown[] = [];
     const analyze = vi.fn(async () => ({ kind: 'clarify' as const, instruction: '请描述想完成的功能。', observation_id: 'o', guide_id: 'g',
@@ -65,11 +96,14 @@ describe('authenticated standalone guidance HTTP route', () => {
       onResponse: context => { seen.push(context.body); },
     } });
     const response = await fetch(`${baseUrl}/v1/standalone/guidance/analyze`, { method: 'POST', headers,
-      body: JSON.stringify({ question: 'private synthetic text', image: { mime: 'image/png', base64: 'synthetic-private-frame' } }) });
+      body: JSON.stringify({ question: 'private synthetic text', image: { mime: 'image/png', base64: 'synthetic-private-frame' },
+        clarification_replies: [{ question: 'synthetic-private-prompt', answer: 'synthetic-private-answer' }] }) });
     expect(response.status).toBe(200);
     expect(seen.slice(0, 3)).toEqual(Array.from({ length: 3 }, () => ({ standalone_guidance: true })));
     expect(JSON.stringify(seen)).not.toContain('synthetic-private-frame');
     expect(JSON.stringify(seen)).not.toContain('private synthetic text');
+    expect(JSON.stringify(seen)).not.toContain('synthetic-private-prompt');
+    expect(JSON.stringify(seen)).not.toContain('synthetic-private-answer');
   });
 
   it('maps standalone provider errors without disguising them as successful replies', async () => {

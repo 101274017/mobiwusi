@@ -3828,6 +3828,28 @@
         "expected_labels"
       ]
     },
+    "StandaloneGuidanceClarificationReply": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "pattern": "\\S"
+        },
+        "answer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "pattern": "\\S"
+        }
+      },
+      "required": [
+        "question",
+        "answer"
+      ]
+    },
     "StandaloneGuidanceReviewProposal": {
       "type": "object",
       "additionalProperties": false,
@@ -3941,6 +3963,14 @@
           "type": "string",
           "minLength": 0,
           "maxLength": 2000
+        },
+        "clarification_replies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StandaloneGuidanceClarificationReply"
+          },
+          "minItems": 0,
+          "maxItems": 3
         },
         "elements": {
           "type": "array",

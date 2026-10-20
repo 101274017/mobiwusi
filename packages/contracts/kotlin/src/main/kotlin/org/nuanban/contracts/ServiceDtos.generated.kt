@@ -4057,6 +4057,27 @@ data class StandaloneGuidancePreviousStep(
     }
 }
 
+data class StandaloneGuidanceClarificationReply(
+    val `question`: String,
+    val `answer`: String
+) : WireObject {
+    init { toWire() }
+    override fun toWire(): Map<String, Any?> = wireBuild("StandaloneGuidanceClarificationReply", linkedMapOf(
+        "question" to `question`,
+        "answer" to `answer`
+    ))
+    companion object {
+        fun fromWire(value: Any?): StandaloneGuidanceClarificationReply {
+            ContractValidator.validate("StandaloneGuidanceClarificationReply", value)
+            val fields = wireObject(value)
+            return StandaloneGuidanceClarificationReply(
+                `question` = fields["question"] as String,
+                `answer` = fields["answer"] as String
+            )
+        }
+    }
+}
+
 data class StandaloneGuidanceReviewProposal(
     val `remind_at`: String,
     val `timezone`: String,
@@ -4094,6 +4115,7 @@ data class StandaloneGuidanceAnalyzeRequest(
     val `captured_at`: String,
     val `image`: StandaloneGuidanceImage,
     val `question`: String,
+    val `clarification_replies`: OptionalField<List<StandaloneGuidanceClarificationReply>> = OptionalField.Absent,
     val `elements`: List<StandaloneGuidanceElement>,
     val `previous_step`: OptionalField<StandaloneGuidancePreviousStep> = OptionalField.Absent
 ) : WireObject {
@@ -4115,6 +4137,7 @@ data class StandaloneGuidanceAnalyzeRequest(
         "redaction_profile" to `redaction_profile`,
         "local_safety" to `local_safety`,
         "question" to `question`,
+        "clarification_replies" to `clarification_replies`,
         "elements" to `elements`,
         "previous_step" to `previous_step`
     ))
@@ -4135,6 +4158,7 @@ data class StandaloneGuidanceAnalyzeRequest(
                 `captured_at` = fields["captured_at"] as String,
                 `image` = StandaloneGuidanceImage.fromWire(fields["image"]),
                 `question` = fields["question"] as String,
+                `clarification_replies` = if (fields.containsKey("clarification_replies")) OptionalField.Present((fields["clarification_replies"] as List<*>).map { item -> StandaloneGuidanceClarificationReply.fromWire(item) }) else OptionalField.Absent,
                 `elements` = (fields["elements"] as List<*>).map { item -> StandaloneGuidanceElement.fromWire(item) },
                 `previous_step` = if (fields.containsKey("previous_step")) OptionalField.Present(StandaloneGuidancePreviousStep.fromWire(fields["previous_step"])) else OptionalField.Absent
             )
@@ -6940,7 +6964,7 @@ data class StandaloneGuidanceErrorEnvelopeErrorDetails(
 
 object GeneratedContractDtos {
     const val schemaVersion: String = "0.2.0"
-    val definitionNames: Set<String> = setOf("Empty", "Mode", "Scope", "AppearanceDto", "VoiceDto", "PreferencesDto", "UserDto", "DeviceDto", "SessionDto", "SessionResponse", "CarrierExchangeRequest", "SubjectProfile", "ClaimRequest", "ClaimResponse", "ClaimConfirmRequest", "ClaimConfirmResponse", "BindingChallengeRequest", "DeviceChallengeResponse", "DeviceExchangeRequest", "FaceChallengeResponse", "FaceExchangeRequest", "RefreshRequest", "RevokedResponse", "MeResponse", "PreferencesRequest", "PreferencesResponse", "RelationInvitationRequest", "RelationInvitationResponse", "RelationAcceptRequest", "RelationDto", "RelationResponse", "RelationPage", "GrantsRequest", "GrantsResponse", "RelationRevokedResponse", "ConsentRequest", "ConsentResponse", "ConsentWithdrawResponse", "ConversationCreateRequest", "ConversationCreateResponse", "ConversationMessageDto", "ConversationMessagePage", "ResponseRequest", "ResponseAccepted", "CancelledResponse", "UploadRequest", "UploadResponse", "MediaCommitRequest", "MediaCommitResponse", "FrameContextDto", "LocalFeaturesDto", "GuidanceCreateRequest", "GuidanceCreateResponse", "GuidanceAnalyzeRequest", "RequestAccepted", "GuidanceVerifyRequest", "GuidanceVerifyResponse", "EndedResponse", "NoteDto", "NoteCreateRequest", "NoteResponse", "NotePage", "NoteUpdateRequest", "NoteDeletedResponse", "ReviewRequest", "ReviewResponse", "RepeatRule", "TodoDto", "TodoCreateRequest", "TodoPatch", "TodoUpdateRequest", "TodoResponse", "TodoPage", "TodoCancelledResponse", "OccurrenceCompleteResponse", "ReceiptRequest", "AcceptedResponse", "PetJobRequest", "PetJobCreated", "AssetDto", "PetJobDto", "PetJobCancelled", "PetDto", "PetCurrentRequest", "PetCurrentResponse", "ManifestDto", "SyncMutationDto", "SyncRequest", "ConflictDto", "SyncResult", "SyncResponse", "SyncChange", "SyncChangesResponse", "AssistRequest", "AssistCreated", "AssistStateResponse", "AssistJoinRequest", "AssistJoinResponse", "AssistEndRequest", "AssistEndedResponse", "SafetyVersions", "SafetyEventRequest", "SafetyEventResponse", "MetricEvent", "MetricsRequest", "MetricsResponse", "ProvisioningRequest", "ProvisioningResponse", "VoiceTicketRequest", "VoiceTicketResponse", "StandaloneGuidanceRect", "StandaloneGuidanceElement", "StandaloneGuidanceImage", "StandaloneGuidancePreviousStep", "StandaloneGuidanceReviewProposal", "StandaloneGuidanceAnalyzeRequest", "StandaloneGuidanceResult", "StandaloneGuidanceErrorCode", "NormalizedRect", "ServiceStreamEvent", "AssistSignal", "VoiceFrameHeader", "BridgeRequestV1", "BridgeReplyV1", "ServiceErrorCode", "ErrorEnvelope", "StandaloneGuidanceErrorEnvelope")
+    val definitionNames: Set<String> = setOf("Empty", "Mode", "Scope", "AppearanceDto", "VoiceDto", "PreferencesDto", "UserDto", "DeviceDto", "SessionDto", "SessionResponse", "CarrierExchangeRequest", "SubjectProfile", "ClaimRequest", "ClaimResponse", "ClaimConfirmRequest", "ClaimConfirmResponse", "BindingChallengeRequest", "DeviceChallengeResponse", "DeviceExchangeRequest", "FaceChallengeResponse", "FaceExchangeRequest", "RefreshRequest", "RevokedResponse", "MeResponse", "PreferencesRequest", "PreferencesResponse", "RelationInvitationRequest", "RelationInvitationResponse", "RelationAcceptRequest", "RelationDto", "RelationResponse", "RelationPage", "GrantsRequest", "GrantsResponse", "RelationRevokedResponse", "ConsentRequest", "ConsentResponse", "ConsentWithdrawResponse", "ConversationCreateRequest", "ConversationCreateResponse", "ConversationMessageDto", "ConversationMessagePage", "ResponseRequest", "ResponseAccepted", "CancelledResponse", "UploadRequest", "UploadResponse", "MediaCommitRequest", "MediaCommitResponse", "FrameContextDto", "LocalFeaturesDto", "GuidanceCreateRequest", "GuidanceCreateResponse", "GuidanceAnalyzeRequest", "RequestAccepted", "GuidanceVerifyRequest", "GuidanceVerifyResponse", "EndedResponse", "NoteDto", "NoteCreateRequest", "NoteResponse", "NotePage", "NoteUpdateRequest", "NoteDeletedResponse", "ReviewRequest", "ReviewResponse", "RepeatRule", "TodoDto", "TodoCreateRequest", "TodoPatch", "TodoUpdateRequest", "TodoResponse", "TodoPage", "TodoCancelledResponse", "OccurrenceCompleteResponse", "ReceiptRequest", "AcceptedResponse", "PetJobRequest", "PetJobCreated", "AssetDto", "PetJobDto", "PetJobCancelled", "PetDto", "PetCurrentRequest", "PetCurrentResponse", "ManifestDto", "SyncMutationDto", "SyncRequest", "ConflictDto", "SyncResult", "SyncResponse", "SyncChange", "SyncChangesResponse", "AssistRequest", "AssistCreated", "AssistStateResponse", "AssistJoinRequest", "AssistJoinResponse", "AssistEndRequest", "AssistEndedResponse", "SafetyVersions", "SafetyEventRequest", "SafetyEventResponse", "MetricEvent", "MetricsRequest", "MetricsResponse", "ProvisioningRequest", "ProvisioningResponse", "VoiceTicketRequest", "VoiceTicketResponse", "StandaloneGuidanceRect", "StandaloneGuidanceElement", "StandaloneGuidanceImage", "StandaloneGuidancePreviousStep", "StandaloneGuidanceClarificationReply", "StandaloneGuidanceReviewProposal", "StandaloneGuidanceAnalyzeRequest", "StandaloneGuidanceResult", "StandaloneGuidanceErrorCode", "NormalizedRect", "ServiceStreamEvent", "AssistSignal", "VoiceFrameHeader", "BridgeRequestV1", "BridgeReplyV1", "ServiceErrorCode", "ErrorEnvelope", "StandaloneGuidanceErrorEnvelope")
     fun decode(name: String, value: Any?): WireValue = when (name) {
         "Empty" -> Empty.fromWire(value)
         "Mode" -> Mode.fromWire(value)
@@ -7056,6 +7080,7 @@ object GeneratedContractDtos {
         "StandaloneGuidanceElement" -> StandaloneGuidanceElement.fromWire(value)
         "StandaloneGuidanceImage" -> StandaloneGuidanceImage.fromWire(value)
         "StandaloneGuidancePreviousStep" -> StandaloneGuidancePreviousStep.fromWire(value)
+        "StandaloneGuidanceClarificationReply" -> StandaloneGuidanceClarificationReply.fromWire(value)
         "StandaloneGuidanceReviewProposal" -> StandaloneGuidanceReviewProposal.fromWire(value)
         "StandaloneGuidanceAnalyzeRequest" -> StandaloneGuidanceAnalyzeRequest.fromWire(value)
         "StandaloneGuidanceResult" -> StandaloneGuidanceResult.fromWire(value)

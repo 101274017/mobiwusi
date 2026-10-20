@@ -60,7 +60,7 @@ describe('独立桌宠本地帧门控（合成单测，不是真实外部软件�
       .toMatchObject({ decision: 'pause', reason: 'local_detection_limit' });
     expect(evaluateLocalFrame(frame, { ...detection, faces: Array.from({ length: 513 }, () => ({ rect: region })) }))
       .toMatchObject({ decision: 'pause', reason: 'local_detection_limit' });
-    expect(evaluateLocalFrame(frame, { ...detection, words: Array.from({ length: 1025 }, () => ({ text: '设置', rect: region })) }))
+    expect(evaluateLocalFrame(frame, { ...detection, words: Array.from({ length: 1025 }, (_, index) => ({ text: '设置', rect: { x: 20 + index % 40 * 18, y: 20 + Math.floor(index / 40) * 18, width: 12, height: 12 } })) }))
       .toMatchObject({ decision: 'pause', reason: 'control_layout_limit' });
     expect(evaluateLocalFrame(frame, { ...detection, redaction: { text: false, faces: true } }))
       .toMatchObject({ decision: 'pause', reason: 'incomplete_local_detection' });
@@ -233,5 +233,150 @@ describe('独立桌宠本地帧门控（合成单测，不是真实外部软件�
   it('笔记摘要不重新留存秘密', () => {
     expect(safeSummary('验证码123456')).not.toContain('123456');
     expect(safeSummary('学习调整字体')).toBe('学习调整字体');
+  });
+});
+
+describe('多尺度 OCR 控件合并与隐私门控（合成结果）', () => {
+  it('仅补识别读到微信时输出其原帧位置，不带出未知文字或原图', () => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['练习资料.txt']);
+    const entry = { text: '微信', ocrPass: 1, rect: { x: 120, y: 72, width: 48, height: 24 } };
+    detection.words.push(entry);
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'allow', scene: 'controls_only', reason: 'locally_projected_controls' });
+    if (result.decision !== 'allow') throw new Error('missing supplemental WeChat entry');
+    expect(result.elements).toEqual([{ id: expect.any(String), label: '微信', rect: entry.rect }]);
+    expect(result.sanitizedPng).toEqual(createControlLayout([entry], frame.width, frame.height));
+    expect(result.sanitizedPng).not.toEqual(frame.png);
+    expect(result.sanitizedPng).not.toEqual(detection.sanitizedPng);
+    expect(isAdmittedFrame(result)).toBe(true);
+  });
+
+  it.each([0, 1])('同一 ocrPass %s 内的相邻中文分词仍可合并微信', ocrPass => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, []);
+    detection.words = [
+      { text: '微', ocrPass, rect: { x: 20, y: 20, width: 20, height: 30 } },
+      { text: '信', ocrPass, rect: { x: 42, y: 20, width: 20, height: 30 } },
+    ];
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'allow', scene: 'controls_only' });
+    if (result.decision !== 'allow') throw new Error('missing joined WeChat entry');
+    expect(result.elements).toEqual([{ id: expect.any(String), label: '微信', rect: { x: 20, y: 20, width: 42, height: 30 } }]);
+  });
+
+  it.each([[undefined, 1], [0, 1], [1, undefined], [1, 0]] as const)('即使中文词框同一行相邻，也不能跨 ocrPass %s → %s 拼出微信', (firstPass, secondPass) => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, []);
+    detection.words = [
+      { text: '微', ocrPass: firstPass, rect: { x: 20, y: 20, width: 20, height: 30 } },
+      { text: '信', ocrPass: secondPass, rect: { x: 42, y: 20, width: 20, height: 30 } },
+    ];
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'pause', reason: 'unclassified_screen' });
+    expect(isAdmittedFrame(result)).toBe(false);
+    expect(result).not.toHaveProperty('elements');
+    expect(result).not.toHaveProperty('sanitizedPng');
+  });
+
+  it('跨尺度分词不能借已有安全控件把未出现的微信加入输出', () => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['设置']);
+    detection.words.push(
+      { text: '微', rect: { x: 20, y: 60, width: 20, height: 30 } },
+      { text: '信', ocrPass: 1, rect: { x: 42, y: 60, width: 20, height: 30 } },
+    );
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'allow', scene: 'controls_only' });
+    if (result.decision !== 'allow') throw new Error('missing existing safe control');
+    expect(result.elements).toEqual([{ id: expect.any(String), label: '设置', rect: detection.words[0].rect }]);
+  });
+
+  it.each([[0, 1], [2, 1], [30, 1], [31, 2], [200, 2]])('微信跨尺度词框水平偏移 %s 像素时保留 %s 个入口，不吞掉不同位置的同名控件', (offset, count) => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['微信']);
+    const entry = detection.words[0];
+    const supplemental = { ...entry, ocrPass: 1, rect: { ...entry.rect, x: entry.rect.x + offset } };
+    detection.words.push(supplemental);
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'allow', scene: 'controls_only' });
+    if (result.decision !== 'allow') throw new Error('missing deduplicated WeChat entry');
+    const expected = count === 1 ? [entry] : [entry, supplemental];
+    expect(result.elements).toEqual(expected.map(word => ({ id: expect.any(String), label: '微信', rect: word.rect })));
+    expect(new Set(result.elements.map(element => element.id)).size).toBe(count);
+    expect(result.sanitizedPng).toEqual(createControlLayout(expected, frame.width, frame.height));
+  });
+
+  it('补识别词框较小且嵌于原词框时仍去重，保留先识别的真实位置', () => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['微信']);
+    detection.words.push({ text: '微信', ocrPass: 1, rect: { x: 40, y: 25, width: 20, height: 10 } });
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'allow' });
+    if (result.decision !== 'allow') throw new Error('missing nested WeChat entry');
+    expect(result.elements).toEqual([{ id: expect.any(String), label: '微信', rect: detection.words[0].rect }]);
+  });
+
+  it('补识别的微、信合并后与原尺度微信只保留一个入口', () => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, []);
+    detection.words = [
+      { text: '微信', rect: { x: 20, y: 20, width: 42, height: 30 } },
+      { text: '微', ocrPass: 1, rect: { x: 20, y: 20, width: 20, height: 30 } },
+      { text: '信', ocrPass: 1, rect: { x: 42, y: 20, width: 20, height: 30 } },
+    ];
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'allow' });
+    if (result.decision !== 'allow') throw new Error('missing merged duplicate WeChat entry');
+    expect(result.elements).toEqual([{ id: expect.any(String), label: '微信', rect: detection.words[0].rect }]);
+  });
+
+  it.each(['wechat', 'WECHAT', 'ＷｅＣｈａｔ'])('同位置英文微信标签 %s 按规范化结果去重', text => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['WeChat']);
+    detection.words.push({ text, ocrPass: 1, rect: { ...detection.words[0].rect } });
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'allow' });
+    if (result.decision !== 'allow') throw new Error('missing normalized WeChat entry');
+    expect(result.elements).toEqual([{ id: expect.any(String), label: 'WeChat', rect: detection.words[0].rect }]);
+  });
+
+  it('同位置但不同标签不能被跨尺度去重误删', () => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['微信']);
+    detection.words.push({ text: '发现', ocrPass: 1, rect: { ...detection.words[0].rect } });
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'allow' });
+    if (result.decision !== 'allow') throw new Error('missing distinct public entries');
+    expect(result.elements.map(element => element.label)).toEqual(['微信', '发现']);
+  });
+
+  it.each(['验证码', '私人聊天', '付款确认', '13812345678', 'private@example.test'])('仅补识别发现敏感文字 %s 时，即使微信已去重也拒绝发送', text => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['微信']);
+    detection.words.push(
+      { text: '微信', ocrPass: 1, rect: { ...detection.words[0].rect } },
+      { text, ocrPass: 1, rect: { x: 20, y: 60, width: 160, height: 30 } },
+    );
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'pause', reason: 'sensitive_screen', risk: 'private' });
+    expect(isAdmittedFrame(result)).toBe(false);
+    expect(result).not.toHaveProperty('elements');
+    expect(result).not.toHaveProperty('sanitizedPng');
+    expect(JSON.stringify(result)).not.toContain(text);
+  });
+
+  it('仅补识别发现拆词验证码时仍检查完整敏感内容', () => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['微信']);
+    detection.words.push(...['验', '证', '码'].map((text, index) => ({ text, ocrPass: 1, rect: { x: 20 + index * 22, y: 60, width: 20, height: 30 } })));
+    expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'pause', reason: 'sensitive_screen', risk: 'private' });
+  });
+
+  it('放大补识别出的公共微信不能覆盖原尺度发现的敏感文字', () => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['私人聊天']);
+    detection.words.push({ text: '微信', ocrPass: 1, rect: { x: 20, y: 60, width: 100, height: 30 } });
+    expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'pause', reason: 'sensitive_screen', risk: 'private' });
   });
 });

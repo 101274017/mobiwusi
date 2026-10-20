@@ -1,5 +1,7 @@
 const { isAdmittedFrame, isRestrictedText } = require('./observation-policy.cjs');
 
+const forbiddenTextPattern = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/u;
+
 function failure(code, message) {
   const error = new Error(message);
   error.code = code;
@@ -46,6 +48,14 @@ function createDesktopAnalysisClient(options = {}) {
       if (!endpoint || typeof accessToken !== 'string' || !accessToken || /[\r\n]/.test(accessToken)) throw failure('ANALYSIS_UNAVAILABLE', '尚未配置已认证的教学分析服务');
       if (!input || input.signal?.aborted || typeof input.canSend !== 'function' || !input.canSend()
         || !isAdmittedFrame(input.frame, now()) || isRestrictedText(input.question)) throw failure('OUTBOUND_CLOSED', '本地安全资格已失效，拒绝发送');
+      const replies = input.clarificationReplies;
+      if (replies !== undefined && (!Array.isArray(replies) || replies.length > 3 || Array.from(replies).some(reply => !reply
+        || typeof reply !== 'object' || Array.isArray(reply) || Object.keys(reply).length !== 2
+        || !Object.hasOwn(reply, 'prompt') || !Object.hasOwn(reply, 'answer')
+        || typeof reply.prompt !== 'string' || !reply.prompt.trim() || reply.prompt.length > 600
+        || forbiddenTextPattern.test(reply.prompt) || isRestrictedText(reply.prompt)
+        || typeof reply.answer !== 'string' || !reply.answer.trim() || reply.answer.length > 500
+        || forbiddenTextPattern.test(reply.answer) || isRestrictedText(reply.answer)))) throw failure('OUTBOUND_CLOSED', '追问记录无效或涉及隐私，拒绝发送');
       const timeout = AbortSignal.timeout(options.timeoutMs ?? 12000);
       const signal = input.signal ? AbortSignal.any([input.signal, timeout]) : timeout;
       const body = {
@@ -57,6 +67,7 @@ function createDesktopAnalysisClient(options = {}) {
         redaction_profile: input.frame.redactionProfile, local_safety: 'safe', question: input.question,
         elements: input.frame.elements.map(element => ({ id: element.id, label: element.label, rect: { ...element.rect } })),
       };
+      if (replies !== undefined) body.clarification_replies = replies.map(reply => ({ question: reply.prompt, answer: reply.answer }));
       if (input.previousStep) body.previous_step = { instruction: input.previousStep.instruction, expected_labels: input.previousStep.expectedLabels };
       const payload = JSON.stringify(body);
       if (Buffer.byteLength(payload) > 3_000_000 || !input.canSend() || !isAdmittedFrame(input.frame, now()) || signal.aborted) throw failure('OUTBOUND_CLOSED', '发送前本地门控已关闭');

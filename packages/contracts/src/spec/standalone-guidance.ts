@@ -27,6 +27,7 @@ export const standaloneGuidanceDefinitions: Record<string, Schema> = {
     },
   }),
   StandaloneGuidancePreviousStep: object({ instruction: nonblank(600), expected_labels: labels }),
+  StandaloneGuidanceClarificationReply: object({ question: nonblank(600), answer: nonblank(500) }),
   StandaloneGuidanceReviewProposal: object({ remind_at: timestamp, timezone: { ...timezone, maxLength: 64 }, reason: nonblank(240) }),
   StandaloneGuidanceAnalyzeRequest: {
     ...object({
@@ -39,9 +40,10 @@ export const standaloneGuidanceDefinitions: Record<string, Schema> = {
       redaction_profile: literal('all_text_and_faces_v1'),
       local_safety: literal('safe'),
       question: text(2000, 0),
+      clarification_replies: list(ref('StandaloneGuidanceClarificationReply'), 3),
       elements: list(ref('StandaloneGuidanceElement'), 80),
       previous_step: ref('StandaloneGuidancePreviousStep'),
-    }, ['previous_step']),
+    }, ['previous_step', 'clarification_replies']),
     anyOf: [
       { type: 'object', properties: { trigger_reason: literal('question'), question: nonblank(2000) }, required: ['trigger_reason', 'question'] },
       { type: 'object', properties: { trigger_reason: choice('page_changed', 'verification') }, required: ['trigger_reason'] },

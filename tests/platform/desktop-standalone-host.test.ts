@@ -616,6 +616,34 @@ describe('桌宠指引窗口的反馈与续期', () => {
 });
 
 describe('独立桌宠宿主接线（合成依赖，不代表外部软件或系统权限验收）', () => {
+  it('追问回答和重新识别保留原目标，并拒绝额外参数和旧任务代次', async () => {
+    const current = fixture();
+    current.analyzer.analyze.mockImplementation(async input => ({ observation_id: input.observationId, guide_id: input.guideId,
+      observation_generation: input.observationGeneration, task_generation: input.taskGeneration, trigger_id: input.triggerId,
+      frame_id: input.frame.frameId, kind: 'clarify', instruction: '请核对当前观察范围。' }));
+    await current.host.initialize();
+    current.choose();
+    current.dialog.showMessageBox.mockResolvedValue({ response: 0, checkboxChecked: true });
+    await current.invoke('nuanban:pet:command', { type: 'observation.start' });
+    const observationGeneration = current.host.snapshot().observation.generation;
+    await vi.waitFor(() => expect(current.source.capture).toHaveBeenCalled());
+    await current.invoke('nuanban:pet:ask', { text: '帮我找到微信', observationGeneration });
+    await vi.waitFor(() => expect(current.host.snapshot()).toMatchObject({ task: { awaitingReply: true } }));
+    const task = current.host.snapshot().task;
+    const identity = { guideId: task.id, taskGeneration: task.generation, observationGeneration };
+    await expect(current.invoke('nuanban:pet:command', { type: 'guidance.reply', ...identity, text: '微信', rawFrame: 'not-allowed' })).rejects.toThrow('不允许的参数');
+    await current.invoke('nuanban:pet:command', { type: 'guidance.reply', ...identity, text: '就在电脑左上角' });
+    await vi.waitFor(() => expect(current.host.snapshot().task.awaitingReply).toBe(true));
+    expect(current.analyzer.analyze.mock.lastCall![0]).toMatchObject({ guideId: task.id, question: '帮我找到微信',
+      clarificationReplies: [{ prompt: '请核对当前观察范围。', answer: '就在电脑左上角' }] });
+    await expect(current.invoke('nuanban:pet:command', { type: 'guidance.reply', ...identity, text: '旧回答' })).rejects.toThrow('追问已变化');
+    await current.invoke('nuanban:pet:command', { type: 'guidance.rescan', ...identity, taskGeneration: current.host.snapshot().task.generation });
+    await vi.waitFor(() => expect(current.analyzer.analyze).toHaveBeenCalledTimes(3));
+    expect(current.analyzer.analyze.mock.lastCall![0].clarificationReplies).toHaveLength(1);
+    expect(current.learning.recordTeaching).not.toHaveBeenCalled();
+    expect(current.showManagement).not.toHaveBeenCalled();
+  });
+
   it('语音查找要求有效观察代次和单独画面同意；停麦后方可绑定该代次分析', async () => {
     const current = fixture();
     await current.host.initialize();

@@ -90,7 +90,7 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
     try {
       if (!Buffer.isBuffer(originalBitmap) || originalBitmap.length !== snapshot.width * snapshot.height * 4) throw new ObservationError('bitmap_dimensions_mismatch');
       bitmap = Buffer.from(originalBitmap);
-      const masks = [...words.map(word => maskRect(word.rect, snapshot.width, snapshot.height, 3, textAngle)), ...faces.map(face => maskRect(face.rect, snapshot.width, snapshot.height, Math.max(4, Math.ceil(Math.max(face.rect.width, face.rect.height) * 0.08))))];
+      const masks = [...words.map(word => maskRect(word.rect, snapshot.width, snapshot.height, 3, word.textAngle ?? textAngle)), ...faces.map(face => maskRect(face.rect, snapshot.width, snapshot.height, Math.max(4, Math.ceil(Math.max(face.rect.width, face.rect.height) * 0.08))))];
       const work = masks.reduce((total, rect) => total + (rect.right - rect.left) * (rect.bottom - rect.top), 0);
       if (work > limits.maxPixels * 4) throw new ObservationError('redaction_work_limit');
       for (const rect of masks) {
@@ -135,6 +135,26 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
         if (!word || typeof word.text !== 'string' || word.text.length < 1 || word.text.length > 512) throw new ObservationError('ocr_word_invalid');
         return { text: word.text, ...positioned(checkedRect(word.rect, snapshot.width, snapshot.height), snapshot.geometry) };
       });
+      const passes = result.ocrPasses ?? [];
+      if (!Array.isArray(passes) || passes.length > 1) throw new ObservationError('ocr_pass_invalid');
+      for (const pass of passes) {
+        if (!pass || !Number.isSafeInteger(pass.width) || !Number.isSafeInteger(pass.height)
+          || pass.width <= snapshot.width || pass.height <= snapshot.height || pass.width > snapshot.width * 2 || pass.height > snapshot.height * 2
+          || pass.width * pass.height > limits.maxPixels || Math.abs(pass.width / snapshot.width - pass.height / snapshot.height) > 1 / Math.min(snapshot.width, snapshot.height)
+          || !Array.isArray(pass.words) || pass.words.length + words.length > 8192) throw new ObservationError('ocr_pass_invalid');
+        const angle = pass.textAngle ?? 0;
+        if (!Number.isFinite(angle) || Math.abs(angle) > 180) throw new ObservationError('ocr_rotation_invalid');
+        for (const word of pass.words) {
+          if (!word || typeof word.text !== 'string' || word.text.length < 1 || word.text.length > 512) throw new ObservationError('ocr_word_invalid');
+          const scaled = checkedRect(word.rect, pass.width, pass.height);
+          const left = scaled.x * snapshot.width / pass.width;
+          const top = scaled.y * snapshot.height / pass.height;
+          const right = Math.min(snapshot.width, (scaled.x + scaled.width) * snapshot.width / pass.width);
+          const bottom = Math.min(snapshot.height, (scaled.y + scaled.height) * snapshot.height / pass.height);
+          words.push({ text: word.text, ocrPass: 1, textAngle: angle,
+            ...positioned(checkedRect({ x: left, y: top, width: right - left, height: bottom - top }, snapshot.width, snapshot.height), snapshot.geometry) });
+        }
+      }
       const faces = result.faces.map(face => positioned(checkedRect(face?.rect, snapshot.width, snapshot.height), snapshot.geometry));
       const sanitizedPng = sanitize(snapshot, words, faces, textAngle, signal);
       return { status: 'complete', sourceId: snapshot.sourceId, sourceIdentity: snapshot.sourceIdentity, frameHash: snapshot.frameHash, width: snapshot.width, height: snapshot.height, words, faces, sanitizedPng, sanitizedFrameHash: hashPng(sanitizedPng), redaction: { text: true, faces: true }, ocrStatus: 'complete', faceStatus: 'complete' };

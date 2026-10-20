@@ -6,6 +6,7 @@ $InformationPreference = 'SilentlyContinue'
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $phase = 'request'
 $bitmap = $null
+$scaledBitmap = $null
 $faceBitmap = $null
 $stream = $null
 $png = $null
@@ -95,6 +96,29 @@ try {
                         $null = $words.Add(@{ text = $word.Text; rect = @{ x = $bounds.X; y = $bounds.Y; width = $bounds.Width; height = $bounds.Height } })
                     }
                 }
+                $ocrPasses = @()
+                $scale = [Math]::Min(2.0, [Math]::Min([Windows.Media.Ocr.OcrEngine]::MaxImageDimension / [double][Math]::Max($request.width, $request.height), [Math]::Sqrt(16777216.0 / ([double]$request.width * $request.height))))
+                if ($scale -ge 1.25) {
+                    $phase = 'ocr_scaled_detect'
+                    $transform = New-Object Windows.Graphics.Imaging.BitmapTransform
+                    $transform.ScaledWidth = [uint32][Math]::Floor($request.width * $scale)
+                    $transform.ScaledHeight = [uint32][Math]::Floor($request.height * $scale)
+                    $transform.InterpolationMode = [Windows.Graphics.Imaging.BitmapInterpolationMode]::Cubic
+                    $scaledBitmap = Wait-WinRt ($decoder.GetSoftwareBitmapAsync([Windows.Graphics.Imaging.BitmapPixelFormat]::Bgra8, [Windows.Graphics.Imaging.BitmapAlphaMode]::Premultiplied, $transform, [Windows.Graphics.Imaging.ExifOrientationMode]::IgnoreExifOrientation, [Windows.Graphics.Imaging.ColorManagementMode]::DoNotColorManage)) ([Windows.Graphics.Imaging.SoftwareBitmap])
+                    $scaledResult = Wait-WinRt ($engine.RecognizeAsync($scaledBitmap)) ([Windows.Media.Ocr.OcrResult])
+                    if ($null -eq $scaledResult) { throw [System.IO.InvalidDataException]::new('ocr_scaled_result_missing') }
+                    $scaledWords = New-Object System.Collections.ArrayList
+                    foreach ($line in $scaledResult.Lines) {
+                        foreach ($word in $line.Words) {
+                            if (($words.Count + $scaledWords.Count) -ge 8192 -or $word.Text.Length -gt 512) { throw [System.IO.InvalidDataException]::new('ocr_output_limit') }
+                            $bounds = $word.BoundingRect
+                            $null = $scaledWords.Add(@{ text = $word.Text; rect = @{ x = $bounds.X; y = $bounds.Y; width = $bounds.Width; height = $bounds.Height } })
+                        }
+                    }
+                    $ocrPasses = @(@{ width = $transform.ScaledWidth; height = $transform.ScaledHeight; words = @($scaledWords.ToArray()); textAngle = $scaledResult.TextAngle })
+                    $scaledBitmap.Dispose()
+                    $scaledBitmap = $null
+                }
                 $phase = 'face_detect'
                 $faceBitmap = [Windows.Graphics.Imaging.SoftwareBitmap]::Convert($bitmap, [Windows.Graphics.Imaging.BitmapPixelFormat]::Gray8)
                 $detectedFaces = Wait-WinRt ($faceDetector.DetectFacesAsync($faceBitmap)) ([System.Collections.Generic.IList[Windows.Media.FaceAnalysis.DetectedFace]])
@@ -105,7 +129,7 @@ try {
                     $bounds = $face.FaceBox
                     $null = $faces.Add(@{ rect = @{ x = $bounds.X; y = $bounds.Y; width = $bounds.Width; height = $bounds.Height } })
                 }
-                $reply = @{ protocol = 1; status = 'complete'; ocrStatus = 'complete'; faceStatus = 'complete'; words = @($words.ToArray()); faces = @($faces.ToArray()); textAngle = $ocrResult.TextAngle }
+                $reply = @{ protocol = 1; status = 'complete'; ocrStatus = 'complete'; faceStatus = 'complete'; words = @($words.ToArray()); ocrPasses = $ocrPasses; faces = @($faces.ToArray()); textAngle = $ocrResult.TextAngle }
             }
         }
     }
@@ -114,6 +138,7 @@ try {
     $cause = $_.Exception.GetBaseException()
     $reply = @{ protocol = 1; status = $failureStatus; reason = ('{0}:{1}:0x{2:X8}' -f $phase, $cause.GetType().Name, $cause.HResult); ocrStatus = 'unavailable'; faceStatus = 'unavailable' }
 } finally {
+    if ($null -ne $scaledBitmap) { $scaledBitmap.Dispose() }
     if ($null -ne $faceBitmap) { $faceBitmap.Dispose() }
     if ($null -ne $bitmap) { $bitmap.Dispose() }
     if ($null -ne $stream) { $stream.Dispose() }

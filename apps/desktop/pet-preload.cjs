@@ -105,7 +105,7 @@ function projectSnapshot(value) {
   const result = projectRecord(value, { message: 'string', learningUnavailable: 'boolean', learningError: 'string' });
   const sections = {
     observation: { state: 'string', sourceName: 'string', reason: 'string', generation: 'number', captureActive: 'boolean', cloudConsent: 'boolean' },
-    task: { id: 'string', kind: 'string', generation: 'number', observationGeneration: 'number', state: 'string', question: 'string', instruction: 'string', explanation: 'string', presentation: 'string', targetState: 'string', result: 'string' },
+    task: { id: 'string', kind: 'string', generation: 'number', observationGeneration: 'number', state: 'string', question: 'string', instruction: 'string', explanation: 'string', presentation: 'string', targetState: 'string', awaitingReply: 'boolean', result: 'string' },
     analysis: { state: 'string', message: 'string' },
     captions: { enabled: 'boolean', text: 'string' },
     wake: { state: 'string', reason: 'string', phase: 'string', microphoneActive: 'boolean', dictationAvailable: 'boolean' },
@@ -152,7 +152,7 @@ function projectReply(value) {
   return result;
 }
 
-const commands = new Set(['observation.start', 'observation.stop', 'observation.resume', 'observation.reselect', 'observation.authorize-cloud', 'guidance.verify', 'guidance.finish', 'guidance.repeat', 'captions.toggle', 'wake.enable', 'wake.disable', 'voice.open', 'voice.stop', 'voice.mute', 'voice.unmute', 'voice.interrupt', 'panel.set-expanded', 'learning.set-mastery', 'learning.review.confirm', 'learning.review.decline']);
+const commands = new Set(['observation.start', 'observation.stop', 'observation.resume', 'observation.reselect', 'observation.authorize-cloud', 'guidance.verify', 'guidance.finish', 'guidance.repeat', 'guidance.reply', 'guidance.rescan', 'captions.toggle', 'wake.enable', 'wake.disable', 'voice.open', 'voice.stop', 'voice.mute', 'voice.unmute', 'voice.interrupt', 'panel.set-expanded', 'learning.set-mastery', 'learning.review.confirm', 'learning.review.decline']);
 
 function validIdentifier(value) {
   return typeof value === 'string' && Boolean(value.trim()) && value === value.trim() && value.length <= 128 && !/[\u0000-\u001f\u007f]/.test(value);
@@ -213,6 +213,15 @@ contextBridge.exposeInMainWorld('nuanbanPet', Object.freeze({
     if (!payload || typeof payload !== 'object' || Array.isArray(payload) || !commands.has(payload.type)) throw new TypeError('不支持的桌宠指令');
     if (payload.type === 'panel.set-expanded' && typeof payload.expanded !== 'boolean') throw new TypeError('面板展开状态必须是布尔值');
     const command = payload.type === 'panel.set-expanded' ? { type: payload.type, expanded: payload.expanded } : { type: payload.type };
+    if (payload.type === 'guidance.reply' || payload.type === 'guidance.rescan') {
+      if (payload.type === 'guidance.reply') {
+        if (typeof payload.text !== 'string' || !payload.text.trim() || payload.text.length > 500) throw new TypeError('请输入 1 至 500 字的补充回答');
+        command.text = payload.text;
+      }
+      if (!validIdentifier(payload.guideId) || !Number.isSafeInteger(payload.taskGeneration) || payload.taskGeneration < 1
+        || !Number.isSafeInteger(payload.observationGeneration) || payload.observationGeneration < 1) throw new TypeError('追问或屏幕观察代次无效');
+      Object.assign(command, { guideId: payload.guideId, taskGeneration: payload.taskGeneration, observationGeneration: payload.observationGeneration });
+    }
     if (payload.type === 'observation.authorize-cloud') {
       if (!Number.isSafeInteger(payload.observationGeneration) || payload.observationGeneration < 1) throw new TypeError('屏幕观察代次无效');
       command.observationGeneration = payload.observationGeneration;

@@ -17,6 +17,107 @@ function stepResponse(input: AnalysisInput): AnalysisResult {
     presentation: 'uncertain_candidate', expected_labels: ['字体大小'] };
 }
 
+function clarificationIdentity(runtime: DesktopRuntime) {
+  const state = runtime.snapshot();
+  return { guideId: state.task.id!, taskGeneration: state.task.generation, observationGeneration: state.observation.generation };
+}
+
+describe('桌宠追问回答保留本人原目标', () => {
+  async function clarificationSetup() {
+    const setup = fixture();
+    setup.analyze.mockImplementationOnce(async input => ({ ...responseIdentity(input), kind: 'clarify', instruction: '请确认要找哪个应用？' }));
+    await beginTeaching(setup);
+    return setup;
+  }
+
+  it('回答不新建目标或提前记录结束，重新检查画面后携带原问题与回答', async () => {
+    const setup = await clarificationSetup();
+    const identity = clarificationIdentity(setup.runtime);
+    expect(setup.runtime.snapshot().task.awaitingReply).toBe(true);
+    const captures = setup.source.capture.mock.calls.length;
+    await setup.runtime.replyToClarification({ ...identity, text: '  微信，电脑左上方  ' });
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture.mock.calls.length).toBeGreaterThan(captures);
+    expect(setup.analyze.mock.calls[1][0]).toMatchObject({ guideId: identity.guideId, taskGeneration: identity.taskGeneration + 1,
+      question: '请教我调整文字大小', reason: 'question', previousStep: null,
+      clarificationReplies: [{ prompt: '请确认要找哪个应用？', answer: '微信，电脑左上方' }] });
+    expect(setup.runtime.snapshot().task).toMatchObject({ id: identity.guideId, question: '请教我调整文字大小', awaitingReply: false, state: 'awaiting_action' });
+    expect(setup.recordTeaching).not.toHaveBeenCalled();
+    expect(setup.runtime.snapshot().captions.enabled).toBe(false);
+    await expect(setup.runtime.replyToClarification({ ...identity, text: '迟到的旧回答' })).rejects.toThrow('追问已变化');
+    expect(setup.analyze).toHaveBeenCalledTimes(2);
+  });
+
+  it('重新识别不伪造用户回答，也不丢失已有补充上下文', async () => {
+    const setup = await clarificationSetup();
+    setup.analyze.mockImplementation(async input => ({ ...responseIdentity(input), kind: 'clarify', instruction: '请核对当前授权范围。' }));
+    await setup.runtime.replyToClarification({ ...clarificationIdentity(setup.runtime), text: '微信就在桌面左上角' });
+    await setup.runtime.whenIdle();
+    const before = setup.runtime.snapshot();
+    await setup.runtime.rescanClarification(clarificationIdentity(setup.runtime));
+    await setup.runtime.whenIdle();
+    expect(setup.analyze.mock.lastCall![0]).toMatchObject({ guideId: before.task.id, question: before.task.question,
+      clarificationReplies: [{ prompt: '请确认要找哪个应用？', answer: '微信就在桌面左上角' }] });
+    expect(setup.runtime.snapshot().messages.filter(message => message.role === 'user')).toEqual(before.messages.filter(message => message.role === 'user'));
+    expect(setup.recordTeaching).not.toHaveBeenCalled();
+  });
+
+  it('最多携带三组追问回答，新问题清空旧上下文', async () => {
+    const setup = await clarificationSetup();
+    setup.analyze.mockImplementation(async input => ({ ...responseIdentity(input), kind: 'clarify', instruction: '请核对当前授权范围。' }));
+    for (const answer of ['第一组', '第二组', '第三组', '第四组']) {
+      await setup.runtime.replyToClarification({ ...clarificationIdentity(setup.runtime), text: answer });
+      await setup.runtime.whenIdle();
+    }
+    expect(setup.analyze.mock.lastCall![0].clarificationReplies?.map(reply => reply.answer)).toEqual(['第二组', '第三组', '第四组']);
+    await setup.runtime.ask('新的目标，请找设置');
+    await setup.runtime.whenIdle();
+    expect(setup.analyze.mock.lastCall![0].clarificationReplies).toEqual([]);
+  });
+
+  it.each(['guide', 'task', 'observation', 'stopped', 'ended', 'unsupported'] as const)('旧追问、授权失效或不可回答状态不发起分析：%s', async condition => {
+    const setup = await clarificationSetup();
+    const identity = clarificationIdentity(setup.runtime);
+    if (condition === 'guide') identity.guideId = 'not-current-guide';
+    if (condition === 'task') identity.taskGeneration++;
+    if (condition === 'observation') identity.observationGeneration++;
+    if (condition === 'stopped') await setup.runtime.stopObservation();
+    if (condition === 'ended') await setup.runtime.finishTeaching();
+    if (condition === 'unsupported') {
+      setup.analyze.mockImplementationOnce(async input => ({ ...responseIdentity(input), kind: 'unsupported', instruction: '当前不支持该功能。' }));
+      await setup.runtime.rescanClarification(identity);
+      await setup.runtime.whenIdle();
+      Object.assign(identity, clarificationIdentity(setup.runtime));
+    }
+    const calls = setup.analyze.mock.calls.length;
+    await expect(setup.runtime.replyToClarification({ ...identity, text: '微信' })).rejects.toThrow();
+    await expect(setup.runtime.rescanClarification(identity)).rejects.toThrow();
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledTimes(calls);
+  });
+
+  it('空回答和超长回答不发送，敏感回答阻断教学且不进模型', async () => {
+    const setup = await clarificationSetup();
+    const identity = clarificationIdentity(setup.runtime);
+    for (const text of ['', '   ', '字'.repeat(501)]) await expect(setup.runtime.replyToClarification({ ...identity, text })).rejects.toThrow('500');
+    await setup.runtime.replyToClarification({ ...identity, text: '帮我输入验证码123456' });
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'ended', result: 'risk_blocked' });
+  });
+
+  it('等待回答时本地画面变化仍检查隐私，但不自动重复云端追问', async () => {
+    const setup = fixture({ intervalMs: 15 });
+    setup.analyze.mockImplementation(async input => ({ ...responseIdentity(input), kind: 'clarify', instruction: '请确认应用名称。' }));
+    await beginTeaching(setup);
+    const captures = setup.source.capture.mock.calls.length;
+    setup.controls.labels = ['设置', '显示', '微信', '返回'];
+    await vi.waitFor(() => expect(setup.source.detect.mock.calls.length).toBeGreaterThan(captures));
+    expect(setup.runtime.snapshot().task.awaitingReply).toBe(true);
+    expect(setup.analyze).toHaveBeenCalledOnce();
+  });
+});
+
 function fixture(callbacks: Pick<RuntimeOptions, 'recordTeaching' | 'suggestReview' | 'intervalMs' | 'questioner' | 'analysisTimeoutMs'> = {}) {
   const controls = { time: Date.now(), labels: ['设置', '显示', '文本大小', '返回'], geometry: { x: -800, y: 0, width: 800, height: 600, scaleFactor: 1 } as ScreenGeometry | null, status: 'complete' as 'complete' | 'unavailable' };
   const source = {

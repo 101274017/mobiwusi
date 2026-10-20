@@ -193,6 +193,10 @@ function completeReply(request: HelperRequest): HelperReply {
   return { protocol: 1, status: 'complete', sourceId: request.sourceId, sourceIdentity: request.sourceIdentity, frameHash: request.frameHash, width: request.width, height: request.height, ocrStatus: 'complete', faceStatus: 'complete', textAngle: null, words: [], faces: [] };
 }
 
+function scaledOcrPass(overrides: HelperReply = {}) {
+  return { width: 128, height: 96, textAngle: null, words: [{ text: '微信', rect: { x: 40, y: 20, width: 16, height: 12 } }], ...overrides };
+}
+
 class HelperChild extends EventEmitter {
   stdin = new PassThrough();
   stdout = new PassThrough();
@@ -1044,6 +1048,186 @@ describe('Windows 本地 OCR/人脸检测与内存脱敏', () => {
     const result = await detector.detect(frame());
     expect(result).toMatchObject({ status: 'unavailable', reason: 'helper_spawn_unavailable', redaction: { text: false, faces: false } });
     expect(result).not.toHaveProperty('sanitizedPng');
+  });
+});
+
+describe('Windows 多尺度本地 OCR（合成 helper，不读取桌面）', () => {
+  it('2 倍词框映回原帧及负 DIP，全部尺度文字与人脸均遮盖且原 PNG 不变', async () => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request),
+      words: [{ text: '原尺度文字', rect: { x: 4, y: 5, width: 8, height: 6 } }],
+      ocrPasses: [scaledOcrPass({ words: [
+        { text: '微信', rect: { x: 81, y: 41, width: 15, height: 11 } },
+        { text: '非控件文字', rect: { x: 112, y: 84, width: 16, height: 12 } },
+      ] })], faces: [{ rect: { x: 4, y: 34, width: 4, height: 4 } }] }));
+    const input = frame({ geometry: geometry({ width: 32, height: 24, scaleFactor: 2 }) });
+    const original = Buffer.from(input.png);
+    const result = await setup.detector().detect(input);
+    expect(result.status).toBe('complete');
+    if (result.status !== 'complete') throw new Error('missing multiscale detection');
+    expect(result.words).toEqual([
+      { text: '原尺度文字', rect: { x: 4, y: 5, width: 8, height: 6 }, globalRect: { x: -62, y: -45.5, width: 4, height: 3 } },
+      { text: '微信', ocrPass: 1, textAngle: 0, rect: { x: 40.5, y: 20.5, width: 7.5, height: 5.5 }, globalRect: { x: -43.75, y: -37.75, width: 3.75, height: 2.75 } },
+      { text: '非控件文字', ocrPass: 1, textAngle: 0, rect: { x: 56, y: 42, width: 8, height: 6 }, globalRect: { x: -36, y: -27, width: 4, height: 3 } },
+    ]);
+    const sanitized = decodePng(result.sanitizedPng);
+    expect(sanitized).toMatchObject({ width: 64, height: 48 });
+    const pixelAt = (column: number, row: number) => [...sanitized.bitmap.subarray((row * 64 + column) * 4, (row * 64 + column) * 4 + 4)];
+    for (const rect of [
+      { x: 1, y: 2, width: 14, height: 12 },
+      { x: 37, y: 17, width: 14, height: 12 },
+      { x: 53, y: 39, width: 11, height: 9 },
+      { x: 0, y: 30, width: 12, height: 12 },
+    ]) {
+      for (let row = rect.y; row < rect.y + rect.height; row += 1) {
+        for (let column = rect.x; column < rect.x + rect.width; column += 1) expect(pixelAt(column, row)).toEqual([0, 0, 0, 255]);
+      }
+    }
+    expect(pixelAt(25, 20)).toEqual([40, 70, 90, 255]);
+    expect(result.redaction).toEqual({ text: true, faces: true });
+    expect(result.frameHash).toBe(input.frameHash);
+    expect(result.sanitizedFrameHash).toBe(createHash('sha256').update(result.sanitizedPng).digest('hex'));
+    expect(result.sanitizedPng).not.toEqual(original);
+    expect(input.png).toEqual(original);
+    expect(setup.spawn).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([[80, 60], [95, 71], [127, 95], [128, 96]])('受限缩放 %s × %s 的取整词框按各轴真实尺寸映回原帧边缘', async (width, height) => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), ocrPasses: [scaledOcrPass({ width, height,
+      words: [{ text: '微信', rect: { x: width - 9, y: height - 7, width: 9, height: 7 } }] })] }));
+    const result = await setup.detector().detect(frame());
+    expect(result.status).toBe('complete');
+    if (result.status !== 'complete') throw new Error('missing rounded scale detection');
+    expect(result.words).toHaveLength(1);
+    const rect = result.words[0]!.rect;
+    expect(rect.x).toBeCloseTo((width - 9) * 64 / width);
+    expect(rect.y).toBeCloseTo((height - 7) * 48 / height);
+    expect(rect.width).toBeCloseTo(9 * 64 / width);
+    expect(rect.height).toBeCloseTo(7 * 48 / height);
+    expect(rect.x + rect.width).toBeCloseTo(64);
+    expect(rect.y + rect.height).toBeCloseTo(48);
+  });
+
+  it('放大补识别没有 geometry 时不生成全局坐标', async () => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), ocrPasses: [scaledOcrPass()] }));
+    const result = await setup.detector().detect(frame({ geometry: null }));
+    expect(result).toMatchObject({ status: 'complete', words: [{ text: '微信', ocrPass: 1, rect: { x: 20, y: 10, width: 8, height: 6 } }] });
+    expect(result.words[0]).not.toHaveProperty('globalRect');
+  });
+
+  it.each([{ ocrPasses: undefined }, { ocrPasses: [] }, { ocrPasses: [scaledOcrPass({ words: [] })] }])('缺少补识别或补识别无词时保留原尺度结果：%j', async changes => {
+    const word = { text: '设置', rect: { x: 4, y: 5, width: 8, height: 6 } };
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), words: [word], ...changes }));
+    const result = await setup.detector().detect(frame());
+    expect(result.status).toBe('complete');
+    expect(result.words).toEqual([{ ...word, globalRect: { x: -60, y: -43, width: 8, height: 6 } }]);
+  });
+
+  it.each([[0, 90], [90, 0], [0, -90]])('各尺度独立使用角度（原尺度 %s，补识别 %s），不漏遮盖或继承另一尺度旋转', async (baseAngle, passAngle) => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), textAngle: baseAngle,
+      words: [{ text: '设置', rect: { x: 30, y: 22, width: 4, height: 4 } }],
+      ocrPasses: [scaledOcrPass({ textAngle: passAngle, words: [{ text: '微信', rect: { x: 100, y: 40, width: 8, height: 8 } }] })] }));
+    const result = await setup.detector().detect(frame());
+    expect(result.status).toBe('complete');
+    if (result.status !== 'complete') throw new Error('missing rotated scale detection');
+    const pixels = decodePng(result.sanitizedPng).bitmap;
+    const pixelAt = (column: number, row: number) => [...pixels.subarray((row * 64 + column) * 4, (row * 64 + column) * 4 + 4)];
+    expect(result.words[1]).toMatchObject({ ocrPass: 1, textAngle: passAngle, rect: { x: 50, y: 20, width: 4, height: 4 } });
+    expect(pixelAt(51, 21)).toEqual([0, 0, 0, 255]);
+    expect(pixelAt(30, 4)).toEqual(passAngle === 0 ? [40, 70, 90, 255] : [0, 0, 0, 255]);
+    expect(pixelAt(10, 10)).toEqual([40, 70, 90, 255]);
+  });
+
+  it.each([
+    { name: '对象', passes: {} },
+    { name: '字符串', passes: 'invalid' },
+    { name: '布尔值', passes: false },
+    { name: '数字', passes: 1 },
+    { name: '空 pass', passes: [null] },
+    { name: '缺字段 pass', passes: [{}] },
+    { name: '超过一个 pass', passes: [scaledOcrPass(), scaledOcrPass()] },
+  ])('无效 ocrPasses 结构本地拒绝：$name', async ({ passes }) => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), ocrPasses: passes }));
+    const result = await setup.detector().detect(frame());
+    expect(result).toMatchObject({ status: 'failed', reason: 'ocr_pass_invalid', words: [], redaction: { text: false, faces: false } });
+    expect(result).not.toHaveProperty('sanitizedPng');
+  });
+
+  it.each([
+    { width: undefined }, { height: undefined }, { width: '128' }, { width: 128.5 }, { height: 95.5 },
+    { width: 0 }, { height: 0 }, { width: 64, height: 48 }, { width: 32, height: 24 },
+    { width: 128, height: 48 }, { width: 64, height: 96 }, { width: 129, height: 96 }, { width: 128, height: 97 },
+    { width: 128, height: 80 }, { width: 80, height: 96 },
+  ])('补识别必须是同宽高比且不超过 2 倍的整数放大尺寸：%j', async changes => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), ocrPasses: [scaledOcrPass(changes)] }));
+    const result = await setup.detector().detect(frame());
+    expect(result).toMatchObject({ status: 'failed', reason: 'ocr_pass_invalid', words: [], redaction: { text: false, faces: false } });
+    expect(result).not.toHaveProperty('sanitizedPng');
+  });
+
+  it('补识别像素数不能绕过本地 maxPixels 限额', async () => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), ocrPasses: [scaledOcrPass()] }));
+    const result = await setup.detector({ limits: { maxPixels: 10_000 } }).detect(frame());
+    expect(result).toMatchObject({ status: 'failed', reason: 'ocr_pass_invalid' });
+    expect(result).not.toHaveProperty('sanitizedPng');
+  });
+
+  it.each([{ words: undefined }, { words: null }, { words: 'invalid' }, { words: {} }])('补识别词列表必须为数组：%j', async changes => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), ocrPasses: [scaledOcrPass(changes)] }));
+    const result = await setup.detector().detect(frame());
+    expect(result).toMatchObject({ status: 'failed', reason: 'ocr_pass_invalid' });
+    expect(result).not.toHaveProperty('sanitizedPng');
+  });
+
+  it.each([null, {}, { text: '', rect: { x: 0, y: 0, width: 8, height: 6 } },
+    { text: 123, rect: { x: 0, y: 0, width: 8, height: 6 } },
+    { text: '字'.repeat(513), rect: { x: 0, y: 0, width: 8, height: 6 } },
+  ])('补识别中的无效文字不生成脱敏图：%j', async word => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), ocrPasses: [scaledOcrPass({ words: [word] })] }));
+    const result = await setup.detector().detect(frame());
+    expect(result).toMatchObject({ status: 'failed', reason: 'ocr_word_invalid' });
+    expect(result).not.toHaveProperty('sanitizedPng');
+  });
+
+  it.each([
+    null, {}, { x: -1, y: 0, width: 8, height: 6 }, { x: 0, y: -1, width: 8, height: 6 },
+    { x: 127, y: 0, width: 2, height: 6 }, { x: 0, y: 95, width: 8, height: 2 },
+    { x: 0, y: 0, width: 0, height: 6 }, { x: 0, y: 0, width: 8, height: -1 },
+    { x: '0', y: 0, width: 8, height: 6 }, { x: null, y: 0, width: 8, height: 6 },
+  ])('放大词框在映射前必须完整位于放大画面内，不能裁剪放行：%j', async rect => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), ocrPasses: [scaledOcrPass({ words: [{ text: '微信', rect }] })] }));
+    const result = await setup.detector().detect(frame());
+    expect(result).toMatchObject({ status: 'failed', reason: 'detection_rect_out_of_bounds', words: [], redaction: { text: false, faces: false } });
+    expect(result).not.toHaveProperty('sanitizedPng');
+  });
+
+  it.each([{ textAngle: 181 }, { textAngle: -181 }, { textAngle: '90' }, { textAngle: true }, { textAngle: {} }, { textAngle: [] }])('补识别无效旋转角度本地拒绝：%j', async changes => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), ocrPasses: [scaledOcrPass(changes)] }));
+    const result = await setup.detector().detect(frame());
+    expect(result).toMatchObject({ status: 'failed', reason: 'ocr_rotation_invalid' });
+    expect(result).not.toHaveProperty('sanitizedPng');
+  });
+
+  it.each(['1e309', '-1e309'])('JSON 数字溢出成非有限角度 %s 仍拒绝', async angle => {
+    const setup = helperSetup((request, child) => child.reply(JSON.stringify({ ...completeReply(request),
+      ocrPasses: [scaledOcrPass({ textAngle: 'overflow-angle' })] }).replace('"overflow-angle"', angle)));
+    const result = await setup.detector().detect(frame());
+    expect(result).toMatchObject({ status: 'failed', reason: 'ocr_rotation_invalid' });
+    expect(result).not.toHaveProperty('sanitizedPng');
+  });
+
+  it.each([8192, 8193])('两尺度合计 %s 个词按同一 8192 限额检查，不分别截断', async totalWords => {
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request),
+      words: [{ text: '原词', rect: { x: 4, y: 4, width: 1, height: 1 } }],
+      ocrPasses: [scaledOcrPass({ words: Array.from({ length: totalWords - 1 }, () => ({ text: '字', rect: { x: 40, y: 20, width: 2, height: 2 } })) })] }));
+    const result = await setup.detector().detect(frame());
+    if (totalWords > 8192) {
+      expect(result).toMatchObject({ status: 'failed', reason: 'ocr_pass_invalid', words: [], redaction: { text: false, faces: false } });
+      expect(result).not.toHaveProperty('sanitizedPng');
+    } else {
+      expect(result.status).toBe('complete');
+      expect(result.words).toHaveLength(8192);
+      expect(result.words[8191]).toMatchObject({ text: '字', ocrPass: 1 });
+    }
   });
 });
 

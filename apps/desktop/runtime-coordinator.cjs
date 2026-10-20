@@ -76,6 +76,7 @@ function createDesktopRuntime(options) {
   let latestFrame = null;
   let analysisFrame = null;
   let previousStep = null;
+  let clarificationReplies = [];
   let sourceId = null;
   let observationRegion = null;
   let cloudConsent = false;
@@ -228,6 +229,8 @@ function createDesktopRuntime(options) {
     const task = { ...state.task };
     const observation = observationGeneration;
     const generation = ++taskGeneration;
+    clarificationReplies = [];
+    state.task.awaitingReply = false;
     const stillCurrent = () => !disposed && state.task.id === task.id && taskGeneration === generation && observationGeneration === observation;
     questionController?.abort();
     invalidateAnalysis();
@@ -455,6 +458,7 @@ function createDesktopRuntime(options) {
       state.task.instruction = '';
       state.task.presentation = null;
       state.task.explanation = result.instruction;
+      state.task.awaitingReply = result.kind === 'clarify';
       state.analysis = { state: 'ready', message: '本次画面分析已结束，未定位到可核验的目标；没有生成箭头，请查看说明后继续。' };
       state.captions.text = result.instruction;
       message(result.instruction, 'assistant');
@@ -472,6 +476,7 @@ function createDesktopRuntime(options) {
       if (!repeated || repeated.id !== element.id || !sameExpectation) throw new Error('previous_step_not_verified');
     }
     state.task.state = 'awaiting_action';
+    state.task.awaitingReply = false;
     state.task.instruction = result.instruction;
     state.task.presentation = result.presentation;
     state.task.explanation = result.presentation === 'uncertain_candidate' ? '这是当前画面中的候选位置，尚未确认；请先核对。' : '请亲手操作；暖伴不会自动点击或输入。';
@@ -488,6 +493,7 @@ function createDesktopRuntime(options) {
 
   function queueAnalysis(frame, reason) {
     if (!state.task.id || state.task.kind === 'text' || ['completed', 'ended', 'idle', 'finishing'].includes(state.task.state)) return;
+    if (reason === 'page_changed' && state.task.awaitingReply) return;
     if (!cloudConsent || !options.analyzer?.analyze) {
       state.analysis = { state: 'unavailable', message: cloudConsent ? '尚未配置已认证的云分析服务；不使用模拟答案。' : '未同意云分析，画面仅在本地处理。可停止或重新选择观察用途。' };
       state.task.state = 'needs_help';
@@ -496,7 +502,7 @@ function createDesktopRuntime(options) {
     }
     const obsolete = pendingAnalysis?.frame;
     pendingAnalysis = { frame, reason, observation: observationGeneration, task: taskGeneration, triggerId: randomUUID(), previous: previousStep,
-      guideId: state.task.id, question: state.task.question, observationId: state.observation.id };
+      guideId: state.task.id, question: state.task.question, clarificationReplies: clarificationReplies.map(reply => ({ ...reply })), observationId: state.observation.id };
     release(obsolete);
     if (analysisJob) {
       analysisController?.abort();
@@ -534,7 +540,7 @@ function createDesktopRuntime(options) {
         };
         try {
           const result = await Promise.race([options.analyzer.analyze({
-            frame: job.frame, question: job.question, reason: job.reason,
+            frame: job.frame, question: job.question, clarificationReplies: job.clarificationReplies, reason: job.reason,
             observationId: job.observationId, guideId: job.guideId, observationGeneration: job.observation,
             taskGeneration: job.task, triggerId: job.triggerId,
             previousStep: job.previous ? { instruction: job.previous.instruction, expectedLabels: [...job.previous.expectedLabels] } : null,
@@ -705,6 +711,7 @@ function createDesktopRuntime(options) {
     if (question !== questionSequence || disposed) return snapshot();
     if (requiredObservation !== undefined) requireGuidanceObservation(requiredObservation);
     taskGeneration += 1;
+    clarificationReplies = [];
     const textOnly = typeof options.questioner?.answer === 'function' && (state.observation.state !== 'observing' || !cloudConsent);
     state.task = { id: randomUUID(), kind: textOnly ? 'text' : 'guidance', state: 'needs_help', observationGeneration, question: safeSummary(text.trim()), instruction: '', explanation: '', presentation: null, targetState: 'hidden', result: null, startedAt: now() };
     message(safeSummary(text.trim()), 'user');
@@ -723,6 +730,35 @@ function createDesktopRuntime(options) {
       state.analysis = { state: 'analyzing', message: '查找请求已受理，正在本地检查本次授权画面；可结束教学或停止观察取消。' };
       requestFrame('question');
     }
+    publish();
+    return snapshot();
+  }
+
+  async function replyToClarification(input) {
+    if (!input || typeof input.text !== 'string' || !input.text.trim() || input.text.length > 500) throw new Error('请输入不超过500字的补充回答');
+    return continueClarification(input, input.text.trim());
+  }
+
+  async function continueClarification(input, answer) {
+    if (!input) throw new Error('追问已失效，请核对当前问题');
+    requireGuidanceObservation(input.observationGeneration);
+    if (disposed || cleanupJob || state.task.id !== input.guideId || taskGeneration !== input.taskGeneration
+      || state.task.observationGeneration !== observationGeneration || state.task.kind !== 'guidance'
+      || state.task.state !== 'needs_help' || state.task.awaitingReply !== true || state.analysis.state !== 'ready') throw new Error('这条追问已变化或结束，请核对当前问题后再回答；补充内容未发送。');
+    if (answer && isRestrictedText(answer)) return ask(answer, input.observationGeneration);
+    const prompt = state.task.explanation;
+    invalidateQuestion();
+    invalidateAnalysis();
+    clearTarget();
+    previousStep = null;
+    taskGeneration += 1;
+    if (answer) clarificationReplies = [...clarificationReplies, { prompt, answer: safeSummary(answer) }].slice(-3);
+    state.task.awaitingReply = false;
+    state.task.state = 'analyzing';
+    state.task.explanation = '';
+    state.analysis = { state: 'analyzing', message: answer ? '已收到补充回答，保留原来的目标，正在重新检查当前授权画面。' : '保留原来的目标与补充回答，正在重新识别当前授权画面。' };
+    if (answer) message(safeSummary(answer), 'user');
+    requestFrame('question');
     publish();
     return snapshot();
   }
@@ -768,7 +804,8 @@ function createDesktopRuntime(options) {
   }
 
   return { snapshot, startObservation, stopObservation: reason => closeObservation(reason ?? 'user'),
-    resumeObservation: input => startObservation({ ...input, resume: true }), authorizeCloudAnalysis, ask, verify, finishTeaching: result => { invalidateQuestion(); return finishTeaching(result); }, repeat,
+    resumeObservation: input => startObservation({ ...input, resume: true }), authorizeCloudAnalysis, ask, replyToClarification,
+    rescanClarification: input => continueClarification(input), verify, finishTeaching: result => { invalidateQuestion(); return finishTeaching(result); }, repeat,
     toggleCaptions, dispose, whenIdle };
 }
 

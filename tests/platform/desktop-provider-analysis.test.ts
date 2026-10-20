@@ -16,6 +16,57 @@ function requestInput(timestamp = Date.now()): AnalysisInput {
 }
 function provider(answer: AiProvider['answer']) { return { answer: vi.fn(answer) }; }
 
+describe('桌宠分析中的电脑来源和追问上下文', () => {
+  it('保留原问题并最小化投影追问回答，不再让模型猜电脑还是手机', async () => {
+    const input = requestInput();
+    input.clarificationReplies = [{ prompt: '请确认应用名称。', answer: '微信' }];
+    const endpoint = provider(async () => ({ text: JSON.stringify({ kind: 'clarify', instruction: '请核对观察范围。' }) }));
+    await createProviderAnalysisClient({ provider: endpoint }).analyze(input);
+    const sent = endpoint.answer.mock.calls[0][0];
+    const context = JSON.parse(sent.instructions!.split('当前最小上下文：')[1]);
+    expect(sent.question).toBe(input.question);
+    expect(context).toMatchObject({ surface: 'computer_screen', clarification_replies: [{ question: '请确认应用名称。', answer: '微信' }] });
+    expect(sent.instructions).toContain('不要反问是在手机还是电脑上');
+    expect(sent.instructions).toContain('不能断言用户屏幕上没有');
+    expect(sent.instructions).not.toContain(input.frame.sourceId);
+  });
+
+  it('补充回答也参与相关控件优先级选择，但不会创造画面上没有的控件', async () => {
+    const input = crowdedInput();
+    input.question = '帮我找到那个软件';
+    input.clarificationReplies = [{ prompt: '请确认应用名称。', answer: '微信' }];
+    const endpoint = provider(async () => ({ text: JSON.stringify({ kind: 'clarify', instruction: '请核对位置。' }) }));
+    await createProviderAnalysisClient({ provider: endpoint }).analyze(input);
+    const context = JSON.parse(endpoint.answer.mock.calls[0][0].instructions!.split('当前最小上下文：')[1]);
+    expect(context.elements[0].label).toBe('微信');
+    expect(context.elements.every((element: { id: string }) => input.frame.elements.some(current => current.id === element.id))).toBe(true);
+  });
+
+  it.each([
+    [{ prompt: '请选择应用', answer: '帮我输入密码' }],
+    [{ prompt: '验证码是什么', answer: '123456' }],
+    [{ prompt: '请选择应用', answer: '字'.repeat(501) }],
+    [{ prompt: '字'.repeat(601), answer: '微信' }],
+    [{ prompt: '', answer: '微信' }],
+    [{ prompt: '请选择应用', answer: ' ' }],
+    [{ prompt: '应用\u0000名称', answer: '微信' }],
+    [{ prompt: '请选择应用', answer: '微\u200B信' }],
+    [{ prompt: '请选择应用', answer: '微信', unknown: true }],
+    Array.from({ length: 4 }, () => ({ prompt: '请选择应用', answer: '微信' })),
+  ].map(replies => [replies]))('无效或敏感补充不调用模型：%j', async replies => {
+    const endpoint = provider(async () => ({ text: '{}' }));
+    await expect(createProviderAnalysisClient({ provider: endpoint }).analyze({ ...requestInput(), clarificationReplies: replies })).rejects.toMatchObject({ code: 'OUTBOUND_CLOSED' });
+    expect(endpoint.answer).not.toHaveBeenCalled();
+  });
+
+  it.each([null, {}, ['微信'], [undefined], new Array(1)].map(replies => [replies]))('拒绝畸形追问列表：%j', async replies => {
+    const endpoint = provider(async () => ({ text: '{}' }));
+    await expect(createProviderAnalysisClient({ provider: endpoint }).analyze({ ...requestInput(),
+      clarificationReplies: replies as unknown as AnalysisInput['clarificationReplies'] })).rejects.toMatchObject({ code: 'OUTBOUND_CLOSED' });
+    expect(endpoint.answer).not.toHaveBeenCalled();
+  });
+});
+
 function crowdedInput(entry = '微信'): AnalysisInput {
   const raw = syntheticFrame();
   const detection = syntheticDetection(raw, []);

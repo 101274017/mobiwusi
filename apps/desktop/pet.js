@@ -41,6 +41,8 @@
   let retryAction;
   let messagesSignature = '';
   let guidanceFeedbackSignature = '';
+  let clarificationDraftKey = '';
+  let newQuestionKey = '';
   let draftVersion = 0;
   let dictationGeneration = 0;
   let voiceFindMode = false;
@@ -385,10 +387,31 @@
     renderRecentNotes(notes);
   }
 
+  function clarificationContext() {
+    const state = flags();
+    const task = state.task;
+    if (activeSection !== 'guidance' || !state.safeObserving || state.blocked || state.privacyPaused || state.taskOutdated
+      || task.kind !== 'guidance' || task.state !== 'needs_help' || task.awaitingReply !== true || state.analysis.state !== 'ready'
+      || !validIdentifier(task.id) || !Number.isSafeInteger(task.generation)) return null;
+    const key = `${task.id}:${task.generation}`;
+    return key === newQuestionKey ? null : { key, guideId: task.id, taskGeneration: task.generation, observationGeneration: state.observation.generation };
+  }
+
   function renderView() {
     const view = sectionViews[activeSection];
     for (const panel of viewPanels) element(panel).hidden = !view.panels.includes(panel);
-    element('question-form').hidden = !composerSections.includes(activeSection);
+    const clarification = clarificationContext();
+    element('question-form').hidden = !composerSections.includes(activeSection) || Boolean(clarification);
+    element('guidance-reply-form').hidden = !clarification;
+    if (clarification) {
+      if (clarificationDraftKey !== clarification.key) {
+        clarificationDraftKey = clarification.key;
+        element('guidance-answer').value = '';
+      }
+      element('guidance-original-question').textContent = `继续查找：${text(record(runtime.task).question)}`;
+      element('guidance-send-answer').disabled = !flags().canAsk || !element('guidance-answer').value.trim();
+      element('guidance-rescan').disabled = !flags().canAsk;
+    }
     element('pet-panel').dataset.view = activeSection;
     element('panel-title').textContent = view.title;
     element('panel-eyebrow').textContent = activeSection === 'features' ? '所有陪伴，从暖暖开始' : '暖暖的功能小屋 / 独立功能页';
@@ -447,7 +470,7 @@
               : ['unavailable', 'error'].includes(state.analysis.state) ? text(state.analysis.message, '当前没有可用的屏幕分析结果，可手动重试；不会生成假指引。')
                 : state.taskOutdated ? '观察范围已变化，旧位置已隐藏；请等待与当前画面对应的新指引。'
                   : state.task.state === 'awaiting_action' ? targetStatus
-                    : state.task.state === 'needs_help' ? `本次分析没有生成箭头。${text(task.explanation, text(state.analysis.message, '请重新描述目标，或先亲手打开需要操作的软件。'))}`
+                    : state.task.state === 'needs_help' ? `本次分析没有生成箭头。${text(task.explanation, text(state.analysis.message, '请重新描述目标，或先亲手打开需要操作的软件。'))}${task.awaitingReply === true ? '可在下方“回答暖暖的追问”继续回答，或点击“重新识别当前画面”。' : ''}`
                   : '点击并确认后说出目标；音频仅在本机识别，文字与必要的脱敏画面只为本次查找发送。';
     const observationScope = state.safeObserving && source ? `观察范围：${source}。` : '';
     element('guidance-status').textContent = voiceFindStatus + (observationScope ? `\n${observationScope}` : '');
@@ -459,7 +482,7 @@
     element('guidance-start-observation').textContent = pending.has('observation.start') || pending.has('observation.reselect') ? '正在等待选择屏幕…' : canReselectObservation
       ? '① 重新选择观察屏幕' : state.safeObserving ? '① 屏幕已就绪' : '① 选择屏幕与授权';
     element('screen-voice-find').disabled = !state.canVoiceFind;
-    element('screen-voice-find').textContent = cloudAuthorizing ? '正在等待分析授权…' : pending.has('dictate') && voiceFindMode ? '正在本机听写…' : state.task.kind !== 'text' && state.task.state === 'analyzing' ? '正在分析当前画面…' : '② 语音查找并指引';
+    element('screen-voice-find').textContent = cloudAuthorizing ? '正在等待分析授权…' : pending.has('dictate') && voiceFindMode ? '正在本机听写…' : state.task.kind !== 'text' && state.task.state === 'analyzing' ? '正在分析当前画面…' : clarificationContext() ? '② 语音回答并继续' : '② 语音查找并指引';
     for (const button of document.querySelectorAll('[data-tool]')) button.disabled = !ready || pending.has('open-tool');
 
     element('task-status').textContent = ready && task.kind === 'text' ? task.state === 'analyzing' ? '正在请求文字模型' : task.result === 'answered' ? '文字回答已返回（未核验屏幕）' : task.result === 'failed' ? '文字回答未完成' : '文字提问已结束' : (ready && Object.hasOwn(taskLabels, task.state) ? taskLabels[task.state] : '') || '等待教学状态';
@@ -726,12 +749,13 @@
     }
   }
 
-  async function sendVoiceFind(question, observationGeneration) {
+  async function sendVoiceFind(question, observationGeneration, clarification = null) {
     guidanceNoticeGeneration = observationGeneration;
     voiceFindMode = true;
     await perform('ask', '语音查找未完成', async () => {
       try {
-        const reply = await bridge.ask(question, observationGeneration);
+        const reply = clarification ? await bridge.command({ type: 'guidance.reply', text: question, guideId: clarification.guideId,
+          taskGeneration: clarification.taskGeneration, observationGeneration }) : await bridge.ask(question, observationGeneration);
         checkReply(reply);
         if (!disposed) {
           const current = flags();
@@ -751,13 +775,14 @@
         }
         return reply;
       } finally { voiceFindMode = false; }
-    }, () => sendVoiceFind(question, observationGeneration), true);
+    }, () => sendVoiceFind(question, observationGeneration, clarification), true);
   }
 
   async function startVoiceFind() {
     const initial = flags();
     if (disposed || !initial.canVoiceFind) return;
     const observationGeneration = initial.observation.generation;
+    const clarification = clarificationContext();
     const request = ++dictationGeneration;
     dictationNotice = '';
     dictationTranscript = '';
@@ -781,9 +806,15 @@
         dictationNotice = '屏幕观察或授权已变化。识别文字已保留在下方，没有发送画面或问题。';
         return;
       }
+      if (clarification && clarificationContext()?.key !== clarification.key) {
+        dictationNotice = '追问已经变化，旧语音回答没有发送，也没有覆盖当前回答草稿。';
+        showError('语音回答未发送', new Error(dictationNotice));
+        return;
+      }
       dictationNotice = '本机听写已完成，麦克风已关闭；正在按本次授权查找目标。';
       render();
-      await sendVoiceFind(recognized, observationGeneration);
+      if (clarification) element('guidance-answer').value = recognized;
+      await sendVoiceFind(recognized, observationGeneration, clarification);
     } catch (error) {
       if (!disposed && request === dictationGeneration) showError('语音查找未完成', error, startVoiceFind);
     } finally {
@@ -822,6 +853,22 @@
     }
     const type = confirmed ? 'learning.review.confirm' : 'learning.review.decline';
     void perform(type, '复习选择未确认', () => bridge.command({ type, proposalId: expectedId }), () => respondToReview(confirmed, expectedId, expectedTime, expectedTimezone), true);
+  }
+
+  function sendClarification() {
+    const context = clarificationContext();
+    if (!context || !flags().canAsk) return;
+    const answer = element('guidance-answer').value.trim();
+    if (!answer || answer.length > 500) return;
+    void perform('ask', '补充回答未确认', () => bridge.command({ type: 'guidance.reply', text: answer, guideId: context.guideId,
+      taskGeneration: context.taskGeneration, observationGeneration: context.observationGeneration }), sendClarification, true);
+  }
+
+  function rescanGuidance() {
+    const context = clarificationContext();
+    if (!context || !flags().canAsk) return;
+    void perform('ask', '重新识别未确认', () => bridge.command({ type: 'guidance.rescan', guideId: context.guideId,
+      taskGeneration: context.taskGeneration, observationGeneration: context.observationGeneration }), rescanGuidance, true);
   }
 
   function sendQuestion() {
@@ -1121,6 +1168,20 @@
     if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229) { event.preventDefault(); sendQuestion(); }
   });
   bind(element('question-form'), 'submit', event => { event.preventDefault(); sendQuestion(); });
+  bind(element('guidance-answer'), 'pointerdown', event => { if (event.button === 0) element('guidance-answer').focus({ preventScroll: true }); });
+  bind(element('guidance-answer'), 'input', render);
+  bind(element('guidance-answer'), 'keydown', event => {
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229) { event.preventDefault(); sendClarification(); }
+  });
+  bind(element('guidance-reply-form'), 'submit', event => { event.preventDefault(); sendClarification(); });
+  bind(element('guidance-rescan'), 'click', rescanGuidance);
+  bind(element('guidance-new-question'), 'click', () => {
+    const context = clarificationContext();
+    if (!context) return;
+    newQuestionKey = context.key;
+    render();
+    element('question').focus({ preventScroll: true });
+  });
   bind(element('start-dictation'), 'click', () => { void startDictation(); });
   bind(element('cancel-dictation'), 'click', () => { void cancelDictation(); });
   for (const [control, type] of Object.entries({ 'start-observation': 'observation.start', 'stop-observation': 'observation.stop', 'resume-sharing': 'observation.resume', 'verify-step': 'guidance.verify', 'repeat-step': 'guidance.repeat', 'finish-lesson': 'guidance.finish', 'toggle-captions': 'captions.toggle', 'start-voice-chat': 'voice.open', 'pet-voice': 'voice.open', 'feature-voice': 'voice.open', 'pet-voice-interrupt': 'voice.interrupt', 'pet-voice-end': 'voice.stop' })) {
