@@ -35,6 +35,7 @@ export interface StopResult { stopped: boolean; captureActive: boolean; mediaAct
 export interface DesktopRuntime {
   snapshot(): RuntimeSnapshot; startObservation(input: ObservationConsent): Promise<RuntimeSnapshot>;
   resumeObservation(input: ObservationConsent): Promise<RuntimeSnapshot>; stopObservation(reason?: string): Promise<StopResult>;
+  authorizeCloudAnalysis(input: { actor: string; confirmed: boolean; observationGeneration: number }): Promise<RuntimeSnapshot>;
   ask(text: string, requiredObservation?: number): Promise<RuntimeSnapshot>; verify(): Promise<RuntimeSnapshot>;
   finishTeaching(result?: string): Promise<RuntimeSnapshot>; repeat(): RuntimeSnapshot; toggleCaptions(): RuntimeSnapshot;
   dispose(reason?: string): Promise<StopResult>; whenIdle(): Promise<void>;

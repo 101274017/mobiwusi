@@ -44,6 +44,7 @@
   let dictationGeneration = 0;
   let voiceFindMode = false;
   let dictationNotice = '';
+  let guidanceNoticeGeneration;
   let dictationTranscript = '';
   let learningRequested = false;
   let recentNotesSignature = '';
@@ -138,8 +139,8 @@
     return {
       observation, task, analysis, privacyPaused, cleanupFailed, safetyUnclassified, captureConflict, privacyConflict, blocked, safeObserving, activeTask, taskOutdated, observationPending,
       canAsk: ready && typeof bridge?.ask === 'function' && !privacyPaused && !blocked && !taskBusy && !observationPending && !pending.has('ask') && !pending.has('dictate') && !pending.has('voice-find')
-        && (activeSection === 'guidance' ? safeObserving && observation.cloudConsent === true : safeObserving || (['off', 'stopped'].includes(observation.state) && observation.captureActive === false)),
-      canVoiceFind: ready && safeObserving && observation.cloudConsent === true && !blocked && !taskBusy && !observationPending && !guidancePending
+        && (activeSection === 'guidance' ? safeObserving && (observation.cloudConsent === true || (observation.cloudConsent === false && bridgeAvailable)) : safeObserving || (['off', 'stopped'].includes(observation.state) && observation.captureActive === false)),
+      canVoiceFind: ready && safeObserving && (observation.cloudConsent === true || (observation.cloudConsent === false && bridgeAvailable)) && !blocked && !taskBusy && !observationPending && !guidancePending
         && !pending.has('ask') && !pending.has('dictate') && !pending.has('voice-find') && voice.active !== true
         && typeof bridge?.ask === 'function' && typeof bridge?.dictate === 'function' && typeof bridge?.cancelDictation === 'function',
       canStart: ready && !blocked && ['off', 'stopped'].includes(observation.state) && observation.captureActive === false && !observationPending,
@@ -431,9 +432,11 @@
       : voice.active === true ? '回到面对面语音' : '和暖暖面对面语音';
     element('resume-sharing').textContent = pending.has('observation.resume') ? '等待选择范围与确认…' : '本人继续共享';
     element('feature-guidance-status').textContent = !ready ? '正在确认运行核心，不会开启采集' : state.blocked || state.privacyPaused ? '共享已暂停，先查看隐私与安全状态' : state.safeObserving ? task.state === 'awaiting_action' ? '已有当前步骤，请核对后亲手操作' : '本地观察中；提问后按需分析并定位' : '未观察屏幕；点击了解授权与教学流程';
+    const cloudAuthorizing = pending.has('observation.authorize-cloud');
     const voiceFindStatus = !ready ? '正在确认运行核心，不会开启采集。' : state.blocked || state.privacyPaused ? '共享已暂停；先在屏幕观察页检查状态并由你本人重新授权。'
       : !state.safeObserving ? '先开启本地观察，并在系统列表中选择你要查找的屏幕。'
-        : state.observation.cloudConsent !== true ? '当前仅本地观察。语音查找需停止后重新开启，并单独同意脱敏画面按需上云。'
+        : cloudAuthorizing ? '请在系统窗口单独确认本次画面分析；确认前不启动查找、不发送画面。'
+          : state.observation.cloudConsent !== true ? '屏幕已开启本地观察。可直接点击“查找并指引”或“语音查找并指引”，单独同意按需脱敏分析后继续，无需重新选择屏幕。'
           : pending.has('dictate') && voiceFindMode ? '请在弹出的系统窗口确认麦克风；说出目标后本机停麦，再按本次授权分析。'
             : state.task.kind !== 'text' && (state.task.state === 'analyzing' || state.analysis.state === 'analyzing') ? '查找请求已受理，正在检查并分析当前授权画面；可点击“结束教学”取消，不会代替你点击或输入。'
               : ['unavailable', 'error'].includes(state.analysis.state) ? text(state.analysis.message, '当前没有可用的屏幕分析结果，可手动重试；不会生成假指引。')
@@ -442,12 +445,13 @@
     element('guidance-status').textContent = voiceFindStatus;
     element('guidance-analysis').hidden = !state.analysis.message || ['idle', 'ready', 'analyzing'].includes(state.analysis.state);
     element('guidance-analysis').textContent = text(state.analysis.message);
-    const canReselectObservation = state.safeObserving && observation.cloudConsent !== true && !state.privacyPaused && !state.observationPending && !pending.has('dictate') && !pending.has('ask');
+    const canReselectObservation = state.safeObserving && observation.cloudConsent === false && !state.blocked && !state.privacyPaused && !state.observationPending
+      && !['analyzing', 'verifying'].includes(task.state) && !pending.has('dictate') && !pending.has('ask');
     element('guidance-start-observation').disabled = !state.canStart && !canReselectObservation;
-    element('guidance-start-observation').textContent = pending.has('observation.start') ? '正在等待选择屏幕…' : canReselectObservation
-      ? '① 重新选择屏幕并授权' : state.safeObserving ? '① 屏幕已就绪' : '① 选择屏幕与授权';
+    element('guidance-start-observation').textContent = pending.has('observation.start') || pending.has('observation.reselect') ? '正在等待选择屏幕…' : canReselectObservation
+      ? '① 重新选择观察屏幕' : state.safeObserving ? '① 屏幕已就绪' : '① 选择屏幕与授权';
     element('screen-voice-find').disabled = !state.canVoiceFind;
-    element('screen-voice-find').textContent = pending.has('dictate') && voiceFindMode ? '正在本机听写…' : state.task.kind !== 'text' && state.task.state === 'analyzing' ? '正在分析当前画面…' : '② 语音查找并指引';
+    element('screen-voice-find').textContent = cloudAuthorizing ? '正在等待分析授权…' : pending.has('dictate') && voiceFindMode ? '正在本机听写…' : state.task.kind !== 'text' && state.task.state === 'analyzing' ? '正在分析当前画面…' : '② 语音查找并指引';
     for (const button of document.querySelectorAll('[data-tool]')) button.disabled = !ready || pending.has('open-tool');
 
     element('task-status').textContent = ready && task.kind === 'text' ? task.state === 'analyzing' ? '正在请求文字模型' : task.result === 'answered' ? '文字回答已返回（未核验屏幕）' : task.result === 'failed' ? '文字回答未完成' : '文字提问已结束' : (ready && Object.hasOwn(taskLabels, task.state) ? taskLabels[task.state] : '') || '等待教学状态';
@@ -464,15 +468,15 @@
     element('finish-lesson').textContent = pending.has('guidance.finish') ? '正在请求结束…' : '结束教学';
     element('question').disabled = typeof bridge?.ask !== 'function';
     element('send-question').disabled = !state.canAsk || !element('question').value.trim();
-    element('send-question').textContent = pending.has('ask') ? '正在发送…' : task.state === 'analyzing' ? task.kind === 'text' ? '正在等待回答…' : '正在分析画面…' : activeSection === 'guidance' ? '查找并指引 ↗' : '问暖暖 ↗';
+    element('send-question').textContent = cloudAuthorizing ? '正在等待分析授权…' : pending.has('ask') ? '正在发送…' : task.state === 'analyzing' ? task.kind === 'text' ? '正在等待回答…' : '正在分析画面…' : activeSection === 'guidance' ? '查找并指引 ↗' : '问暖暖 ↗';
     element('question-hint').textContent = state.privacyPaused || state.blocked ? '安全状态待处理，可保留草稿，不能发送' : !ready ? '等待连接，可先写下问题' : activeSection === 'guidance'
-      ? state.safeObserving && observation.cloudConsent === true ? '结合当前已授权画面查找 · Enter 发送' : '先选择屏幕并同意按需脱敏分析，才可查找指引' : '文字发送给已配置模型 · Enter 发送 · Shift + Enter 换行';
+      ? state.safeObserving ? observation.cloudConsent === true ? '结合当前已授权画面查找 · Enter 发送' : '屏幕已就绪 · 点击查找后单独确认按需脱敏分析' : '先选择屏幕，再点击查找并确认按需脱敏分析' : '文字发送给已配置模型 · Enter 发送 · Shift + Enter 换行';
     const dictationPending = pending.has('dictate');
     element('start-dictation').disabled = !state.canAsk || voice.active === true || typeof bridge?.dictate !== 'function' || typeof bridge?.cancelDictation !== 'function';
     element('start-dictation').textContent = dictationPending ? '本次听写中…' : '语音输入';
     element('cancel-dictation').hidden = !dictationPending;
     element('cancel-dictation').disabled = pending.has('dictation.cancel');
-    element('dictation-status').textContent = pending.has('dictation.cancel') ? '正在取消并等待本次麦克风关闭…' : dictationPending ? voiceFindMode ? wake.phase === 'question' ? '正在本机听写查找目标；麦克风关闭前不会发送。' : wake.phase === 'stopping' ? '听写结束，正在确认麦克风关闭…' : '请在系统窗口确认本次语音查找。' : wake.phase === 'question' ? '正在本机听写，请直接说一句话；最多等待 20 秒。' : wake.phase === 'stopping' ? '已结束识别，正在等待麦克风关闭…' : '请在原生窗口确认本次输入，等候正在本机听写提示。' : dictationNotice || '点击语音输入，本人确认后直接说话；识别文字仅填入，不自动发送。';
+    element('dictation-status').textContent = cloudAuthorizing ? '请在系统窗口确认是否允许本次按需脱敏分析；当前没有发送查找或开启麦克风。' : pending.has('dictation.cancel') ? '正在取消并等待本次麦克风关闭…' : dictationPending ? voiceFindMode ? wake.phase === 'question' ? '正在本机听写查找目标；麦克风关闭前不会发送。' : wake.phase === 'stopping' ? '听写结束，正在确认麦克风关闭…' : '请在系统窗口确认本次语音查找。' : wake.phase === 'question' ? '正在本机听写，请直接说一句话；最多等待 20 秒。' : wake.phase === 'stopping' ? '已结束识别，正在等待麦克风关闭…' : '请在原生窗口确认本次输入，等候正在本机听写提示。' : dictationNotice || '点击语音输入，本人确认后直接说话；识别文字仅填入，不自动发送。';
     element('dictation-result').hidden = !dictationTranscript;
     element('dictation-result').textContent = dictationTranscript ? `本次识别文字：${dictationTranscript}` : '';
 
@@ -524,9 +528,15 @@
     if (snapshot?.ok === true && Object.hasOwn(snapshot, 'snapshot')) snapshot = snapshot.snapshot;
     if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) throw new Error('收到的运行状态无效');
     const generation = record(snapshot.observation).generation;
+    const previousObservation = record(runtime.observation);
     if (Number.isSafeInteger(generation) && generation >= 0) {
       if (generation < newestGeneration) return;
       newestGeneration = generation;
+    }
+    if ((guidanceNoticeGeneration !== undefined && (generation !== guidanceNoticeGeneration || record(snapshot.observation).cloudConsent !== true))
+      || (Number.isSafeInteger(previousObservation.generation) && previousObservation.generation !== generation)) {
+      dictationNotice = '观察范围或画面授权已变化，旧查找已失效；草稿和识别文字仍保留，重新确认后可查找。';
+      guidanceNoticeGeneration = undefined;
     }
     runtime = snapshot;
     ready = true;
@@ -619,6 +629,36 @@
     void perform(type, '操作未确认', () => bridge.command({ type }), () => requestCommand(type, control), true);
   }
 
+  async function ensureGuidanceCloudConsent(observationGeneration) {
+    const initial = flags();
+    if (!initial.safeObserving || initial.blocked || initial.observation.generation !== observationGeneration) throw new Error('屏幕观察已变化，请先确认当前观察范围；问题未发送。');
+    if (initial.observation.cloudConsent === true) return true;
+    if (initial.observation.cloudConsent !== false || typeof bridge?.command !== 'function') throw new Error('当前画面分析授权未确认，请重新读取桌宠状态。');
+    pending.add('observation.authorize-cloud');
+    clearError();
+    render();
+    try {
+      const reply = await bridge.command({ type: 'observation.authorize-cloud', observationGeneration });
+      checkReply(reply);
+      if (disposed) return false;
+      await refreshSnapshot();
+      const current = flags();
+      if (!current.safeObserving || current.blocked || current.observation.generation !== observationGeneration) {
+        dictationNotice = '确认期间观察范围或安全状态已变化，本次查找没有发送；问题草稿已保留。';
+        return false;
+      }
+      if (reply?.status === 'cancelled' || current.observation.cloudConsent !== true) {
+        dictationNotice = '本次未同意画面分析，仍仅本地观察；没有发送查找或开启麦克风，问题草稿已保留。';
+        return false;
+      }
+      dictationNotice = '';
+      return true;
+    } finally {
+      pending.delete('observation.authorize-cloud');
+      render();
+    }
+  }
+
   async function startDictation() {
     if (disposed || element('start-dictation').disabled) return;
     const request = ++dictationGeneration;
@@ -675,12 +715,18 @@
   }
 
   async function sendVoiceFind(question, observationGeneration) {
+    guidanceNoticeGeneration = observationGeneration;
     voiceFindMode = true;
     await perform('ask', '语音查找未完成', async () => {
       try {
         const reply = await bridge.ask(question, observationGeneration);
         checkReply(reply);
         if (!disposed) {
+          const current = flags();
+          if (!current.safeObserving || current.observation.generation !== observationGeneration || current.observation.cloudConsent !== true) {
+            dictationNotice = '观察范围或画面授权已变化，旧查找已失效；识别文字已保留，没有启动新查找。';
+            return reply;
+          }
           const result = record(record(reply).snapshot);
           const task = record(result.task);
           const analysis = record(result.analysis);
@@ -701,13 +747,15 @@
     if (disposed || !initial.canVoiceFind) return;
     const observationGeneration = initial.observation.generation;
     const request = ++dictationGeneration;
-    voiceFindMode = true;
     dictationNotice = '';
     dictationTranscript = '';
-    pending.add('dictate');
     clearError();
-    render();
     try {
+      if (!await ensureGuidanceCloudConsent(observationGeneration)) return;
+      if (disposed || request !== dictationGeneration || !flags().canVoiceFind || flags().observation.generation !== observationGeneration || flags().observation.cloudConsent !== true) return;
+      voiceFindMode = true;
+      pending.add('dictate');
+      render();
       const result = await bridge.dictate(observationGeneration);
       if (disposed || request !== dictationGeneration) return;
       if (!result || result.localOnly !== true || !['complete', 'cancelled'].includes(result.status)) throw new Error('本地听写结果未确认');
@@ -717,7 +765,7 @@
       dictationTranscript = recognized;
       pending.delete('dictate');
       const current = flags();
-      if (!current.canVoiceFind || current.observation.generation !== observationGeneration) {
+      if (!current.canVoiceFind || current.observation.generation !== observationGeneration || current.observation.cloudConsent !== true) {
         dictationNotice = '屏幕观察或授权已变化。识别文字已保留在下方，没有发送画面或问题。';
         return;
       }
@@ -776,8 +824,20 @@
       return;
     }
     void perform('ask', '问题未确认', async () => {
+      if (guidanceGeneration !== undefined) {
+        if (!await ensureGuidanceCloudConsent(guidanceGeneration)) return;
+        if (disposed || activeSection !== 'guidance' || draftVersion !== version || element('question').value !== draft) {
+          dictationNotice = '授权期间问题或功能页已变化，本次未发送；请检查草稿后重新点击查找。';
+          return;
+        }
+        guidanceNoticeGeneration = guidanceGeneration;
+      }
       const reply = guidanceGeneration === undefined ? await bridge.ask(question) : await bridge.ask(question, guidanceGeneration);
       checkReply(reply);
+      if (guidanceGeneration !== undefined && (!flags().safeObserving || flags().observation.generation !== guidanceGeneration || flags().observation.cloudConsent !== true)) {
+        if (!disposed) dictationNotice = '观察范围或画面授权已变化，旧查找已失效；问题草稿已保留，没有启动新查找。';
+        return reply;
+      }
       if (guidanceGeneration !== undefined || reply?.snapshot?.task?.kind === 'guidance') {
         if (!disposed) dictationNotice = '查找请求已受理，问题草稿已保留；请查看上方的分析进度与箭头指引，失败后可手动重试。';
         return reply;
@@ -1055,7 +1115,7 @@
     bind(element(control), 'click', () => requestCommand(type, control));
   }
   bind(element('guidance-start-observation'), 'click', () => {
-    const type = flags().safeObserving && flags().observation.cloudConsent !== true ? 'observation.reselect' : 'observation.start';
+    const type = flags().safeObserving && flags().observation.cloudConsent === false ? 'observation.reselect' : 'observation.start';
     requestCommand(type, 'guidance-start-observation');
   });
   bind(element('screen-voice-find'), 'click', () => { void startVoiceFind(); });

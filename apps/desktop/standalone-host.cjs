@@ -32,6 +32,7 @@ function createStandaloneHost(options) {
   let pendingGuide = null;
   let consentedSourceId = null;
   let choosingSource = false;
+  let choosingCloudConsent = false;
   let observationConsentGeneration = 0;
   let choosingWake = false;
   let dictating = false;
@@ -410,6 +411,29 @@ function createStandaloneHost(options) {
     } finally { choosingSource = false; }
   }
 
+  async function authorizeObservationCloud(observationGeneration) {
+    const observation = runtime.snapshot().observation;
+    const consentGeneration = observationConsentGeneration;
+    const current = () => {
+      const latest = runtime.snapshot().observation;
+      return !closing && consentGeneration === observationConsentGeneration
+        && Number.isSafeInteger(observationGeneration) && observationGeneration > 0 && latest.generation === observationGeneration
+        && latest.id === observation.id && latest.state === 'observing' && latest.captureActive === true;
+    };
+    if (!current()) throw new Error('请先开启屏幕观察；本次画面分析授权必须对应当前观察范围。');
+    if (choosingCloudConsent || choosingSource) throw new Error('正在等待本人确认画面分析，请先完成当前选择。');
+    if (observation.cloudConsent === true) return { ok: true, snapshot: snapshot() };
+    choosingCloudConsent = true;
+    try {
+      const consent = await showDialog({ type: 'question', title: '本次查找的画面分析授权', message: '允许为当前查找按需分析脱敏画面吗？',
+        detail: `当前观察范围：${observation.sourceName || '你已选择的屏幕'}。\n\n屏幕观察权限只允许本地观察，不等于允许发送画面。本次单独同意后，仅在你提问、当前教学显著变页或核验时，向已配置的分析服务发送必要的本地检测脱敏画面；安全控件模式只发送已识别的通用控件布局，不发送原画面。不会持续上传，也不会重发旧问题。\n\n不必停止观察或重新选择屏幕。这不授予麦克风权限；停止、隐私暂停或切换观察范围后授权失效。所有点击和输入仍由你亲手完成。取消后保留本地观察与问题草稿，不发送查找。`,
+        buttons: ['同意本次按需分析', '仅本地观察'], defaultId: 1, cancelId: 1, noLink: true });
+      if (consent.response !== 0 || !current()) return { ok: true, status: 'cancelled', snapshot: snapshot() };
+      await runtime.authorizeCloudAnalysis({ actor: 'owner', confirmed: true, observationGeneration });
+      return { ok: true, snapshot: snapshot() };
+    } finally { choosingCloudConsent = false; }
+  }
+
   async function disableWake() {
     wakeConsentGeneration += 1;
     wakeController?.abort();
@@ -666,12 +690,13 @@ function createStandaloneHost(options) {
 
   async function command(payload) {
     if (!payload || typeof payload !== 'object' || Array.isArray(payload) || typeof payload.type !== 'string') throw new Error('桌宠指令无效');
-    const fields = { 'panel.set-expanded': ['type', 'expanded'], 'learning.set-mastery': ['type', 'noteId', 'mastered'],
+    const fields = { 'observation.authorize-cloud': ['type', 'observationGeneration'], 'panel.set-expanded': ['type', 'expanded'], 'learning.set-mastery': ['type', 'noteId', 'mastered'],
       'learning.review.confirm': ['type', 'proposalId'], 'learning.review.decline': ['type', 'proposalId'] };
     const allowed = fields[payload.type] ?? ['type'];
     if (Object.keys(payload).some(key => !allowed.includes(key))) throw new Error('桌宠指令包含不允许的参数');
     switch (payload.type) {
       case 'observation.start': return chooseObservation();
+      case 'observation.authorize-cloud': return authorizeObservationCloud(payload.observationGeneration);
       case 'observation.reselect': {
         const stopped = await stop('reselect');
         if (stopped.stopped !== true || stopped.captureActive !== false) throw new Error('旧屏幕观察停止尚未确认，请勿继续选择或共享。');

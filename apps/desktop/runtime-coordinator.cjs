@@ -606,6 +606,23 @@ function createDesktopRuntime(options) {
     return snapshot();
   }
 
+  async function authorizeCloudAnalysis(input) {
+    const current = () => !disposed && !cleanupJob && input?.actor === 'owner' && input.confirmed === true
+      && Number.isSafeInteger(input.observationGeneration) && input.observationGeneration > 0 && input.observationGeneration === observationGeneration
+      && state.observation.state === 'observing' && state.observation.captureActive === true;
+    if (!current()) throw new Error('当前屏幕观察已变化或未获本人确认，本次画面分析授权未生效。');
+    if (cloudConsent) return snapshot();
+    invalidateQuestion();
+    const question = questionSequence;
+    if (state.task.id && !['completed', 'ended'].includes(state.task.state)) await finishTeaching('interrupted');
+    if (!current() || question !== questionSequence) throw new Error('确认期间屏幕观察或问题已变化，请重新确认当前范围；没有开启画面分析。');
+    cloudConsent = true;
+    state.observation.cloudConsent = true;
+    state.analysis = { state: 'idle', message: '已单独同意当前观察范围的按需脱敏分析；提问前不会发送画面，也不会重发旧问题。' };
+    publish();
+    return snapshot();
+  }
+
   function requireGuidanceObservation(generation) {
     if (!Number.isSafeInteger(generation) || generation < 1 || generation !== observationGeneration
       || state.observation.state !== 'observing' || state.observation.captureActive !== true || !cloudConsent) {
@@ -686,7 +703,7 @@ function createDesktopRuntime(options) {
   }
 
   return { snapshot, startObservation, stopObservation: reason => closeObservation(reason ?? 'user'),
-    resumeObservation: input => startObservation({ ...input, resume: true }), ask, verify, finishTeaching: result => { invalidateQuestion(); return finishTeaching(result); }, repeat,
+    resumeObservation: input => startObservation({ ...input, resume: true }), authorizeCloudAnalysis, ask, verify, finishTeaching: result => { invalidateQuestion(); return finishTeaching(result); }, repeat,
     toggleCaptions, dispose, whenIdle };
 }
 

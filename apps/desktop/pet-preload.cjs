@@ -152,7 +152,7 @@ function projectReply(value) {
   return result;
 }
 
-const commands = new Set(['observation.start', 'observation.stop', 'observation.resume', 'observation.reselect', 'guidance.verify', 'guidance.finish', 'guidance.repeat', 'captions.toggle', 'wake.enable', 'wake.disable', 'voice.open', 'voice.stop', 'voice.mute', 'voice.unmute', 'voice.interrupt', 'panel.set-expanded', 'learning.set-mastery', 'learning.review.confirm', 'learning.review.decline']);
+const commands = new Set(['observation.start', 'observation.stop', 'observation.resume', 'observation.reselect', 'observation.authorize-cloud', 'guidance.verify', 'guidance.finish', 'guidance.repeat', 'captions.toggle', 'wake.enable', 'wake.disable', 'voice.open', 'voice.stop', 'voice.mute', 'voice.unmute', 'voice.interrupt', 'panel.set-expanded', 'learning.set-mastery', 'learning.review.confirm', 'learning.review.decline']);
 
 function validIdentifier(value) {
   return typeof value === 'string' && Boolean(value.trim()) && value === value.trim() && value.length <= 128 && !/[\u0000-\u001f\u007f]/.test(value);
@@ -213,6 +213,10 @@ contextBridge.exposeInMainWorld('nuanbanPet', Object.freeze({
     if (!payload || typeof payload !== 'object' || Array.isArray(payload) || !commands.has(payload.type)) throw new TypeError('不支持的桌宠指令');
     if (payload.type === 'panel.set-expanded' && typeof payload.expanded !== 'boolean') throw new TypeError('面板展开状态必须是布尔值');
     const command = payload.type === 'panel.set-expanded' ? { type: payload.type, expanded: payload.expanded } : { type: payload.type };
+    if (payload.type === 'observation.authorize-cloud') {
+      if (!Number.isSafeInteger(payload.observationGeneration) || payload.observationGeneration < 1) throw new TypeError('屏幕观察代次无效');
+      command.observationGeneration = payload.observationGeneration;
+    }
     if (payload.type === 'learning.set-mastery') {
       command.noteId = requireIdentifier(payload.noteId);
       if (typeof payload.mastered !== 'boolean') throw new TypeError('掌握状态必须由本人明确选择');

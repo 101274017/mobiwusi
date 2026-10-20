@@ -59,6 +59,69 @@ async function beginTeaching(setup: ReturnType<typeof fixture>) {
   await setup.runtime.whenIdle();
 }
 
+describe('当前观察范围的单独画面分析授权', () => {
+  it('无需重启采集；同意不自动发送旧问题，新的查找才分析', async () => {
+    const setup = fixture();
+    await setup.start(false);
+    await setup.runtime.ask('旧问题不能在补授权后自动重发');
+    await setup.runtime.whenIdle();
+    const observation = setup.runtime.snapshot().observation;
+    const captures = setup.source.capture.mock.calls.length;
+    await setup.runtime.authorizeCloudAnalysis({ actor: 'owner', confirmed: true, observationGeneration: observation.generation });
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ ...observation, cloudConsent: true });
+    expect(setup.runtime.snapshot().task.state).toBe('ended');
+    expect(setup.source.capture).toHaveBeenCalledTimes(captures);
+    expect(setup.source.stop).not.toHaveBeenCalled();
+    expect(setup.analyze).not.toHaveBeenCalled();
+    await setup.runtime.ask('请教我调整文字大小', observation.generation);
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
+  });
+
+  it('结束旧问题期间又有新问题时，不能把待确认授权自动用于新问题', async () => {
+    const setup = fixture();
+    await setup.start(false);
+    await setup.runtime.ask('旧的本地问题');
+    await setup.runtime.whenIdle();
+    const saved = deferred<void>();
+    setup.recordTeaching.mockImplementationOnce(() => saved.promise);
+    const granting = setup.runtime.authorizeCloudAnalysis({ actor: 'owner', confirmed: true, observationGeneration: setup.runtime.snapshot().observation.generation });
+    const rejected = expect(granting).rejects.toThrow('问题已变化');
+    let asking: ReturnType<DesktopRuntime['ask']> | undefined;
+    try {
+      await vi.waitFor(() => expect(setup.recordTeaching).toHaveBeenCalledOnce());
+      asking = setup.runtime.ask('授权边界上的新本地问题');
+    } finally { saved.resolve(); }
+    await rejected;
+    await asking;
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().observation.cloudConsent).toBe(false);
+    expect(setup.analyze).not.toHaveBeenCalled();
+  });
+
+  it('没有本人确认、旧代次、停止和隐私暂停都不能授予画面分析权限', async () => {
+    const setup = fixture();
+    await setup.start(false);
+    const generation = setup.runtime.snapshot().observation.generation;
+    for (const input of [
+      { actor: 'assistant', confirmed: true, observationGeneration: generation },
+      { actor: 'owner', confirmed: false, observationGeneration: generation },
+      { actor: 'owner', confirmed: true, observationGeneration: generation + 1 },
+      { actor: 'owner', confirmed: true, observationGeneration: 0 },
+    ]) await expect(setup.runtime.authorizeCloudAnalysis(input)).rejects.toThrow('未获本人确认');
+    await setup.runtime.stopObservation();
+    await expect(setup.runtime.authorizeCloudAnalysis({ actor: 'owner', confirmed: true, observationGeneration: generation })).rejects.toThrow('已变化');
+    setup.controls.labels = ['未知正文', '未知控件'];
+    await setup.start(false);
+    expect(setup.runtime.snapshot().observation.state).toBe('privacy_paused');
+    await expect(setup.runtime.authorizeCloudAnalysis({ actor: 'owner', confirmed: true, observationGeneration: setup.runtime.snapshot().observation.generation })).rejects.toThrow('已变化');
+    expect(setup.runtime.snapshot().observation.cloudConsent).toBe(false);
+    expect(setup.analyze).not.toHaveBeenCalled();
+  });
+});
+
 describe('观察与教学快照的独立代次', () => {
   it('屏幕语音查找必须绑定当前观察代次和单独画面授权，失效时不回退成文字问答', async () => {
     const setup = fixture();
