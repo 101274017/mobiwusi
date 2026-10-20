@@ -24,7 +24,7 @@
   };
   const viewPanels = [...new Set(Object.values(sectionViews).flatMap(view => view.panels))];
   const observationLabels = { off: '本地观察未开启', awaiting_permission: '等待本人授权', observing: '正在本地观察', privacy_paused: '隐私暂停', stopped: '观察已停止', cleanup_failed: '停止尚未确认' };
-  const analysisLabels = { idle: '云端未在分析', unavailable: '云分析不可用', analyzing: '按需分析中', ready: '本次分析就绪', error: '云分析失败' };
+  const analysisLabels = { idle: '云端未在分析', unavailable: '云分析不可用', analyzing: '按需分析中', capture_retry: '正在刷新本地画面', capture_error: '本地画面待重试', ready: '本次分析就绪', error: '云分析失败' };
   const taskLabels = { idle: '等待你的问题', analyzing: '正在理解这一步', awaiting_action: '轮到你亲手操作', verifying: '正在用新画面核验', completed: '本次教学已完成', needs_help: '需要再确认一下', ended: '本次教学已结束' };
   let runtime = {};
   let ready = false;
@@ -432,7 +432,8 @@
     element('observation-status').textContent = state.cleanupFailed ? '停止尚未确认' : unsafe ? '保护状态异常，请停止' : state.safetyUnclassified ? '画面安全类别待确认' : observationIncomplete ? '观察信号待核验' : (ready && Object.hasOwn(observationLabels, observation.state) ? observationLabels[observation.state] : '') || '观察状态待确认';
     element('observation-status').dataset.tone = state.blocked || state.privacyPaused ? 'danger' : state.safeObserving ? 'active' : 'neutral';
     const source = text(observation.sourceName);
-    const reasonDetail = state.safeObserving && observation.reason === 'controls_only'
+    const reasonDetail = ['capture_retry', 'capture_error'].includes(analysis.state) ? text(analysis.message, '正在重新采集最新本地画面；不会使用过期画面，也不会重新请求屏幕共享。')
+      : state.safeObserving && observation.reason === 'controls_only'
       ? '正在本地观察（安全控件布局模式）：只保留已识别的通用控件标签和位置，不包含原画面、正文、文件名或图片。仅在本人另行授权后，才按需发送控件布局用于教学；不会自动操作。'
       : text(observation.reason) && analysis.state === 'error' ? text(analysis.message, observation.reason) : text(observation.reason);
     element('observation-detail').textContent = state.cleanupFailed ? `停止清理尚未确认，请退出桌宠并重新启动。${text(observation.reason)}` : unsafe ? '隐私或停止状态与采集 / 分析信号不一致。请立即停止观察，再检查运行核心。' : state.safetyUnclassified ? 'unclassified_screen / unknown：当前本地分类器尚未识别此画面，不等于已发现敏感内容。已支持设置、桌面、文件管理器及常见浏览器/编辑器控件；可在继续共享时选择“框选观察区域”，只保留目标软件。仍未分类时继续保持暂停，不会发送画面。' : text(reasonDetail, source ? `共享来源：${source}` : ready && observation.state === 'off' && observation.captureActive === false ? '尚未共享屏幕。提问不会由面板自动开启观察。' : ready && observation.state === 'stopped' && observation.captureActive === false ? '采集已由运行核心报告停止，重新开启仍需本人确认。' : '等待运行核心确认共享来源与采集状态。');
@@ -464,6 +465,7 @@
     const cloudAuthorizing = pending.has('observation.authorize-cloud');
     const voiceFindStatus = !ready ? '正在确认运行核心，不会开启采集。' : state.blocked || state.privacyPaused ? '共享已暂停；请查看下方原因。处理后由你本人点击“继续共享”，重新选择范围并确认；不会自动恢复或重发问题。'
       : !state.safeObserving ? '先开启本地观察，并在系统列表中选择你要查找的屏幕。'
+        : ['capture_retry', 'capture_error'].includes(state.analysis.state) ? text(state.analysis.message, '正在等待最新的本地安全画面；屏幕共享仍保持。')
         : cloudAuthorizing ? '请在系统窗口单独确认本次画面分析；确认前不启动查找、不发送画面。'
           : state.observation.cloudConsent !== true ? '屏幕已开启本地观察。可直接点击“查找并指引”或“语音查找并指引”，单独同意按需脱敏分析后继续，无需重新选择屏幕。'
           : pending.has('dictate') && voiceFindMode ? '请在弹出的系统窗口确认麦克风；说出目标后本机停麦，再按本次授权分析。'
@@ -483,7 +485,7 @@
     element('guidance-start-observation').textContent = pending.has('observation.start') || pending.has('observation.reselect') || pending.has('observation.resume') ? '正在等待选择屏幕…' : state.canResume ? '① 本人继续共享' : canReselectObservation
       ? '① 重新选择观察屏幕' : state.safeObserving ? '① 屏幕已就绪' : '① 选择屏幕与授权';
     element('screen-voice-find').disabled = !state.canVoiceFind;
-    element('screen-voice-find').textContent = cloudAuthorizing ? '正在等待分析授权…' : pending.has('dictate') && voiceFindMode ? '正在本机听写…' : state.task.kind !== 'text' && state.task.state === 'analyzing' ? '正在分析当前画面…' : clarificationContext() ? '② 语音回答并继续' : '② 语音查找并指引';
+    element('screen-voice-find').textContent = cloudAuthorizing ? '正在等待分析授权…' : pending.has('dictate') && voiceFindMode ? '正在本机听写…' : state.analysis.state === 'capture_retry' ? '正在刷新本地画面…' : state.task.kind !== 'text' && state.task.state === 'analyzing' ? '正在分析当前画面…' : clarificationContext() ? '② 语音回答并继续' : '② 语音查找并指引';
     for (const button of document.querySelectorAll('[data-tool]')) button.disabled = !ready || pending.has('open-tool');
 
     element('task-status').textContent = ready && task.kind === 'text' ? task.state === 'analyzing' ? '正在请求文字模型' : task.result === 'answered' ? '文字回答已返回（未核验屏幕）' : task.result === 'failed' ? '文字回答未完成' : '文字提问已结束' : (ready && Object.hasOwn(taskLabels, task.state) ? taskLabels[task.state] : '') || '等待教学状态';
@@ -500,7 +502,7 @@
     element('finish-lesson').textContent = pending.has('guidance.finish') ? '正在请求结束…' : '结束教学';
     element('question').disabled = typeof bridge?.ask !== 'function';
     element('send-question').disabled = !state.canAsk || !element('question').value.trim();
-    element('send-question').textContent = cloudAuthorizing ? '正在等待分析授权…' : pending.has('ask') ? '正在发送…' : task.state === 'analyzing' ? task.kind === 'text' ? '正在等待回答…' : '正在分析画面…' : activeSection === 'guidance' ? '查找并指引 ↗' : '问暖暖 ↗';
+    element('send-question').textContent = cloudAuthorizing ? '正在等待分析授权…' : pending.has('ask') ? '正在发送…' : state.analysis.state === 'capture_retry' ? '正在刷新画面…' : task.state === 'analyzing' ? task.kind === 'text' ? '正在等待回答…' : '正在分析画面…' : activeSection === 'guidance' ? '查找并指引 ↗' : '问暖暖 ↗';
     element('question-hint').textContent = state.privacyPaused || state.blocked ? '安全状态待处理，可保留草稿，不能发送' : !ready ? '等待连接，可先写下问题' : activeSection === 'guidance'
       ? state.safeObserving ? observation.cloudConsent === true ? '结合当前已授权画面查找 · Enter 发送' : '屏幕已就绪 · 点击查找后单独确认按需脱敏分析' : '先选择屏幕，再点击查找并确认按需脱敏分析' : '文字发送给已配置模型 · Enter 发送 · Shift + Enter 换行';
     const dictationPending = pending.has('dictate');

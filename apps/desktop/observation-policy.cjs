@@ -104,7 +104,7 @@ function evaluateLocalFrame(frame, detection, options = {}) {
   const now = options.now ?? Date.now();
   if (!frame || !Buffer.isBuffer(frame.png) || !Number.isInteger(frame.width) || !Number.isInteger(frame.height)
     || frame.width < 1 || frame.height < 1 || frame.width > 16384 || frame.height > 16384
-    || !Number.isFinite(frame.capturedAt) || frame.capturedAt > now || now - frame.capturedAt > (options.maxAgeMs ?? 5000)
+    || !Number.isFinite(frame.capturedAt) || frame.capturedAt > now
     || typeof frame.sourceId !== 'string' || !frame.sourceId || !validPng(frame.png, frame.width, frame.height)
     || digest(frame.png) !== frame.frameHash) return deny('invalid_or_stale_frame');
   if (!detection || detection.status !== 'complete') return deny(detection?.reason ?? 'local_detector_unavailable');
@@ -142,6 +142,7 @@ function evaluateLocalFrame(frame, detection, options = {}) {
   if (sanitizedPng.length > 2_000_000) { sanitizedPng.fill(0); return deny('control_layout_limit'); }
   const sanitizedHash = digest(sanitizedPng);
   if (sanitizedHash === frame.frameHash) { sanitizedPng.fill(0); return deny('unredacted_frame'); }
+  if (now - frame.capturedAt > (options.maxAgeMs ?? 5000)) { sanitizedPng.fill(0); return deny('stale_frame'); }
   const elements = allowedWords.map((word, index) => ({ id: `element_${frame.frameHash.slice(0, 12)}_${index}`, label: word.text.trim(), rect: { ...word.rect } }));
   const signature = digest(JSON.stringify(detection.words.map(word => [normalizeLabel(word.text), Math.round(word.rect.x / 4), Math.round(word.rect.y / 4), Math.round(word.rect.width / 4), Math.round(word.rect.height / 4)])));
   const admitted = {

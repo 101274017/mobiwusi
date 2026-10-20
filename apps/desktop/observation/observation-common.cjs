@@ -30,7 +30,7 @@ const LOCAL_DETECTION_FAILURE_MESSAGES = Object.freeze(Object.fromEntries([
   [['incomplete_local_detection', 'local_detector_unavailable', 'detector_incomplete', 'detector_unavailable'], '本地文字或人脸检测没有完整完成，已停止观察且未发送画面。请停止后检查本地检测能力；反复点击继续共享不能修复检测器。'],
   [['local_redaction_invalid', 'unredacted_frame'], '本地脱敏结果未通过校验，已停止观察且未发送画面。请停止观察后检查本地检测器；不会改发原图。'],
   [['detector_frame_mismatch', 'invalid_local_regions', 'detection_rect_out_of_bounds'], '本地检测结果与当前画面或坐标不一致，已停止观察且未发送画面。请本人重新框选目标软件；调整分辨率或缩放后须重新授权。'],
-  [['invalid_or_stale_frame'], '本地画面已经过期或校验失败，已停止观察且未发送画面。请关闭高负载应用后重新框选较小区域；不会延长旧画面的有效期冒充实时观察。'],
+  [['invalid_or_stale_frame'], '本地画面的时间或完整性校验失败，已停止观察且未发送画面。请停止观察后检查本地捕获能力，再由本人重新选择范围；不会用损坏画面或修改时间戳绕过检查。'],
   [['helper_timeout'], '本地文字或人脸检测超时，已停止观察且未发送画面。请关闭高负载应用后重新框选较小区域，不会跳过检测。'],
   [['ocr_language_unavailable'], 'Windows 本地文字识别语言不可用，已停止观察且未发送画面。请在系统语言设置中安装目标语言的文字识别组件后重新授权。'],
   [['face_detection_unavailable'], 'Windows 本地人脸检测不可用，已停止观察且未发送画面。请检查本机系统组件；不会关闭人脸保护后继续发送。'],

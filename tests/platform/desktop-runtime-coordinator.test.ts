@@ -321,7 +321,10 @@ describe('分析返回与本地检测重叠时的安全续接', () => {
     const setup = await pendingRefresh('provider');
     if (condition === 'stop') await setup.runtime.stopObservation();
     if (condition === 'timeout') await advanceObservation(setup, 10000);
-    if (condition === 'stale') setup.controls.time += 1500;
+    if (condition === 'stale') {
+      setup.controls.time += 1500;
+      setup.source.capture.mockImplementation(async () => syntheticFrame(setup.controls.geometry, setup.controls.time - 6000));
+    }
     if (condition === 'context') {
       setup.refreshingFrame.displayId = 'other-display';
       setup.analyze.mockImplementation(async input => ({ ...responseIdentity(input), kind: 'clarify', instruction: '请在新范围重新提问。' }));
@@ -777,7 +780,7 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
   it.each([
     ['no_readable_text', '没有识别到文字'],
     ['local_detection_limit', '框选目标软件'],
-    ['invalid_or_stale_frame', '已经过期'],
+    ['invalid_or_stale_frame', '完整性校验失败'],
     ['helper_timeout', '检测超时'],
     ['incomplete_local_detection', '没有完整完成'],
   ])('本地检测暂停 %s 给出具体原因和操作提示，不自动重试或出云', async (code, detail) => {
@@ -791,6 +794,119 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     expect(setup.source.capture).toHaveBeenCalledOnce();
     expect(setup.source.stop).toHaveBeenCalledOnce();
     expect(setup.analyze).not.toHaveBeenCalled();
+  });
+
+  it('过期帧在同一授权会话内自动重采集，成功后继续调用模型而不暂停共享', async () => {
+    const setup = fixture();
+    await setup.start();
+    const observation = setup.runtime.snapshot().observation;
+    let expiredFrame!: ObservationFrame;
+    setup.source.detect.mockImplementationOnce(async frame => {
+      expiredFrame = frame;
+      const detection = syntheticDetection(frame, setup.controls.labels);
+      setup.controls.time += 6000;
+      return detection;
+    });
+    await setup.runtime.ask('请教我调整文字大小');
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture).toHaveBeenCalledTimes(3);
+    expect(setup.source.stop).not.toHaveBeenCalled();
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, cloudConsent: true });
+    expect(setup.runtime.snapshot().observation).toMatchObject({ id: observation.id, generation: observation.generation });
+    expect(setup.analyze.mock.calls[0][0].frame.capturedAt).toBeGreaterThan(expiredFrame.capturedAt + 5000);
+    expect(expiredFrame.png.every(byte => byte === 0)).toBe(true);
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
+  });
+
+  it('过期帧有限次重采集仍失败时保持观察可用，当前查找可手动重试', async () => {
+    const setup = fixture();
+    setup.source.detect.mockImplementation(async frame => {
+      const detection = syntheticDetection(frame, setup.controls.labels);
+      setup.controls.time += 6000;
+      return detection;
+    });
+    await setup.start();
+    await setup.runtime.ask('如何打开微信');
+    await setup.runtime.whenIdle();
+    const current = setup.runtime.snapshot();
+    expect(setup.source.capture).toHaveBeenCalledTimes(6);
+    expect(setup.source.stop).not.toHaveBeenCalled();
+    expect(current.observation).toMatchObject({ state: 'observing', captureActive: true, cloudConsent: true });
+    expect(current.task).toMatchObject({ state: 'needs_help', explanation: expect.stringContaining('本地画面处理超时') });
+    expect(current.analysis).toMatchObject({ state: 'capture_error', message: expect.stringContaining('当前屏幕共享仍保持') });
+    expect(current.analysis.message).not.toContain('共享已暂停');
+    expect(setup.analyze).not.toHaveBeenCalled();
+    setup.source.detect.mockImplementation(async frame => syntheticDetection(frame, setup.controls.labels));
+    await setup.runtime.ask('如何打开微信', current.observation.generation);
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture).toHaveBeenCalledTimes(7);
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.runtime.snapshot().observation).toEqual({ ...current.observation, reason: null });
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
+    expect(setup.source.stop).not.toHaveBeenCalled();
+  });
+
+  it('重试耗尽后只继续本地安全观察，页面变化不自动重发失败问题', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 1500 });
+    await setup.start();
+    setup.source.detect.mockImplementation(async frame => {
+      const detection = syntheticDetection(frame, setup.controls.labels);
+      setup.controls.time += 6000;
+      return detection;
+    });
+    await setup.runtime.ask('帮我找到显示设置');
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture).toHaveBeenCalledTimes(4);
+    expect(setup.runtime.snapshot().analysis.state).toBe('capture_error');
+    setup.source.detect.mockImplementation(async frame => syntheticDetection(frame, setup.controls.labels));
+    await advanceObservation(setup, 1500);
+    setup.controls.labels.push('帮助');
+    await advanceObservation(setup, 1500);
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture).toHaveBeenCalledTimes(6);
+    expect(setup.analyze).not.toHaveBeenCalled();
+    expect(setup.source.stop).not.toHaveBeenCalled();
+    expect(setup.runtime.snapshot()).toMatchObject({ observation: { state: 'observing', captureActive: true }, task: { state: 'needs_help' }, analysis: { state: 'capture_error' } });
+  });
+
+  it.each(['sensitive', 'unknown', 'unavailable'] as const)('重采集过程中出现 %s 仍立即暂停，不继续重试', async condition => {
+    const setup = fixture();
+    await setup.start();
+    setup.source.capture.mockImplementationOnce(async () => syntheticFrame(setup.controls.geometry, setup.controls.time - 6000));
+    setup.source.detect.mockImplementationOnce(async frame => syntheticDetection(frame, setup.controls.labels));
+    setup.source.detect.mockImplementationOnce(async frame => ({ ...syntheticDetection(frame,
+      condition === 'sensitive' ? [...setup.controls.labels, '验证码123456'] : condition === 'unknown' ? ['未知正文'] : setup.controls.labels),
+      status: condition === 'unavailable' ? 'unavailable' : 'complete' }));
+    await setup.runtime.ask('帮我找到显示设置');
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture).toHaveBeenCalledTimes(3);
+    expect(setup.source.stop).toHaveBeenCalledOnce();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false, cloudConsent: false,
+      reason: condition === 'sensitive' ? 'sensitive_screen' : condition === 'unknown' ? 'unclassified_screen' : 'local_detector_unavailable' });
+    expect(setup.analyze).not.toHaveBeenCalled();
+  });
+
+  it('重采集期间停止观察，迟到检测不能恢复共享或发送画面', async () => {
+    const setup = fixture();
+    await setup.start();
+    const detection = deferred<ReturnType<typeof syntheticDetection>>();
+    let refreshingFrame!: ObservationFrame;
+    setup.source.capture.mockImplementationOnce(async () => syntheticFrame(setup.controls.geometry, setup.controls.time - 6000));
+    setup.source.detect.mockImplementationOnce(async frame => syntheticDetection(frame, setup.controls.labels));
+    setup.source.detect.mockImplementationOnce(frame => { refreshingFrame = frame; return detection.promise; });
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(setup.source.capture).toHaveBeenCalledTimes(3));
+    expect(setup.runtime.snapshot().analysis.state).toBe('capture_retry');
+    await setup.runtime.stopObservation('user');
+    const stopped = setup.runtime.snapshot();
+    detection.resolve(syntheticDetection(refreshingFrame, setup.controls.labels));
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot()).toEqual(stopped);
+    expect(setup.source.capture).toHaveBeenCalledTimes(3);
+    expect(setup.analyze).not.toHaveBeenCalled();
+    expect(refreshingFrame.png.every(byte => byte === 0)).toBe(true);
   });
 
   it('未知异常只显示固定通用代码，不能把异常字段带入桌宠状态', async () => {
@@ -1035,20 +1151,37 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
   });
 
-  it.each(['sensitive', 'unavailable', 'stale'] as const)('完成验证必须重新通过本地安全与新鲜度检查：%s', async condition => {
+  it.each(['sensitive', 'unavailable'] as const)('完成验证必须重新通过本地安全与新鲜度检查：%s', async condition => {
     const setup = fixture();
     setup.analyze.mockImplementation(async input => input.previousStep ? completedResponse(input) : stepResponse(input));
     await beginTeaching(setup);
     setup.controls.labels = ['设置', '显示', '字体大小', '返回'];
     if (condition === 'sensitive') setup.controls.labels.push('验证码123456');
     if (condition === 'unavailable') setup.controls.status = 'unavailable';
-    if (condition === 'stale') setup.source.capture.mockImplementationOnce(async () => syntheticFrame(setup.controls.geometry, setup.controls.time - 6000));
     await setup.runtime.verify();
     await setup.runtime.whenIdle();
     expect(setup.runtime.snapshot().observation.state).toBe('privacy_paused');
     expect(setup.analyze).toHaveBeenCalledOnce();
     expect(setup.records).toEqual([]);
     expect(setup.suggestReview).not.toHaveBeenCalled();
+  });
+
+  it('验证遇到过期帧时重采集最新画面，不暂停共享或使用旧位置', async () => {
+    const setup = fixture();
+    await beginTeaching(setup);
+    setup.controls.labels = ['设置', '显示', '字体大小', '返回', '帮助'];
+    setup.source.detect.mockImplementationOnce(async frame => {
+      const detection = syntheticDetection(frame, setup.controls.labels);
+      setup.controls.time += 6000;
+      return detection;
+    });
+    await setup.runtime.verify();
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture).toHaveBeenCalledTimes(4);
+    expect(setup.source.stop).not.toHaveBeenCalled();
+    expect(setup.analyze).toHaveBeenCalledTimes(2);
+    expect(setup.runtime.snapshot().observation.state).toBe('observing');
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
   });
 
   it.each([['step', 6000], ['step', 11000], ['completed', 6000], ['completed', 11000]] as const)(

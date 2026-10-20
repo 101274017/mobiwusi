@@ -75,9 +75,14 @@ try {
         if (iteration < 2) await new Promise(resolve => setTimeout(resolve, 150));
       }
       assert(frames.length >= 3);
+      const admittedFrames = frames.filter(frame => frame.decision === 'allow');
+      const staleFrames = frames.filter(frame => frame.reason === 'stale_frame');
+      assert(admittedFrames.length >= 3, JSON.stringify(frames));
       assert(frames.every(frame => frame.status === 'complete' && frame.sanitizedBytes > 2_000_000
-        && frame.decision === 'allow' && frame.scene === 'controls_only' && frame.outboundBytes <= 2_000_000));
+        && (frame.decision === 'allow' && frame.scene === 'controls_only' && frame.outboundBytes <= 2_000_000
+          || frame.reason === 'stale_frame' && frame.elapsedMs > 5000 && frame.outboundBytes === undefined)), JSON.stringify(frames));
       checks.push('complete_large_frames_remain_observing_across_three_real_native_checks');
+      if (staleFrames.length) checks.push('expired_synthetic_frames_are_discarded_without_stopping_shared_session');
       await runtime.stopObservation('user');
       assert.equal(runtime.snapshot().observation.captureActive, false);
       checks.push('stop_waits_for_native_detector_cleanup');

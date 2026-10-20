@@ -1596,6 +1596,25 @@ describe('合成 snapshot 的桌宠 DOM 隔离测试，不代表真实跨应用�
     expect(harness.bridge.ask).not.toHaveBeenCalled();
   });
 
+  it('过期帧重采集或等待手动重试时不显示共享暂停', async () => {
+    const detail = '本地画面处理超时，未使用过期画面。当前屏幕共享仍保持，请重新点击查找并指引。';
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, cloudConsent: true, reason: 'stale_frame' },
+      { kind: 'guidance', state: 'needs_help', observationGeneration: 1, question: '如何打开微信', explanation: detail },
+      { state: 'capture_error', message: detail }));
+    await settle();
+    expect(harness.element('observation-status').textContent).toBe('正在本地观察');
+    expect(harness.element('analysis-status').textContent).toBe('本地画面待重试');
+    expect(harness.element('observation-detail').textContent).toBe(detail);
+    expect(harness.element('privacy-notice').hidden).toBe(true);
+    expect(harness.element('resume-sharing').disabled).toBe(true);
+    harness.emitPanel({ expanded: true, section: 'guidance' });
+    harness.input('如何打开微信');
+    expect(harness.element('send-question').disabled).toBe(false);
+    expect(harness.element('screen-voice-find').disabled).toBe(false);
+    expect(harness.bridge.command).not.toHaveBeenCalled();
+    expect(harness.bridge.ask).not.toHaveBeenCalled();
+  });
+
   it('cleanup_failed 禁止继续、提问与核验，明确提示退出重启', async () => {
     const harness = petHarness(snapshot({ state: 'cleanup_failed', captureActive: true }, { state: 'awaiting_action', instruction: '旧指引' }));
     await settle();

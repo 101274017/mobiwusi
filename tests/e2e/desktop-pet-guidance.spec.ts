@@ -122,6 +122,16 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
       state.task.targetState = 'stale';
       publish();
     });
+    window.addEventListener('test-guidance-local-frame', event => {
+      const retrying = (event as CustomEvent<string>).detail === 'retry';
+      state.observation.reason = 'stale_frame';
+      state.task.state = retrying ? 'analyzing' : 'needs_help';
+      state.task.targetState = 'hidden';
+      state.analysis = { state: retrying ? 'capture_retry' : 'capture_error', message: retrying
+        ? '正在重新采集最新画面；不会使用过期画面，也不会重新请求屏幕共享。'
+        : '本地画面处理超时，未使用过期画面。当前屏幕共享仍保持，请重新点击查找并指引。' };
+      publish();
+    });
   }, { cloudConsent, consentResult, sourceName });
   await page.goto('http://127.0.0.1:41873/pet.html');
   await page.locator('#pet-toggle').click();
@@ -132,6 +142,29 @@ async function guidanceFixture(page: Page, cloudConsent = true, consentResult: '
 async function guidanceAudit(page: Page) {
   return page.evaluate(() => (window as unknown as { syntheticGuidanceAudit: GuidanceAudit }).syntheticGuidanceAudit);
 }
+
+test('本地画面过期只刷新画面，重试耗尽后可原授权再次查找', async ({ page }, testInfo) => {
+  await guidanceFixture(page);
+  await page.locator('#question').fill('如何打开微信');
+  await page.locator('#send-question').click();
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('test-guidance-local-frame', { detail: 'retry' })));
+  await expect(page.locator('#guidance-status')).toContainText('重新采集最新画面');
+  await expect(page.locator('#privacy-notice')).toBeHidden();
+  await expect(page.locator('#send-question')).toHaveText('正在刷新画面…');
+  await expect(page.locator('#send-question')).toBeDisabled();
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('test-guidance-local-frame', { detail: 'exhausted' })));
+  await expect(page.locator('#guidance-status')).toContainText('当前屏幕共享仍保持');
+  await expect(page.locator('#privacy-notice')).toBeHidden();
+  await expect(page.locator('#send-question')).toBeEnabled();
+  await expect(page.locator('#screen-voice-find')).toBeEnabled();
+  await expect(page.locator('#question')).toHaveValue('如何打开微信');
+  await page.screenshot({ path: testInfo.outputPath('guidance-local-frame-retry.png') });
+  await page.locator('#send-question').click();
+  const audit = await guidanceAudit(page);
+  expect(audit.questions).toEqual([{ text: '如何打开微信', generation: 7 }, { text: '如何打开微信', generation: 7 }]);
+  expect(audit.commands.some(type => type.startsWith('observation.'))).toBe(false);
+  expect(audit.microphones).toEqual([]);
+});
 
 for (const mode of ['snapshot', 'reply', 'legacy']) {
   for (const input of ['text', 'voice']) {

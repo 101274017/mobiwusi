@@ -54,6 +54,7 @@ function createDesktopRuntime(options) {
   const now = options.now ?? Date.now;
   const intervalMs = options.intervalMs ?? 1500;
   const maxAgeMs = options.maxAgeMs ?? 5000;
+  const staleFrameRetryLimit = 2;
   const analysisTimeoutMs = options.analysisTimeoutMs ?? 15000;
   if (!Number.isSafeInteger(analysisTimeoutMs) || analysisTimeoutMs < 1 || analysisTimeoutMs > 60000) throw new TypeError('屏幕分析超时配置无效');
   const notify = options.onState ?? (() => undefined);
@@ -344,6 +345,41 @@ function createDesktopRuntime(options) {
     timer.unref?.();
   }
 
+  function hasActiveGuidanceTask() {
+    return Boolean(state.task.id && state.task.kind === 'guidance'
+      && !['completed', 'ended', 'idle', 'finishing'].includes(state.task.state));
+  }
+
+  function noteStaleFrameRetry(retryCount) {
+    clearTarget();
+    state.observation.reason = 'stale_frame';
+    state.analysis = {
+      state: 'capture_retry',
+      message: `本地画面处理较慢，正在重新采集最新画面（${retryCount}/${staleFrameRetryLimit}）；不会使用过期画面，也不会重新请求屏幕共享。`,
+    };
+    publish();
+  }
+
+  function failStaleFrameRefresh() {
+    invalidateAnalysis();
+    clearTarget();
+    const obsolete = latestFrame;
+    latestFrame = null;
+    release(obsolete);
+    gateOpen = false;
+    state.observation.reason = 'stale_frame';
+    const detail = '本地画面处理超时，未使用过期画面。请保持目标软件可见后重新点击“查找并指引”；当前屏幕共享仍保持，不需要重新授权。';
+    if (hasActiveGuidanceTask()) {
+      state.task.state = 'needs_help';
+      state.task.targetState = 'stale';
+      state.task.awaitingReply = false;
+      state.task.explanation = detail;
+    }
+    state.captions.text = '';
+    state.analysis = { state: 'capture_error', message: detail };
+    publish();
+  }
+
   function hasVerifiedGeometry(frame) {
     const geometry = frame.geometry;
     return Boolean(geometry && [geometry.x, geometry.y, geometry.width, geometry.height].every(Number.isFinite)
@@ -494,7 +530,7 @@ function createDesktopRuntime(options) {
 
   function queueAnalysis(frame, reason) {
     if (!state.task.id || state.task.kind === 'text' || ['completed', 'ended', 'idle', 'finishing'].includes(state.task.state)) return;
-    if (reason === 'page_changed' && state.task.awaitingReply) return;
+    if (reason === 'page_changed' && (state.task.awaitingReply || state.analysis.state === 'capture_error')) return;
     if (!cloudConsent || !options.analyzer?.analyze) {
       state.analysis = { state: 'unavailable', message: cloudConsent ? '尚未配置已认证的云分析服务；不使用模拟答案。' : '未同意云分析，画面仅在本地处理。可停止或重新选择观察用途。' };
       state.task.state = 'needs_help';
@@ -577,62 +613,83 @@ function createDesktopRuntime(options) {
   async function captureOne(reason) {
     const generation = observationGeneration;
     const task = taskGeneration;
-    captureController = new AbortController();
-    let frame;
-    let detection;
-    try {
-      frame = await options.source.capture({ sourceId, signal: captureController.signal, ...(observationRegion ? { region: { ...observationRegion } } : {}) });
-      if (!sameGeneration(generation)) return;
-      detection = await options.source.detect(frame, { signal: captureController.signal });
-      if (!sameGeneration(generation)) return;
-      const admitted = evaluateLocalFrame(frame, detection, { now: now(), maxAgeMs });
-      if (admitted.decision !== 'allow') {
-        await closeObservation(admitted.reason, true);
-        return;
-      }
-      const old = latestFrame;
-      if (old && admitted.capturedAt <= old.capturedAt) {
-        release(admitted);
-        if (reason === 'verification' && sameGeneration(generation, task) && previousStep) {
+    let staleFrameRetries = 0;
+    let analysisBeforeRetry = null;
+    while (sameGeneration(generation)) {
+      const controller = new AbortController();
+      captureController = controller;
+      let frame;
+      let detection;
+      try {
+        frame = await options.source.capture({ sourceId, signal: controller.signal, ...(observationRegion ? { region: { ...observationRegion } } : {}) });
+        if (!sameGeneration(generation)) return;
+        detection = await options.source.detect(frame, { signal: controller.signal });
+        if (!sameGeneration(generation)) return;
+        const admitted = evaluateLocalFrame(frame, detection, { now: now(), maxAgeMs });
+        if (admitted.decision !== 'allow') {
+          if (admitted.reason === 'stale_frame' && detection?.status === 'complete') {
+            if (!sameGeneration(generation, task)) return;
+            if (staleFrameRetries < staleFrameRetryLimit) {
+              staleFrameRetries += 1;
+              if (state.analysis.state !== 'capture_retry') analysisBeforeRetry = state.analysis;
+              noteStaleFrameRetry(staleFrameRetries);
+              continue;
+            }
+            failStaleFrameRefresh();
+            return;
+          }
+          await closeObservation(admitted.reason, true);
+          return;
+        }
+        const old = latestFrame;
+        if (old && admitted.capturedAt <= old.capturedAt) {
+          release(admitted);
+          if (staleFrameRetries > 0 && sameGeneration(generation, task)) { failStaleFrameRefresh(); return; }
+          if (reason === 'verification' && sameGeneration(generation, task) && previousStep) {
+            state.task.state = 'awaiting_action';
+            state.analysis = { state: 'ready', message: '本次未取得比上次更新的本地安全画面，不能确认操作完成，请重新核验。' };
+            publish();
+          }
+          return;
+        }
+        const recoveredStaleFrame = staleFrameRetries > 0;
+        const changed = Boolean(old && !sameFrameContext(old, admitted));
+        latestFrame = admitted;
+        gateOpen = true;
+        state.observation.reason = admitted.scene === 'controls_only' ? 'controls_only' : null;
+        if (changed) {
+          clearTarget();
+          invalidateAnalysis();
+        }
+        release(old);
+        if (!sameGeneration(generation, task)) return;
+        if (state.analysis.state === 'capture_retry' && analysisBeforeRetry) state.analysis = analysisBeforeRetry;
+        if (reason === 'verification' && previousStep
+          && (previousStep.signature === admitted.signature || admitted.capturedAt <= previousStep.issuedAt)) {
           state.task.state = 'awaiting_action';
-          state.analysis = { state: 'ready', message: '本次未取得比上次更新的本地安全画面，不能确认操作完成，请重新核验。' };
+          state.analysis = { state: 'ready', message: '已检查新画面，尚未观察到预期变化；不会因为点击“我点好了”就进入下一步。' };
+          const element = currentElement(previousStep.element, previousStep.frame, admitted);
+          if (element) showStepTarget(admitted, element);
           publish();
-        }
+        } else if (reason !== 'page_changed' || changed) queueAnalysis(admitted, reason);
+        else if (previousStep && state.task.state === 'awaiting_action') {
+          const element = currentElement(previousStep.element, previousStep.frame, admitted);
+          const targetState = state.task.targetState;
+          if (element) showStepTarget(admitted, element);
+          if (targetState !== state.task.targetState || recoveredStaleFrame) {
+            if (state.task.targetState === 'visible') state.analysis = { state: 'ready', message: '新的本地安全画面已核对；请核对箭头并亲手操作。' };
+            publish();
+          }
+        } else if (recoveredStaleFrame) publish();
         return;
+      } catch (error) {
+        if (sameGeneration(generation) && !controller.signal.aborted) await closeObservation(captureFailureReason(error?.code), true);
+        return;
+      } finally {
+        frame?.png?.fill(0);
+        detection?.sanitizedPng?.fill(0);
+        if (captureController === controller) captureController = null;
       }
-      const changed = Boolean(old && !sameFrameContext(old, admitted));
-      latestFrame = admitted;
-      gateOpen = true;
-      state.observation.reason = admitted.scene === 'controls_only' ? 'controls_only' : null;
-      if (changed) {
-        clearTarget();
-        invalidateAnalysis();
-      }
-      release(old);
-      if (!sameGeneration(generation, task)) return;
-      if (reason === 'verification' && previousStep
-        && (previousStep.signature === admitted.signature || admitted.capturedAt <= previousStep.issuedAt)) {
-        state.task.state = 'awaiting_action';
-        state.analysis = { state: 'ready', message: '已检查新画面，尚未观察到预期变化；不会因为点击“我点好了”就进入下一步。' };
-        const element = currentElement(previousStep.element, previousStep.frame, admitted);
-        if (element) showStepTarget(admitted, element);
-        publish();
-      } else if (reason !== 'page_changed' || changed) queueAnalysis(admitted, reason);
-      else if (previousStep && state.task.state === 'awaiting_action') {
-        const element = currentElement(previousStep.element, previousStep.frame, admitted);
-        const targetState = state.task.targetState;
-        if (element) showStepTarget(admitted, element);
-        if (targetState !== state.task.targetState) {
-          if (state.task.targetState === 'visible') state.analysis = { state: 'ready', message: '新的本地安全画面已核对；请核对箭头并亲手操作。' };
-          publish();
-        }
-      }
-    } catch (error) {
-      if (sameGeneration(generation) && !captureController.signal.aborted) await closeObservation(captureFailureReason(error?.code), true);
-    } finally {
-      frame?.png?.fill(0);
-      detection?.sanitizedPng?.fill(0);
-      captureController = null;
     }
   }
 

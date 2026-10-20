@@ -6,6 +6,33 @@ import { createControlLayout } from '../../apps/desktop/observation/control-layo
 import { syntheticDetection, syntheticFrame, syntheticPng } from '../helpers/standalone-frame';
 
 describe('独立桌宠本地帧门控（合成单测，不是真实外部软件验收）', () => {
+  it.each([5000, 5001])('完整安全帧的真实五秒有效期不变：%i 毫秒', age => {
+    const frame = syntheticFrame();
+    const capturedAt = frame.capturedAt;
+    const result = evaluateLocalFrame(frame, syntheticDetection(frame), { now: capturedAt + age });
+    expect(frame.capturedAt).toBe(capturedAt);
+    if (age <= 5000) expect(result.decision).toBe('allow');
+    else {
+      expect(result).toMatchObject({ decision: 'pause', reason: 'stale_frame' });
+      expect(result).not.toHaveProperty('sanitizedPng');
+      expect(isAdmittedFrame(result)).toBe(false);
+    }
+  });
+
+  it.each(['sensitive', 'unclassified', 'unavailable', 'mismatch', 'corrupt', 'future'] as const)('安全或完整性失败不降为可重采集的过期帧：%s', condition => {
+    const frame = syntheticFrame();
+    const now = frame.capturedAt + 6000;
+    const detection = syntheticDetection(frame);
+    let reason = 'invalid_or_stale_frame';
+    if (condition === 'sensitive') { detection.words.push({ text: '验证码123456', rect: { x: 20, y: 200, width: 100, height: 30 } }); reason = 'sensitive_screen'; }
+    if (condition === 'unclassified') { detection.words = [{ text: '未知正文', rect: { x: 20, y: 20, width: 100, height: 30 } }]; reason = 'unclassified_screen'; }
+    if (condition === 'unavailable') { detection.status = 'unavailable'; reason = 'local_detector_unavailable'; }
+    if (condition === 'mismatch') { detection.frameHash = '0'.repeat(64); reason = 'detector_frame_mismatch'; }
+    if (condition === 'corrupt') frame.png[frame.png.length - 1] ^= 1;
+    if (condition === 'future') frame.capturedAt = now + 1;
+    expect(evaluateLocalFrame(frame, detection, { now })).toMatchObject({ decision: 'pause', reason });
+  });
+
   it('只有本地完整检测和同帧脱敏结果可以获得发送资格', () => {
     const frame = syntheticFrame();
     const decision = evaluateLocalFrame(frame, syntheticDetection(frame));
