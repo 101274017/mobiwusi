@@ -35,13 +35,15 @@ contextBridge.exposeInMainWorld('nuanbanTextQuestion', Object.freeze({
 }));
 async function invokeModel(channel, ...argumentsList) {
   try { return await ipcRenderer.invoke(channel, ...argumentsList); } catch (error) {
-    const message = typeof error?.message === 'string' ? error.message.replace(/^Error invoking remote method 'nuanban:model:(?:read|choose|apply|clear|discard)': (?:Error: )?/, '') : '';
+    const message = typeof error?.message === 'string' ? error.message.replace(/^Error invoking remote method 'nuanban:model:(?:read|choose|apply|clear|discard|read-builtin|apply-builtin)': (?:Error: )?/, '') : '';
     throw new Error(message || '本机模型操作未完成，请重试');
   }
 }
 contextBridge.exposeInMainWorld('nuanbanModel', Object.freeze({
   read: () => invokeModel('nuanban:model:read'),
   choose: () => invokeModel('nuanban:model:choose'),
+  readBuiltin: id => invokeModel('nuanban:model:read-builtin', id === 'lumi' ? id : null),
+  applyBuiltin: id => invokeModel('nuanban:model:apply-builtin', id === 'lumi' ? id : null),
   apply: token => invokeModel('nuanban:model:apply', typeof token === 'string' ? token : null),
   clear: () => invokeModel('nuanban:model:clear'),
   discard: () => invokeModel('nuanban:model:discard'),

@@ -97,7 +97,7 @@ describe('模型预览确认、事务保存和重启恢复', () => {
 });
 
 describe('模型 IPC 权限与通知', () => {
-  function bridgeFixture() {
+  function bridgeFixture(overrides: Record<string, unknown> = {}) {
     const { directory, store } = fixture(); const handlers = new Map<string, (...argumentsList: any[]) => any>();
     const management = { isDestroyed: () => false, webContents: { isDestroyed: () => false, send: vi.fn(), mainFrame: {} } };
     const tool = { isDestroyed: () => false, webContents: { isDestroyed: () => false, send: vi.fn(), mainFrame: {} } };
@@ -108,10 +108,73 @@ describe('模型 IPC 权限与通知', () => {
     const filePath = join(directory, 'sample.glb'); writeFileSync(filePath, createModelGlb());
     const dialog = { showOpenDialog: vi.fn(async () => ({ canceled: false, filePaths: [filePath] })) };
     const validate = vi.fn(async () => summary);
+    const activate = vi.fn(async () => {});
     const bridge = registerLocalModelBridge({ ipcMain: { handle: (channel: string, handler: (...argumentsList: any[]) => any) => handlers.set(channel, handler), removeHandler: (channel: string) => handlers.delete(channel) },
-      dialog, store, validate, isManagementTrusted: (event: unknown) => event === managementEvent || event === toolEvent, getManagementWindow: () => management, getToolWindow: () => tool, getPetWindow: () => pet });
-    return { bridge, handlers, dialog, validate, managementEvent, toolEvent, petEvent, management, tool, pet, store };
+      dialog, store, validate, activate, builtinModelsPath: join(process.cwd(), 'apps/web/public/models'),
+      isManagementTrusted: (event: unknown) => event === managementEvent || event === toolEvent, getManagementWindow: () => management, getToolWindow: () => tool, getPetWindow: () => pet, ...overrides });
+    return { bridge, handlers, dialog, validate, activate, managementEvent, toolEvent, petEvent, management, tool, pet, store };
   }
+  it('内置小猫只读预览不暂存、不改当前伙伴；确认后验证并持久化', async () => {
+    const current = bridgeFixture();
+    const first = current.store.stage(candidate());
+    const source = current.handlers.get('nuanban:model:read-builtin')!(current.managementEvent, 'lumi');
+    expect(source).toMatchObject({ format: 'glb', bytes: expect.any(Uint8Array) });
+    expect(source.bytes.byteLength).toBe(1836140);
+    expect(current.store.read()).toEqual({ kind: 'none' });
+    expect(current.validate).not.toHaveBeenCalled();
+    expect(current.store.apply(first.token)).toMatchObject({ kind: 'model' });
+    const model = await current.handlers.get('nuanban:model:apply-builtin')!(current.managementEvent, 'lumi');
+    expect(model).toMatchObject({ kind: 'model', id: '7fbe808f7de41e0e15181a0094038f79d6168ea99888dc8947846a2f70cf019b', fileName: 'Lumi_Magical_Kitten.glb' });
+    expect(current.dialog.showOpenDialog).not.toHaveBeenCalled();
+    expect(current.validate).toHaveBeenCalledOnce();
+    expect(current.validate.mock.calls[0]).toHaveLength(1);
+    expect(current.activate).toHaveBeenCalledOnce();
+    expect(current.pet.webContents.send).toHaveBeenCalledWith('nuanban:model:changed', expect.objectContaining({ id: model.id }));
+    expect(current.store.read()).toMatchObject({ id: model.id, fileName: model.fileName });
+    expect(Buffer.from(current.store.read().bytes).equals(Buffer.from(source.bytes))).toBe(true);
+    current.bridge.dispose();
+  });
+  it('内置白名单不接收路径、额外参数或桌宠写入请求', async () => {
+    const current = bridgeFixture();
+    for (const id of ['../lumi', 'C:\\secret.glb', null, {}, 'https://example.com/model.glb']) {
+      expect(() => current.handlers.get('nuanban:model:read-builtin')!(current.managementEvent, id)).toThrow('未知');
+      await expect(current.handlers.get('nuanban:model:apply-builtin')!(current.managementEvent, id)).rejects.toThrow('未知');
+    }
+    expect(() => current.handlers.get('nuanban:model:read-builtin')!(current.petEvent, 'lumi')).toThrow('只有本人');
+    await expect(current.handlers.get('nuanban:model:apply-builtin')!(current.petEvent, 'lumi')).rejects.toThrow('只有本人');
+    expect(() => current.handlers.get('nuanban:model:read-builtin')!(current.managementEvent, 'lumi', 'extra')).toThrow('额外');
+    await expect(current.handlers.get('nuanban:model:apply-builtin')!(current.managementEvent, 'lumi', 'extra')).rejects.toThrow('未知');
+    expect(current.activate).not.toHaveBeenCalled();
+    current.bridge.dispose();
+  });
+  it('缺失、解析失败和角色停止失败时保留先前模型', async () => {
+    const missing = bridgeFixture({ builtinModelsPath: join(process.cwd(), '.cache/missing-lumi-models') });
+    await expect(missing.handlers.get('nuanban:model:apply-builtin')!(missing.managementEvent, 'lumi')).rejects.toThrow('缺少');
+    expect(missing.activate).not.toHaveBeenCalled();
+    missing.bridge.dispose();
+    const current = bridgeFixture();
+    const previous = current.store.apply(current.store.stage(candidate()).token);
+    current.validate.mockRejectedValueOnce(new Error('解析失败'));
+    await expect(current.handlers.get('nuanban:model:apply-builtin')!(current.managementEvent, 'lumi')).rejects.toThrow('解析失败');
+    expect(current.activate).not.toHaveBeenCalled();
+    expect(current.store.read()).toEqual(previous);
+    current.activate.mockRejectedValueOnce(new Error('原角色未停止'));
+    await expect(current.handlers.get('nuanban:model:apply-builtin')!(current.managementEvent, 'lumi')).rejects.toThrow('原角色未停止');
+    expect(current.store.read()).toEqual(previous);
+    current.bridge.dispose();
+  });
+  it('验证期间拒绝并发改写，窗口失去信任后不调用、不保存', async () => {
+    let complete!: (value: typeof summary) => void;
+    const current = bridgeFixture();
+    current.validate.mockImplementationOnce(() => new Promise(resolve => { complete = resolve; }));
+    const applying = current.handlers.get('nuanban:model:apply-builtin')!(current.managementEvent, 'lumi');
+    await expect(current.handlers.get('nuanban:model:apply-builtin')!(current.toolEvent, 'lumi')).rejects.toThrow('请稍候');
+    for (const channel of ['apply', 'clear', 'discard']) expect(() => current.handlers.get(`nuanban:model:${channel}`)!(current.managementEvent, 'token')).toThrow('正在调用');
+    current.bridge.dispose();
+    complete(summary);
+    await expect(applying).rejects.toThrow('管理窗口已关闭');
+    expect(current.activate).not.toHaveBeenCalled();
+  });
   it('只有受信主框架可写；桌宠只有读取能力', async () => {
     const { bridge, handlers, managementEvent, petEvent, store } = bridgeFixture();
     expect(handlers.get('nuanban:model:read')!(petEvent)).toEqual({ kind: 'none' });

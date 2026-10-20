@@ -82,6 +82,8 @@ function registerBridge() {
   modelValidator = createLocalModelValidator({ BrowserWindow, ipcMain });
   modelBridge = registerLocalModelBridge({ ipcMain, dialog,
     store: createLocalModelStore({ databasePath: path.join(app.getPath('userData'), 'nuanban-local-model.sqlite') }),
+    builtinModelsPath: path.join(path.dirname(managementIndex()), 'models'),
+    activate: () => { if (!standaloneHost) throw new Error('独立桌宠尚未就绪，请重新打开客户端。'); return standaloneHost.showLocalModel(); },
     validate: modelValidator.validate, isManagementTrusted: trusted, getManagementWindow: () => mainWindow, getToolWindow: petTools.getWindow, getPetWindow: () => standaloneHost?.getPetWindow() });
   artworkBridge = registerLocalArtworkBridge({ ipcMain, onChange: () => modelBridge.deactivate(),
     store: createLocalArtworkStore({ filePath: path.join(app.getPath('userData'), 'nuanban-original-pet.png'), nativeImage: electron.nativeImage }),

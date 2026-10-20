@@ -1,0 +1,81 @@
+const assert = require('node:assert/strict');
+const { mkdirSync, writeFileSync } = require('node:fs');
+const { createRequire } = require('node:module');
+const path = require('node:path');
+const { _electron, expect } = require('@playwright/test');
+const root = path.resolve(__dirname, '..');
+const desktopRequire = createRequire(path.join(root, 'apps/desktop/package.json'));
+const cache = path.join(root, '.cache', `lumi-electron-${Date.now()}`);
+const userData = path.join(cache, 'profile');
+const hash = '7fbe808f7de41e0e15181a0094038f79d6168ea99888dc8947846a2f70cf019b';
+mkdirSync(cache, { recursive: true });
+const evidence = { nativePreview: false, nativeApply: false, switchedFromLili: false, defaultIdle: false, persistedAfterRestart: false, recalled: false, screenRequests: 0, errors: [] };
+
+async function launch() {
+  const application = await _electron.launch({ executablePath: desktopRequire('electron'),
+    args: [path.join(root, 'tests/helpers/lumi-electron-smoke.cjs'), '--management', '--pet-display-compatible', '--client-display-compatible'],
+    env: { ...process.env, NUANBAN_LUMI_TEST_USER_DATA: userData }, timeout: 30000 });
+  const management = await application.waitForEvent('window', { predicate: page => page.url().includes('/web/dist/index.html'), timeout: 30000 }).catch(async () => {
+    const existing = application.windows().find(page => page.url().includes('/web/dist/index.html'));
+    if (!existing) throw new Error('管理窗口未就绪');
+    return existing;
+  });
+  management.on('pageerror', error => evidence.errors.push(error.message));
+  await management.waitForLoadState('networkidle');
+  await management.evaluate(() => { location.hash = '/pets'; });
+  await expect(management.getByRole('heading', { name: '我的小伙伴', exact: true })).toBeVisible();
+  const pet = application.windows().find(page => page.url().endsWith('/pet.html'));
+  if (!pet) throw new Error('独立桌宠窗口未就绪');
+  pet.on('pageerror', error => evidence.errors.push(error.message));
+  return { application, management, pet };
+}
+
+async function run() {
+  let context;
+  try {
+    context = await launch();
+    const { application, management, pet } = context;
+    const card = management.getByRole('region', { name: '露米 Lumi' });
+    await card.getByRole('button', { name: '预览 3D 与动作' }).click();
+    await expect(card.locator('canvas')).toHaveAttribute('data-animation', 'idle', { timeout: 20000 });
+    await card.getByRole('button', { name: '施展魔法', exact: true }).click();
+    await expect(card.locator('canvas')).toHaveAttribute('data-animation', 'cast');
+    await card.getByRole('button', { name: '陪伴', exact: true }).click();
+    assert.deepEqual(await management.evaluate(() => window.nuanbanModel.read()), { kind: 'none' });
+    evidence.nativePreview = true;
+    await application.evaluate(async () => { await global.__lumiSmoke.host.selectLili(true); });
+    await expect(pet.locator('#pet-window')).toHaveClass(/is-lili/);
+    await card.getByRole('button', { name: '设为桌面小伙伴' }).click();
+    await management.getByRole('button', { name: '确认保存并调用小猫' }).click();
+    await expect(card.getByRole('status')).toContainText('小猫已保存并调用到桌面', { timeout: 30000 });
+    await expect(pet.locator('#model-pet')).toHaveAttribute('data-model-id', hash, { timeout: 20000 });
+    await expect(pet.locator('#model-pet canvas')).toHaveAttribute('data-animation', 'idle');
+    await expect(pet.locator('#model-pet')).toBeVisible();
+    await expect(pet.locator('#pet-window')).not.toHaveClass(/is-lili/);
+    evidence.nativeApply = true; evidence.switchedFromLili = true; evidence.defaultIdle = true;
+    await card.screenshot({ path: path.join(cache, 'lumi-native-card.png') });
+    await management.screenshot({ path: path.join(cache, 'lumi-management.png'), fullPage: true });
+    await pet.screenshot({ path: path.join(cache, 'lumi-desktop-pet.png') });
+    evidence.screenRequests += await application.evaluate(() => global.__lumiSmoke.screenRequests);
+    await application.close(); context = undefined;
+    context = await launch();
+    const secondCard = context.management.getByRole('region', { name: '露米 Lumi' });
+    await expect(secondCard.getByRole('button', { name: '再次召唤桌宠' })).toBeVisible();
+    await expect(context.pet.locator('#model-pet canvas')).toHaveAttribute('data-animation', 'idle', { timeout: 20000 });
+    const persisted = await context.management.evaluate(async () => { const model = await window.nuanbanModel.read(); return model.kind === 'model' ? { id: model.id, byteLength: model.bytes.byteLength } : model; });
+    assert.deepEqual(persisted, { id: hash, byteLength: 1836140 });
+    evidence.persistedAfterRestart = true;
+    await secondCard.getByRole('button', { name: '再次召唤桌宠' }).click();
+    await expect(secondCard.getByRole('status')).toContainText('小猫已保存并调用到桌面', { timeout: 30000 });
+    evidence.recalled = true;
+    evidence.screenRequests += await context.application.evaluate(() => global.__lumiSmoke.screenRequests);
+    assert.equal(evidence.screenRequests, 0);
+    assert.deepEqual(evidence.errors, []);
+  } finally {
+    if (context) await context.application.close();
+    writeFileSync(path.join(cache, 'results.json'), JSON.stringify(evidence, null, 2));
+    console.log(JSON.stringify({ cache, ...evidence }, null, 2));
+  }
+}
+
+run().catch(error => { console.error(error); process.exitCode = 1; });

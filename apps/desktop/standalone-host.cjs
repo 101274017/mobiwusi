@@ -672,6 +672,20 @@ function createStandaloneHost(options) {
     return result;
   }
 
+  async function showLocalModel() {
+    if (!live(petWindow)) throw new Error('独立桌宠尚未就绪，请重新打开客户端。');
+    if (['connecting', 'ready', 'cleanup_failed'].includes(avatarService?.status().phase)) {
+      const stopped = await avatarService.stop();
+      if (stopped?.stopped !== true) throw new Error('原角色尚未停止，小猫未切换。请稍后重试。');
+    }
+    if (lili.snapshot().enabled) {
+      const selected = await selectLili(false);
+      if (selected?.ok !== true) throw new Error('原角色未能切换，小猫未应用。请重试。');
+    }
+    await showPetPanel({ focusInput: false });
+    return true;
+  }
+
   function handle(channel, action) {
     channels.push(channel);
     ipcMain.handle(channel, (event, ...argumentsList) => {
@@ -861,7 +875,7 @@ function createStandaloneHost(options) {
     return result;
   }
 
-  return { initialize, dispose, stop, snapshot, showPetPanel, setPetDisplayCompatibility, selectLili, lili, requestObservation: resume => chooseObservation(resume === true),
+  return { initialize, dispose, stop, snapshot, showPetPanel, showLocalModel, setPetDisplayCompatibility, selectLili, lili, requestObservation: resume => chooseObservation(resume === true),
     requestLocalVoice: enableWake, stopLocalVoice: disableWake, requestVoiceDictation,
     hasPetWindow: () => live(petWindow), getPetWindow: () => live(petWindow) ? petWindow : null };
 }

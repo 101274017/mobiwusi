@@ -7,6 +7,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 import type { VRM } from '@pixiv/three-vrm';
 import type { ModelSource, ModelSummary } from '../local-model';
+import { createModelAnimationController } from './animation-controller';
 
 interface LoadedModel { root: Object3D; animations: AnimationClip[]; vrm?: VRM; summary: ModelSummary; urls: Set<string>; }
 
@@ -125,7 +126,7 @@ async function loadModel(source: ModelSource): Promise<LoadedModel> {
   }
 }
 
-export async function createModelView(container: HTMLElement, source: ModelSource, options: { interactive?: boolean; animate?: boolean; onError?: (message: string) => void } = {}) {
+export async function createModelView(container: HTMLElement, source: ModelSource, options: { interactive?: boolean; animate?: boolean; onError?: (message: string) => void; onAnimationChange?: (name: string) => void } = {}) {
   const loaded = await loadModel(source);
   let renderer: WebGLRenderer;
   try { renderer = new WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' }); }
@@ -134,6 +135,10 @@ export async function createModelView(container: HTMLElement, source: ModelSourc
   const camera = new PerspectiveCamera(32, 1, 0.01, 100);
   const group = new Group();
   const mixer = new AnimationMixer(loaded.root);
+  const animations = createModelAnimationController(mixer, loaded.animations, name => {
+    renderer.domElement.dataset.animation = name;
+    options.onAnimationChange?.(name);
+  });
   let disposed = false;
   let frame = 0;
   let previousTime = 0;
@@ -153,6 +158,7 @@ export async function createModelView(container: HTMLElement, source: ModelSourc
     cancelAnimationFrame(frame);
     resizeObserver?.disconnect();
     controls?.dispose();
+    animations.dispose();
     mixer.stopAllAction();
     mixer.uncacheRoot(loaded.root);
     disposeRoot(loaded.root);
@@ -183,7 +189,7 @@ export async function createModelView(container: HTMLElement, source: ModelSourc
       controls.minDistance = 2.2;
       controls.maxDistance = 9;
     }
-    if (loaded.animations[0] && options.animate !== false && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) mixer.clipAction(loaded.animations[0]).play();
+    if (animations.defaultName && options.animate !== false && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) animations.play(animations.defaultName);
     container.append(renderer.domElement);
     function resize() {
       const width = container.clientWidth || 300;
@@ -220,6 +226,6 @@ export async function createModelView(container: HTMLElement, source: ModelSourc
       catch { options.onError?.('3D 渲染未能继续，已保留原画和本机模型'); dispose(); }
     }
     if (options.animate !== false) frame = requestAnimationFrame(draw);
-    return { summary: loaded.summary, canvas: renderer.domElement, dispose };
+    return { summary: loaded.summary, canvas: renderer.domElement, animationNames: animations.names, playAnimation: animations.play, dispose };
   } catch (error) { dispose(); throw error; }
 }

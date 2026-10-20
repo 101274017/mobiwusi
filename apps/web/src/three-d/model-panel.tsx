@@ -38,7 +38,10 @@ export function LocalModelPanel() {
     if (!bridge) return;
     let disposed = false;
     let revision = 0;
-    const unsubscribe = bridge.onChanged(model => { revision++; if (!disposed) setActive(model); });
+    const unsubscribe = bridge.onChanged(model => {
+      revision++;
+      if (!disposed) { setActive(model); setCandidate(null); setReady(false); setNotice(''); setError(''); }
+    });
     const initialRevision = revision;
     void bridge.read().then(model => { if (!disposed && revision === initialRevision) setActive(model); })
       .catch(() => { if (!disposed) setError('本机模型状态读取失败，请重新导入或切回原画 / 内置桌宠'); });
@@ -81,7 +84,7 @@ export function LocalModelPanel() {
       <div className="local-model-stage">{source ? <ModelPreview source={source} onReady={previewReady} onError={previewError} /> : <div className="model-empty"><Box size={56} strokeWidth={1} aria-hidden="true" /><strong>先看看，再决定</strong><p>仅选择和预览，不会更换你的桌宠。</p></div>}<span className="model-stage-label">{candidate ? '尚未应用 · 拖动旋转，滚轮缩放' : active.kind === 'model' ? '当前 3D 模型 · 拖动旋转查看' : '等待你选择本地模型'}</span></div>
       <div className="local-model-details">
         <p className="model-active-label">当前独立桌宠：{active.kind === 'model' ? active.fileName : '原画 / 内置形象'}</p>
-        {source && <div className="model-file-details"><strong>{source.fileName}</strong><dl><div><dt>格式</dt><dd>{source.format.toUpperCase()}</dd></div><div><dt>三角面</dt><dd>{source.summary.triangles.toLocaleString()}</dd></div><div><dt>骨骼</dt><dd>{source.summary.bones}</dd></div><div><dt>自带动画</dt><dd>{source.summary.animations} 段</dd></div></dl><p>{source.summary.animations ? '预览播放文件第一段动画；不代表所有教学动作兼容。' : '此模型只作静态 3D 展示，不会伪装成已生成可动桌宠。'}</p></div>}
+        {source && <div className="model-file-details"><strong>{source.fileName}</strong><dl><div><dt>格式</dt><dd>{source.format.toUpperCase()}</dd></div><div><dt>三角面</dt><dd>{source.summary.triangles.toLocaleString()}</dd></div><div><dt>骨骼</dt><dd>{source.summary.bones}</dd></div><div><dt>自带动画</dt><dd>{source.summary.animations} 段</dd></div></dl><p>{source.summary.animations ? '优先播放 idle 待机动画，没有时播放第一段；不代表所有教学动作兼容。' : '此模型只作静态 3D 展示，不会伪装成已生成可动桌宠。'}</p></div>}
         <p className="model-limits">单文件不超过 50 MiB、10 万三角面，纹理不超过 2048 × 2048，且必须内嵌。FBX 支持 7.4 / 7.5，VRM 支持 0.x / 1.0；暂不支持 Draco、Meshopt 或 KTX 压缩。</p>
         {!bridge && <p className="model-local-note">浏览器和 Android 不开放此入口，请在电脑客户端导入。不会收取模型文件或要求上传。</p>}
         <div className="model-actions"><button className="button secondary" disabled={!bridge || busy} onClick={() => void choose()}><FolderOpen size={19} />{busy ? '正在本机处理…' : '选择本地 3D 模型'}</button><button className="button primary" disabled={!candidate || !ready || busy} onClick={() => void apply()}><Check size={19} />确认设为独立桌宠</button>{active.kind === 'model' && <button className="button secondary" disabled={busy} onClick={() => setConfirmClear(true)}><RotateCcw size={18} />切回原画 / 内置桌宠</button>}</div>
