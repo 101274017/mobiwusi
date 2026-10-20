@@ -1,9 +1,10 @@
 const { createWindowsHelperProcess } = require('./windows-helper-process.cjs');
+const { checkedShellControls } = require('./windows-shell-controls.cjs');
 const { ObservationError, limitsFor, pngDimensions, hashPng, checkGeometry, checkAborted } = require('./observation-common.cjs');
 
 const BLACK_PIXEL = Buffer.from([0, 0, 0, 255]);
 
-function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBytes, platform, limits: limitOverrides } = {}) {
+function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBytes, platform, limits: limitOverrides, canReadShellControls = () => false } = {}) {
   const limits = limitsFor(limitOverrides);
   const helper = createWindowsHelperProcess({ spawn, timeoutMs, maxOutputBytes, platform });
   let busy = false;
@@ -121,7 +122,8 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
       checkAborted(signal);
       if (typeof nativeImage?.createFromBuffer !== 'function' || typeof nativeImage?.createFromBitmap !== 'function') throw new ObservationError('native_image_unavailable');
       snapshot = snapshotFrame(frame, attachment);
-      const result = await helper.run({ protocol: 1, operation: 'detect', sourceId: snapshot.sourceId, sourceIdentity: snapshot.sourceIdentity, frameHash: snapshot.frameHash, width: snapshot.width, height: snapshot.height, pngBase64: snapshot.png.toString('base64') }, { signal });
+      const shellGeometry = !attachment && snapshot.sourceId.startsWith('screen:') && snapshot.geometry && canReadShellControls(frame) === true ? snapshot.geometry : null;
+      const result = await helper.run({ protocol: 1, operation: 'detect', sourceId: snapshot.sourceId, sourceIdentity: snapshot.sourceIdentity, frameHash: snapshot.frameHash, width: snapshot.width, height: snapshot.height, pngBase64: snapshot.png.toString('base64'), ...(shellGeometry ? { shellGeometry } : {}) }, { signal });
       checkAborted(signal);
       if (!result || result.protocol !== 1 || !['complete', 'unavailable', 'failed'].includes(result.status)) throw new ObservationError('detector_output_invalid');
       if (result.status !== 'complete') return failure(result.status, typeof result.reason === 'string' && /^[a-zA-Z0-9_:.+-]{1,160}$/.test(result.reason) ? result.reason : 'detector_unavailable', snapshot);
@@ -129,6 +131,7 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
       if (result.width !== snapshot.width || result.height !== snapshot.height) throw new ObservationError('detector_dimensions_mismatch');
       if (result.ocrStatus !== 'complete' || result.faceStatus !== 'complete' || !Array.isArray(result.words) || !Array.isArray(result.faces)) throw new ObservationError('detector_incomplete');
       if (result.words.length > 8192 || result.faces.length > 512) throw new ObservationError('detector_output_limit');
+      const shellControls = checkedShellControls(result.shellControls, shellGeometry);
       const textAngle = result.textAngle ?? 0;
       if (!Number.isFinite(textAngle) || Math.abs(textAngle) > 180) throw new ObservationError('ocr_rotation_invalid');
       const words = result.words.map(word => {
@@ -157,7 +160,7 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
       }
       const faces = result.faces.map(face => positioned(checkedRect(face?.rect, snapshot.width, snapshot.height), snapshot.geometry));
       const sanitizedPng = sanitize(snapshot, words, faces, textAngle, signal);
-      return { status: 'complete', sourceId: snapshot.sourceId, sourceIdentity: snapshot.sourceIdentity, frameHash: snapshot.frameHash, width: snapshot.width, height: snapshot.height, words, faces, sanitizedPng, sanitizedFrameHash: hashPng(sanitizedPng), redaction: { text: true, faces: true }, ocrStatus: 'complete', faceStatus: 'complete' };
+      return { status: 'complete', sourceId: snapshot.sourceId, sourceIdentity: snapshot.sourceIdentity, frameHash: snapshot.frameHash, width: snapshot.width, height: snapshot.height, words, faces, shellControls, sanitizedPng, sanitizedFrameHash: hashPng(sanitizedPng), redaction: { text: true, faces: true }, ocrStatus: 'complete', faceStatus: 'complete' };
     } catch (error) {
       return failFrom(error, snapshot ?? frame);
     } finally {

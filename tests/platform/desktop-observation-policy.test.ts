@@ -6,6 +6,51 @@ import { createControlLayout } from '../../apps/desktop/observation/control-layo
 import { syntheticDetection, syntheticFrame, syntheticPng } from '../helpers/standalone-frame';
 
 describe('独立桌宠本地帧门控（合成单测，不是真实外部软件验收）', () => {
+  it('无文字的任务栏软件只使用同帧公共图标布局，不上传未脱敏原图或窗口标题', () => {
+    const frame = syntheticFrame();
+    const detection = { ...syntheticDetection(frame, []), sourceId: frame.sourceId,
+      sanitizedPng: Buffer.from(frame.png), shellControls: [{ label: '微信', surface: 'taskbar' as const, rect: { x: 220, y: 540, width: 44, height: 44 } }] };
+    const result = evaluateLocalFrame(frame, detection);
+    expect(result).toMatchObject({ decision: 'allow', scene: 'controls_only', elements: [{ label: '微信', surface: 'taskbar', rect: detection.shellControls[0].rect }] });
+    if (result.decision !== 'allow') throw new Error('expected safe public layout');
+    expect(result.sanitizedPng).not.toEqual(frame.png);
+    expect(result.sanitizedPng).toEqual(createControlLayout(detection.shellControls, frame.width, frame.height));
+    detection.words.push({ text: '验证码123456', rect: { x: 100, y: 100, width: 100, height: 24 } });
+    expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'pause', reason: 'sensitive_screen' });
+  });
+
+  it.each(['source', 'window', 'geometry', 'label', 'bounds', 'surface', 'overflow'] as const)('原生图标不能越过来源、范围或白名单门控：%s', condition => {
+    const frame = syntheticFrame();
+    const detection = { ...syntheticDetection(frame), sourceId: frame.sourceId,
+      shellControls: [{ label: '微信', surface: 'taskbar' as 'taskbar' | 'desktop', rect: { x: 220, y: 540, width: 44, height: 44 } }] };
+    if (condition === 'source') detection.sourceId = 'screen:other:0';
+    if (condition === 'window') frame.sourceId = 'window:42:0';
+    if (condition === 'geometry') frame.geometry = null;
+    if (condition === 'label') detection.shellControls[0].label = '私人聊天';
+    if (condition === 'bounds') detection.shellControls[0].rect.x = -1;
+    if (condition === 'surface') Object.assign(detection.shellControls[0], { surface: 'private-window' });
+    if (condition === 'overflow') detection.shellControls = Array.from({ length: 129 }, () => detection.shellControls[0]);
+    expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'pause', reason: 'invalid_local_regions' });
+  });
+
+  it('无关正文或 OCR 抖动不使同一安全控件布局失效，控件移动或敏感内容仍被核验', () => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['文件', '编辑', '查看', '普通正文']);
+    const first = evaluateLocalFrame(frame, detection);
+    detection.words[3].text = '变化的普通正文';
+    detection.words[3].rect.x += 20;
+    const unchanged = evaluateLocalFrame(frame, detection);
+    expect(first.decision).toBe('allow');
+    expect(unchanged.decision).toBe('allow');
+    if (first.decision !== 'allow' || unchanged.decision !== 'allow') throw new Error('missing layout');
+    expect(first.signature).toBe(unchanged.signature);
+    detection.words[0].rect.x += 20;
+    const moved = evaluateLocalFrame(frame, detection);
+    expect(moved.decision === 'allow' && moved.signature).not.toBe(first.signature);
+    detection.words[3].text = '私人聊天';
+    expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'pause', reason: 'sensitive_screen' });
+  });
+
   it.each([5000, 5001])('完整安全帧的真实五秒有效期不变：%i 毫秒', age => {
     const frame = syntheticFrame();
     const capturedAt = frame.capturedAt;

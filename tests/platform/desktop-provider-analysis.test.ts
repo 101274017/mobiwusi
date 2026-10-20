@@ -17,6 +17,25 @@ function requestInput(timestamp = Date.now()): AnalysisInput {
 function provider(answer: AiProvider['answer']) { return { answer: vi.fn(answer) }; }
 
 describe('桌宠分析中的电脑来源和追问上下文', () => {
+  it('任务栏图标保留公共来源和像素位置，模型只选择已经核验的入口', async () => {
+    const timestamp = Date.now();
+    const raw = syntheticFrame(undefined, timestamp);
+    const detection = { ...syntheticDetection(raw, []), sourceId: raw.sourceId,
+      shellControls: [{ label: '微信', surface: 'taskbar' as const, rect: { x: 220, y: 540, width: 44, height: 44 } }] };
+    const frame = evaluateLocalFrame(raw, detection, { now: timestamp });
+    if (frame.decision !== 'allow') throw new Error('missing safe native control');
+    const input = { ...requestInput(timestamp), frame, question: '如何打开微信' };
+    const endpoint = provider(async () => ({ text: JSON.stringify({ kind: 'step', instruction: '请亲手单击任务栏里的微信图标。', target_id: frame.elements[0].id, presentation: 'confirmed', expected_labels: ['发现'] }) }));
+    const result = await createProviderAnalysisClient({ provider: endpoint, now: () => timestamp }).analyze(input);
+    expect(result).toMatchObject({ kind: 'step', target_id: frame.elements[0].id });
+    const sent = endpoint.answer.mock.calls[0][0];
+    const context = JSON.parse(sent.instructions!.split('当前最小上下文：')[1]);
+    expect(context.elements).toEqual([{ id: frame.elements[0].id, label: '微信', rect: detection.shellControls[0].rect, surface: 'taskbar' }]);
+    expect(context.view).toBe('controls_only_layout');
+    expect(sent.instructions).toContain('本人单击');
+    expect(sent.image!.bytes).not.toEqual(raw.png);
+  });
+
   it('保留原问题并最小化投影追问回答，不再让模型猜电脑还是手机', async () => {
     const input = requestInput();
     input.clarificationReplies = [{ prompt: '请确认应用名称。', answer: '微信' }];

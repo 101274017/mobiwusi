@@ -39,6 +39,7 @@ export interface ObservationFrame {
 
 export interface DetectionWord { text: string; rect: Rect; globalRect?: Rect; ocrPass?: number; textAngle?: number | null }
 export interface DetectionFace { rect: Rect; globalRect?: Rect }
+export interface ShellControl { label: '微信' | '开始' | '搜索' | '此电脑' | '回收站' | '控制面板'; surface: 'taskbar' | 'desktop'; rect: Rect }
 
 export type DetectionResult = {
   status: 'complete';
@@ -49,6 +50,7 @@ export type DetectionResult = {
   height: number;
   words: DetectionWord[];
   faces: DetectionFace[];
+  shellControls?: ShellControl[];
   sanitizedPng: Buffer;
   sanitizedFrameHash: string;
   redaction: { text: true; faces: true };
@@ -95,6 +97,7 @@ export interface ScreenApi {
   dipToScreenRect?(window: null, rect: Rect): Rect;
 }
 export interface LocalDetectorOptions {
+  canReadShellControls?: (frame: ObservationFrame) => boolean;
   nativeImage?: NativeImageApi;
   spawn?: typeof spawn;
   timeoutMs?: number;

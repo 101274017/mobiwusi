@@ -8,10 +8,13 @@ $phase = 'request'
 $bitmap = $null
 $scaledBitmap = $null
 $faceBitmap = $null
+$faceOperation = $null
+$detectedFaces = $null
 $stream = $null
 $png = $null
 $reply = $null
 $request = $null
+$shellControls = @()
 
 function Wait-WinRt {
     param($Operation, [Type]$ResultType)
@@ -36,6 +39,10 @@ function Read-Request {
 try {
     $request = Read-Request
     if ($request.protocol -ne 1 -or $request.operation -notin @('probe', 'detect')) { throw [System.IO.InvalidDataException]::new('protocol_invalid') }
+    if ($request.operation -eq 'detect' -and $null -ne $request.shellGeometry) {
+        if ($request.sourceId -notmatch '^screen:\d+:\d+$' -or $request.shellGeometry.pixelWidth -ne $request.width -or $request.shellGeometry.pixelHeight -ne $request.height) { throw [System.IO.InvalidDataException]::new('shell_geometry_invalid') }
+        . (Join-Path $PSScriptRoot 'windows-shell-controls.ps1')
+    }
     $phase = 'winrt_load'
     Add-Type -AssemblyName System.Runtime.WindowsRuntime
     $null = [Windows.Media.Ocr.OcrEngine, Windows.Foundation, ContentType = WindowsRuntime]
@@ -71,6 +78,7 @@ try {
             $sha = [System.Security.Cryptography.SHA256]::Create()
             try { $actualHash = ([BitConverter]::ToString($sha.ComputeHash($png))).Replace('-', '').ToLowerInvariant() } finally { $sha.Dispose() }
             if ($actualHash -cne $request.frameHash) { throw [System.IO.InvalidDataException]::new('frame_hash_mismatch') }
+            if ($null -ne $request.shellGeometry) { $shellControls = @(Get-PublicShellControls $request.shellGeometry) }
             $stream = New-Object Windows.Storage.Streams.InMemoryRandomAccessStream
             $writer = New-Object Windows.Storage.Streams.DataWriter($stream.GetOutputStreamAt(0))
             try {
@@ -85,6 +93,8 @@ try {
                 $reply = @{ protocol = 1; status = 'unavailable'; reason = 'ocr_dimensions_unsupported'; ocrStatus = 'unavailable'; faceStatus = 'unavailable' }
             } else {
                 $bitmap = Wait-WinRt ($decoder.GetSoftwareBitmapAsync([Windows.Graphics.Imaging.BitmapPixelFormat]::Bgra8, [Windows.Graphics.Imaging.BitmapAlphaMode]::Premultiplied)) ([Windows.Graphics.Imaging.SoftwareBitmap])
+                $faceBitmap = [Windows.Graphics.Imaging.SoftwareBitmap]::Convert($bitmap, [Windows.Graphics.Imaging.BitmapPixelFormat]::Gray8)
+                $faceOperation = $faceDetector.DetectFacesAsync($faceBitmap)
                 $phase = 'ocr_detect'
                 $ocrResult = Wait-WinRt ($engine.RecognizeAsync($bitmap)) ([Windows.Media.Ocr.OcrResult])
                 if ($null -eq $ocrResult) { throw [System.IO.InvalidDataException]::new('ocr_result_missing') }
@@ -120,8 +130,7 @@ try {
                     $scaledBitmap = $null
                 }
                 $phase = 'face_detect'
-                $faceBitmap = [Windows.Graphics.Imaging.SoftwareBitmap]::Convert($bitmap, [Windows.Graphics.Imaging.BitmapPixelFormat]::Gray8)
-                $detectedFaces = Wait-WinRt ($faceDetector.DetectFacesAsync($faceBitmap)) ([System.Collections.Generic.IList[Windows.Media.FaceAnalysis.DetectedFace]])
+                $detectedFaces = Wait-WinRt $faceOperation ([System.Collections.Generic.IList[Windows.Media.FaceAnalysis.DetectedFace]])
                 if ($null -eq $detectedFaces) { throw [System.IO.InvalidDataException]::new('face_result_missing') }
                 $faces = New-Object System.Collections.ArrayList
                 foreach ($face in $detectedFaces) {
@@ -129,7 +138,7 @@ try {
                     $bounds = $face.FaceBox
                     $null = $faces.Add(@{ rect = @{ x = $bounds.X; y = $bounds.Y; width = $bounds.Width; height = $bounds.Height } })
                 }
-                $reply = @{ protocol = 1; status = 'complete'; ocrStatus = 'complete'; faceStatus = 'complete'; words = @($words.ToArray()); ocrPasses = $ocrPasses; faces = @($faces.ToArray()); textAngle = $ocrResult.TextAngle }
+                $reply = @{ protocol = 1; status = 'complete'; ocrStatus = 'complete'; faceStatus = 'complete'; words = @($words.ToArray()); ocrPasses = $ocrPasses; faces = @($faces.ToArray()); textAngle = $ocrResult.TextAngle; shellControls = $shellControls }
             }
         }
     }
@@ -138,6 +147,12 @@ try {
     $cause = $_.Exception.GetBaseException()
     $reply = @{ protocol = 1; status = $failureStatus; reason = ('{0}:{1}:0x{2:X8}' -f $phase, $cause.GetType().Name, $cause.HResult); ocrStatus = 'unavailable'; faceStatus = 'unavailable' }
 } finally {
+    if ($null -ne $faceOperation -and $null -eq $detectedFaces) {
+        try {
+            $faceOperation.Cancel()
+            $null = Wait-WinRt $faceOperation ([System.Collections.Generic.IList[Windows.Media.FaceAnalysis.DetectedFace]])
+        } catch {}
+    }
     if ($null -ne $scaledBitmap) { $scaledBitmap.Dispose() }
     if ($null -ne $faceBitmap) { $faceBitmap.Dispose() }
     if ($null -ne $bitmap) { $bitmap.Dispose() }

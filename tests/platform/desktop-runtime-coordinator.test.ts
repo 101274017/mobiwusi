@@ -239,6 +239,40 @@ describe('屏幕分析结果的可见反馈', () => {
     expect(setup.analyze).toHaveBeenCalledOnce();
   });
 
+  it('回复落在两次捕获间隙且画面过期时立即重采集核验，不上传第二次也不丢弃箭头', async () => {
+    const setup = fixture();
+    await setup.start();
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+    const input = setup.analyze.mock.calls[0][0];
+    setup.controls.time += 5001;
+    response.resolve(stepResponse(input));
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture).toHaveBeenCalledTimes(3);
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+    expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, label: '显示' }));
+  });
+
+  it('回复等待新帧时仍检查隐私，不以重新采集绕过敏感画面保护', async () => {
+    const setup = fixture();
+    await setup.start();
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+    const input = setup.analyze.mock.calls[0][0];
+    setup.controls.time += 5001;
+    setup.controls.labels.push('私人聊天');
+    response.resolve(stepResponse(input));
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false });
+    expect(setup.onTarget.mock.calls.some(([target]) => target?.visible)).toBe(false);
+    expect(setup.analyze).toHaveBeenCalledOnce();
+  });
+
   it('指引窗口拒绝显示时明确告知，而不是宣称已有箭头', async () => {
     const setup = fixture();
     setup.onTarget.mockImplementation(target => target ? false : undefined);
@@ -1213,6 +1247,7 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
       await advanceObservation(setup, 6000);
       expect(setup.source.capture).toHaveBeenCalledTimes(3);
       expect(pending.request.canSend()).toBe(false);
+      setup.source.capture.mockImplementation(async () => syntheticFrame(setup.controls.geometry, pending.request.frame.capturedAt));
     } finally { pending.complete(); }
     await setup.runtime.whenIdle();
     expect(setup.runtime.snapshot().task.state).toBe('needs_help');
@@ -1228,6 +1263,7 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
       await advanceObservation(setup, 6000);
       setup.controls.time += age;
       expect(pending.request.canSend()).toBe(age <= 5000);
+      if (age > 5000) setup.source.capture.mockImplementation(async () => syntheticFrame(setup.controls.geometry, setup.controls.time - age));
     } finally { pending.complete(); }
     await setup.runtime.whenIdle();
     expect(setup.runtime.snapshot().task.state).toBe(age <= 5000 ? 'completed' : 'needs_help');

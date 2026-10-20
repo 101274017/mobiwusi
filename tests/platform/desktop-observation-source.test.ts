@@ -188,7 +188,7 @@ function sourceSetup(options: { consent?: boolean; scale?: number; size?: { widt
   return { source, getSources, screen, display, thumbnail, canCapture, media, onCaptureInvalidated, setConsent(value: boolean) { consent = value; }, setSources(value: RawDesktopSource[]) { sources = value; } };
 }
 
-type HelperRequest = { protocol: number; operation: string; sourceId: string; sourceIdentity: string | null; frameHash: string; width: number; height: number; pngBase64: string };
+type HelperRequest = { protocol: number; operation: string; sourceId: string; sourceIdentity: string | null; frameHash: string; width: number; height: number; pngBase64: string; shellGeometry?: ObservationGeometry };
 type HelperReply = Record<string, unknown>;
 
 function completeReply(request: HelperRequest): HelperReply {
@@ -869,6 +869,65 @@ describe('捕获 worker 的真实页面脚本时序（合成媒体，不读取�
 });
 
 describe('Windows 本地 OCR/人脸检测与内存脱敏', () => {
+  it('未授权的检测、附件与窗口不读取系统桌面或任务栏', async () => {
+    const setup = helperSetup();
+    await setup.detector().detect(frame());
+    expect(setup.children[0]!.request).not.toHaveProperty('shellGeometry');
+    const detector = setup.detector({ canReadShellControls: () => true });
+    await detector.detectAttachment(frame({ sourceId: 'attachment:12345678-1234-4234-8234-123456789abc', sourceIdentity: undefined, geometry: null }));
+    expect(setup.children[1]!.request).not.toHaveProperty('shellGeometry');
+    await detector.detect(frame({ sourceId: 'window:1:0' }));
+    expect(setup.children[2]!.request).not.toHaveProperty('shellGeometry');
+  });
+
+  it('只读取本次授权真实采集的帧，停止、重新列出来源和伪造副本不借用桌面权限', async () => {
+    const setup = helperSetup();
+    const source = sourceSetup();
+    const port = createWindowsObservationSource({ nativeImage, platform: 'win32', desktopCapturer: { getSources: source.getSources }, screen: source.screen,
+      ...source.media.ports, now: () => 1234, canCapture: source.canCapture, detectorOptions: { spawn: setup.spawn as unknown as typeof nodeSpawn } });
+    openedSources.push(port);
+    await port.listSources();
+    const captured = await port.capture({ sourceId: 'screen:1:0' });
+    await port.detect({ ...captured });
+    expect(setup.children.at(-1)!.request).not.toHaveProperty('shellGeometry');
+    await port.detect(captured);
+    expect(setup.children.at(-1)!.request!.shellGeometry).toEqual(captured.geometry);
+    await port.detect(captured);
+    expect(setup.children.at(-1)!.request).not.toHaveProperty('shellGeometry');
+    const obsolete = await port.capture({ sourceId: 'screen:1:0' });
+    await port.stop();
+    await port.listSources();
+    await port.detect(obsolete);
+    expect(setup.children.at(-1)!.request).not.toHaveProperty('shellGeometry');
+  });
+
+  it.each([1, 1.5, 2])('原生公共图标坐标在 %s 倍缩放和负屏幕原点下映射到本帧，不透出私有属性', async scale => {
+    const input = frame({ geometry: geometry({ width: Math.round(64 / scale), height: Math.round(48 / scale), scaleFactor: scale }) });
+    const bounds = { x: input.geometry!.pixelX + 12, y: input.geometry!.pixelY + 20, width: 24, height: 24 };
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), shellControls: [{ label: '微信', surface: 'taskbar', rect: bounds, privateTitle: 'never-return-this' }] }));
+    const result = await setup.detector({ canReadShellControls: () => true }).detect(input);
+    expect(result).toMatchObject({ status: 'complete', shellControls: [{ label: '微信', surface: 'taskbar', rect: { x: 12, y: 20, width: 24, height: 24 } }] });
+    expect(JSON.stringify(result)).not.toContain('never-return-this');
+  });
+
+  it.each(['unrequested', 'label', 'surface', 'bounds', 'nonfinite', 'overflow', 'array'] as const)('拒绝伪造或越过授权范围的图标：%s', async condition => {
+    const input = frame();
+    const control = { label: '微信', surface: 'taskbar', rect: { x: input.geometry!.pixelX + 12, y: input.geometry!.pixelY + 12, width: 24, height: 24 } };
+    if (condition === 'label') control.label = '私人窗口';
+    if (condition === 'surface') control.surface = 'private-window';
+    if (condition === 'bounds') control.rect.x = input.geometry!.pixelX - 1;
+    if (condition === 'nonfinite') control.rect.width = Number.NaN;
+    const controls = condition === 'overflow' ? Array.from({ length: 129 }, () => control) : condition === 'array' ? {} : [control];
+    const setup = helperSetup((request, child) => child.reply({ ...completeReply(request), shellControls: controls }));
+    const result = await setup.detector({ canReadShellControls: () => condition !== 'unrequested' }).detect(input);
+    expect(result.status).toBe('failed');
+    expect(result).not.toHaveProperty('sanitizedPng');
+  });
+
+  it('所有原生脚本均能由 Windows PowerShell 5 按 ASCII 读取，不因中文无 BOM 导致解析失败', () => {
+    expect(readFileSync(new URL('../../apps/desktop/observation/windows-shell-controls.ps1', import.meta.url), 'utf8')).not.toMatch(/[^\x00-\x7f]/u);
+  });
+
   it('选图通过独立附件入口检测，不冒充屏幕或借用屏幕坐标', async () => {
     const setup = helperSetup();
     const detector = setup.detector();

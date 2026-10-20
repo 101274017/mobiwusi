@@ -6,7 +6,9 @@ const { validateObservationRegion, cropObservationPng } = require('./observation
 
 function createWindowsObservationSource({ desktopCapturer, screen, nativeImage, BrowserWindow, ipcMain, session, canCapture = () => false, onCaptureInvalidated, now = Date.now, timeoutMs = 10_000, limits: limitOverrides, platform = process.platform, detectorOptions = {} } = {}) {
   const limits = limitsFor(limitOverrides);
-  const detector = createWindowsLocalDetector({ ...detectorOptions, nativeImage, platform, limits: limitOverrides });
+  let capturedFrames = new WeakSet();
+  const detector = createWindowsLocalDetector({ ...detectorOptions, nativeImage, platform, limits: limitOverrides,
+    canReadShellControls: frame => capturedFrames.delete(frame) && listed.has(frame.sourceId) && canCapture({ sourceId: frame.sourceId }) === true });
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 60_000) throw new ObservationError('invalid_timeout');
   let listed = new Map();
   let active = null;
@@ -122,6 +124,7 @@ function createWindowsObservationSource({ desktopCapturer, screen, nativeImage, 
         await controlled.stop();
         controlled.reset();
         listed = new Map();
+        capturedFrames = new WeakSet();
         captureRegionKey = undefined;
         const sources = await enumerate(operationSignal, ['screen', 'window']);
         const metadata = sources.map(metadataFor);
@@ -175,6 +178,7 @@ function createWindowsObservationSource({ desktopCapturer, screen, nativeImage, 
           const frame = Object.freeze({ sourceId, sourceName: region ? `${selected.name}（框选区域）` : selected.name, displayId: selected.displayId, sourceType: selected.type,
             sourceIdentity: region ? createHash('sha256').update(sourceIdentity + regionKey).digest('hex') : sourceIdentity,
             frameId: captured.frameId, png, width: geometry.pixelWidth, height: geometry.pixelHeight, capturedAt: captured.capturedAt, geometry, frameHash: hashPng(png), ...(region ? { region } : {}) });
+          capturedFrames.add(frame);
           returned = true;
           return frame;
         } finally {
@@ -190,6 +194,7 @@ function createWindowsObservationSource({ desktopCapturer, screen, nativeImage, 
     probe: detector.probe,
     async stop() {
       listed.clear();
+      capturedFrames = new WeakSet();
       captureRegionKey = undefined;
       active?.abort(new ObservationError('aborted'));
       await Promise.all([detector.stop(), controlled.stop()]);

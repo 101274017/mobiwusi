@@ -2,7 +2,7 @@ const { createHash } = require('node:crypto');
 const { createControlLayout } = require('./observation/control-layout.cjs');
 const { LIMITS } = require('./observation/observation-common.cjs');
 
-const policyVersion = 'windows-local-ocr-v7';
+const policyVersion = 'windows-local-ocr-v8';
 const admittedFrames = new WeakSet();
 const privatePattern = /密码|口令|验证码|动态码|私聊|聊天记录|私人聊天|发送给|身份证|银行卡|支付|付款|收款|转账|交易确认|安全密钥|访问令牌|password|passcode|one[ -]?time|verification code|private (?:chat|message)|credit card|bank account|payment|transfer money|bearer\s|api[ _-]?key|secret key/i;
 const personalPattern = /(?:\b1[3-9]\d{9}\b)|(?:\b\d{17}[\dXx]\b)|(?:[\w.+-]+@[\w.-]+\.[A-Za-z]{2,})|(?:\b(?:sk|pk)[-_][A-Za-z0-9]{16,})/;
@@ -113,13 +113,26 @@ function evaluateLocalFrame(frame, detection, options = {}) {
     || detection.redaction?.text !== true || detection.redaction?.faces !== true) return deny('incomplete_local_detection');
   if (detection.words.length > 8192 || detection.faces.length > 512) return deny('local_detection_limit');
   if (!validPng(detection.sanitizedPng, frame.width, frame.height) || detection.sanitizedPng.length > LIMITS.maxPngBytes) return deny('local_redaction_invalid');
-  if (detection.words.length === 0) return deny('no_readable_text');
+  const shellControls = detection.shellControls ?? [];
+  if (!Array.isArray(shellControls) || shellControls.length > 128 || shellControls.some(control =>
+    !['微信', '开始', '搜索', '此电脑', '回收站', '控制面板'].includes(control?.label)
+    || !['taskbar', 'desktop'].includes(control?.surface) || !validRect(control.rect, frame.width, frame.height))
+    || (shellControls.length && (!frame.sourceId.startsWith('screen:') || !frame.geometry || detection.sourceId !== frame.sourceId))) return deny('invalid_local_regions');
+  if (detection.words.length === 0 && !shellControls.length) return deny('no_readable_text');
   if (detection.words.some(word => typeof word?.text !== 'string' || !word.text.length || word.text.length > 512 || !validRect(word.rect, frame.width, frame.height))
     || detection.faces.some(face => !validRect(face?.rect, frame.width, frame.height))) return deny('invalid_local_regions');
   const text = detection.words.map(word => word.text).join(' ');
   if (text.length > 20000) return deny('local_text_limit');
   if (isRestrictedText(text) || isRestrictedText(detection.words.map(word => word.text).join(''))) return deny('sensitive_screen', 'private');
   const { controls: allowedWords, matchedCount } = recognizedControls(detection.words);
+  for (const control of shellControls) {
+    const duplicate = allowedWords.findIndex(word => normalizeLabel(word.text) === normalizeLabel(control.label)
+      && word.rect.x >= control.rect.x && word.rect.y >= control.rect.y
+      && word.rect.x + word.rect.width <= control.rect.x + control.rect.width
+      && word.rect.y + word.rect.height <= control.rect.y + control.rect.height);
+    if (duplicate >= 0) allowedWords.splice(duplicate, 1);
+    allowedWords.push({ text: control.label, rect: { ...control.rect }, surface: control.surface });
+  }
   if (allowedWords.length > 1024) return deny('control_layout_limit');
   const labels = new Set(allowedWords.map(word => normalizeLabel(word.text)));
   const positiveMarkers = [...labels].filter(label => sceneLabels.has(label));
@@ -131,9 +144,9 @@ function evaluateLocalFrame(frame, detection, options = {}) {
   else if (positiveMarkers.length >= 2 && allowedWords.length >= 3 && unknownCount <= allowedWords.length * 2) scene = 'settings';
   else if (allowedWords.length >= 3 && unknownCount <= 1 && [...labels].filter(label => browserLabels.has(label)).length >= 2) scene = 'browser_controls';
   else if (allowedWords.length >= 4 && unknownCount <= 1 && [...labels].filter(label => editorLabels.has(label)).length >= 3) scene = 'editor_controls';
-  if (digest(detection.sanitizedPng) === frame.frameHash) return deny('unredacted_frame');
+  if (!shellControls.length && digest(detection.sanitizedPng) === frame.frameHash) return deny('unredacted_frame');
   let sanitizedPng;
-  if (!scene || detection.sanitizedPng.length > 2_000_000) {
+  if (shellControls.length || !scene || detection.sanitizedPng.length > 2_000_000) {
     if (!allowedWords.length) return deny('unclassified_screen');
     try { sanitizedPng = createControlLayout(allowedWords, frame.width, frame.height); }
     catch { return deny('control_layout_unavailable'); }
@@ -143,8 +156,9 @@ function evaluateLocalFrame(frame, detection, options = {}) {
   const sanitizedHash = digest(sanitizedPng);
   if (sanitizedHash === frame.frameHash) { sanitizedPng.fill(0); return deny('unredacted_frame'); }
   if (now - frame.capturedAt > (options.maxAgeMs ?? 5000)) { sanitizedPng.fill(0); return deny('stale_frame'); }
-  const elements = allowedWords.map((word, index) => ({ id: `element_${frame.frameHash.slice(0, 12)}_${index}`, label: word.text.trim(), rect: { ...word.rect } }));
-  const signature = digest(JSON.stringify(detection.words.map(word => [normalizeLabel(word.text), Math.round(word.rect.x / 4), Math.round(word.rect.y / 4), Math.round(word.rect.width / 4), Math.round(word.rect.height / 4)])));
+  const elements = allowedWords.map((word, index) => ({ id: `element_${frame.frameHash.slice(0, 12)}_${index}`, label: word.text.trim(), rect: { ...word.rect }, ...(word.surface ? { surface: word.surface } : {}) }));
+  const contextWords = scene === 'controls_only' ? allowedWords : detection.words;
+  const signature = digest(JSON.stringify(contextWords.map(word => [normalizeLabel(word.text), Math.round(word.rect.x / 4), Math.round(word.rect.y / 4), Math.round(word.rect.width / 4), Math.round(word.rect.height / 4), ...(word.surface ? [word.surface] : [])])));
   const admitted = {
     decision: 'allow', risk: 'safe', reason: scene === 'controls_only' ? 'locally_projected_controls' : 'locally_checked', policyVersion, frameId: frame.frameId ?? frame.frameHash,
     frameHash: frame.frameHash, sanitizedHash, capturedAt: frame.capturedAt, sourceId: frame.sourceId,

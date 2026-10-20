@@ -5,11 +5,13 @@ export interface ObservationFrame {
   capturedAt: number; width: number; height: number; png: Buffer; geometry: ScreenGeometry | null;
 }
 export interface LocalDetection {
+  sourceId?: string;
+  shellControls?: { label: string; surface: 'taskbar' | 'desktop'; rect: PixelRect }[];
   status: 'complete' | 'unavailable' | 'failed'; reason?: string; frameHash: string; width: number; height: number;
   words: { text: string; rect: PixelRect; ocrPass?: number }[]; faces: { rect: PixelRect }[];
   sanitizedPng: Buffer; redaction: { text: boolean; faces: boolean };
 }
-export interface ScreenElement { id: string; label: string; rect: PixelRect }
+export interface ScreenElement { id: string; label: string; rect: PixelRect; surface?: 'taskbar' | 'desktop' }
 export interface AdmittedFrame {
   decision: 'allow'; risk: 'safe'; reason: string; policyVersion: string; frameId: string; frameHash: string;
   sanitizedHash: string; capturedAt: number; sourceId: string; sourceName: string; displayId?: string;

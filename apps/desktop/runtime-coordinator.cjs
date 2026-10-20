@@ -568,8 +568,10 @@ function createDesktopRuntime(options) {
         const canSend = () => !controller.signal.aborted && sequence === analysisSequence && canUseFrame(job.frame, job.observation, job.task, true);
         const confirmCurrentFrame = async () => {
           if (canSend()) return true;
-          if (!captureJob || controller.signal.aborted || sequence !== analysisSequence || !gateOpen || !cloudConsent
+          if (controller.signal.aborted || sequence !== analysisSequence || !gateOpen || !cloudConsent
             || !sameGeneration(job.observation, job.task) || !sameFrameContext(latestFrame, job.frame)) return false;
+          if (!captureJob) requestFrame('page_changed');
+          if (!captureJob) return false;
           state.analysis = { state: 'analyzing', message: '分析已返回，正在等待当前本地画面完成安全核验；通过后才会显示指引。' };
           publish();
           await Promise.race([captureJob, cancellation]);
