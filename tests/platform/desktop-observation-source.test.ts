@@ -928,6 +928,14 @@ describe('Windows 本地 OCR/人脸检测与内存脱敏', () => {
     expect(readFileSync(new URL('../../apps/desktop/observation/windows-shell-controls.ps1', import.meta.url), 'utf8')).not.toMatch(/[^\x00-\x7f]/u);
   });
 
+  it('先验证框选/屏幕范围再读取控件名称，不读取范围外软件入口的完整名称', () => {
+    const script = readFileSync(new URL('../../apps/desktop/observation/windows-shell-controls.ps1', import.meta.url), 'utf8');
+    const scopeCheck = script.indexOf('if ($bounds.X -lt $Geometry.pixelX');
+    const nameRead = script.indexOf('$name = $element.Current.Name');
+    expect(scopeCheck).toBeGreaterThan(0);
+    expect(scopeCheck).toBeLessThan(nameRead);
+  });
+
   it('选图通过独立附件入口检测，不冒充屏幕或借用屏幕坐标', async () => {
     const setup = helperSetup();
     const detector = setup.detector();

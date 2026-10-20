@@ -25,6 +25,10 @@ function Get-PublicShellControls {
             if ($elements.Count -gt 1024) { continue }
             foreach ($element in $elements) {
                 if ($element.Current.ProcessId -ne $window.Current.ProcessId -or $element.Current.IsOffscreen -or -not $element.Current.IsEnabled) { continue }
+                $bounds = $element.Current.BoundingRectangle
+                $values = @($bounds.X, $bounds.Y, $bounds.Width, $bounds.Height)
+                if (@($values | Where-Object { [double]::IsNaN($_) -or [double]::IsInfinity($_) }).Count -gt 0 -or $bounds.Width -le 0 -or $bounds.Height -le 0) { continue }
+                if ($bounds.X -lt $Geometry.pixelX -or $bounds.Y -lt $Geometry.pixelY -or $bounds.Right -gt ($Geometry.pixelX + $Geometry.pixelWidth) -or $bounds.Bottom -gt ($Geometry.pixelY + $Geometry.pixelHeight)) { continue }
                 $name = $element.Current.Name
                 $label = $null
                 if ($surface -eq 'taskbar') {
@@ -38,10 +42,6 @@ function Get-PublicShellControls {
                     elseif ($name -match "^($($labels.panel)|Control Panel)`$") { $label = $labels.panel }
                 }
                 if ($null -eq $label) { continue }
-                $bounds = $element.Current.BoundingRectangle
-                $values = @($bounds.X, $bounds.Y, $bounds.Width, $bounds.Height)
-                if (@($values | Where-Object { [double]::IsNaN($_) -or [double]::IsInfinity($_) }).Count -gt 0 -or $bounds.Width -le 0 -or $bounds.Height -le 0) { continue }
-                if ($bounds.X -lt $Geometry.pixelX -or $bounds.Y -lt $Geometry.pixelY -or $bounds.Right -gt ($Geometry.pixelX + $Geometry.pixelWidth) -or $bounds.Bottom -gt ($Geometry.pixelY + $Geometry.pixelHeight)) { continue }
                 $point = New-Object System.Windows.Point(($bounds.X + $bounds.Width / 2), ($bounds.Y + $bounds.Height / 2))
                 $hit = [System.Windows.Automation.AutomationElement]::FromPoint($point)
                 $verifiedHit = $false
