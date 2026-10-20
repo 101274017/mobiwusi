@@ -12,6 +12,7 @@ const CAPTURE_FAILURE_MESSAGES = Object.freeze(Object.fromEntries([
   [['capture_refresh_unavailable'], '屏幕实时帧刷新不可用，已停止观察。请退出桌宠后重新启动；不会用旧截图冒充新画面。'],
   [['timeout'], '本地捕获或检测超时，已停止观察且未发送画面。请稍后重新选择屏幕再试。'],
   [['controlled_capture_unavailable', 'windows_capture_unavailable', 'capture_media_unavailable'], '当前屏幕捕获组件不可用，已停止观察。请退出桌宠后重新启动。'],
+  [['capture_time_invalid'], '本地帧时间校验未通过，已停止观察且未发送画面。请重新选择屏幕；若再次失败，请重启桌宠。'],
   [['capture_worker_closed', 'capture_renderer_gone', 'capture_worker_load_failed', 'capture_worker_start_failed', 'capture_worker_unresponsive', 'capture_media_failed', 'capture_frame_failed', 'capture_worker_failed', 'capture_session_invalidated', 'capture_or_detector_failed'], '本地捕获或检测失败，已停止观察且未发送画面。请重新选择屏幕；若再次失败，请重启桌宠。'],
 ].flatMap(([codes, message]) => codes.map(code => [code, message]))));
 

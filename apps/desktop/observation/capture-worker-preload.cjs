@@ -24,7 +24,7 @@ function post(kind, packet = {}) {
   const payload = { kind, token: configuration.token, generation: configuration.generation, sourceId: configuration.sourceId, sourceIdentity: configuration.sourceIdentity };
   if (kind === 'frame') {
     if (!frameSize || !uuid.test(packet.requestId) || !(packet.png instanceof ArrayBuffer) || packet.png.byteLength < 33 || packet.png.byteLength > configuration.maxPngBytes || packet.width !== frameSize.width || packet.height !== frameSize.height) return;
-    Object.assign(payload, { requestId: packet.requestId, png: packet.png, width: packet.width, height: packet.height });
+    Object.assign(payload, { requestId: packet.requestId, capturedAt: packet.capturedAt, png: packet.png, width: packet.width, height: packet.height });
   }
   if (kind === 'ready') {
     if (frameSize || !validDimensions(packet.width, packet.height)) return;

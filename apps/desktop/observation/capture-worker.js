@@ -52,7 +52,7 @@
         callbackId = null;
         rejectFrame = null;
         if (stopped || !stream || stream.getVideoTracks()[0]?.readyState !== 'live') reject(new Error('capture_stopped'));
-        else resolve();
+        else resolve(Date.now());
       });
     });
   }
@@ -93,7 +93,7 @@
     capturing = true;
     let bytes;
     try {
-      await nextFrame();
+      const capturedAt = await nextFrame();
       if (stopped) return;
       const width = video.videoWidth;
       const height = video.videoHeight;
@@ -107,7 +107,7 @@
       if (stopped) return;
       if (!blob || blob.size < 33 || blob.size > configuration.maxPngBytes) { fail('capture_png_limit'); return; }
       bytes = await blob.arrayBuffer();
-      if (!stopped) host.post('frame', { requestId, width, height, png: bytes });
+      if (!stopped) host.post('frame', { requestId, capturedAt, width, height, png: bytes });
     } catch {
       fail('capture_frame_failed');
     } finally {

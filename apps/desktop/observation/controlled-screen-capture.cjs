@@ -96,11 +96,14 @@ function createControlledScreenCapture({ BrowserWindow, ipcMain, session, canCap
         const dimensions = pngDimensions(png, limits);
         if (dimensions.width !== current.frameWidth || dimensions.height !== current.frameHeight) throw new ObservationError('capture_dimensions_unproven');
         const pending = current.pending;
+        let receivedAt;
+        try { receivedAt = now(); } catch { throw new ObservationError('capture_time_invalid'); }
+        if (!Number.isSafeInteger(payload.capturedAt) || payload.capturedAt < pending.requestedAt || !Number.isSafeInteger(receivedAt) || payload.capturedAt > receivedAt) throw new ObservationError('capture_time_invalid');
         current.pending = null;
-        pending.resolve({ png, width: current.width, height: current.height, frameId: pending.requestId, capturedAt: pending.capturedAt });
-      } catch {
+        pending.resolve({ png, width: current.width, height: current.height, frameId: pending.requestId, capturedAt: payload.capturedAt });
+      } catch (error) {
         png.fill(0);
-        fault(current, 'capture_dimensions_unproven');
+        fault(current, error?.code === 'capture_time_invalid' ? 'capture_time_invalid' : 'capture_dimensions_unproven');
       }
     } finally { disposePixels(payload); }
   }
@@ -197,9 +200,9 @@ function createControlledScreenCapture({ BrowserWindow, ipcMain, session, canCap
       await abortable(current.ready, controller.signal);
       if (!authorized(input.sourceId) || current.invalid || current.stopping) throw new ObservationError('consent_required');
       const requestId = randomUUID();
-      const capturedAt = now();
-      if (!Number.isSafeInteger(capturedAt) || capturedAt < 0) throw new ObservationError('capture_time_invalid');
-      const result = new Promise((resolve, reject) => { current.pending = { requestId, capturedAt, resolve, reject }; });
+      const requestedAt = now();
+      if (!Number.isSafeInteger(requestedAt) || requestedAt < 0) throw new ObservationError('capture_time_invalid');
+      const result = new Promise((resolve, reject) => { current.pending = { requestId, requestedAt, resolve, reject }; });
       result.then(frame => { if (controller.signal.aborted) frame.png.fill(0); }, () => {});
       current.window.webContents.send(`${current.channel}:command`, { kind: 'capture', token: current.token, generation: current.generation, sourceId: current.sourceId, requestId });
       delivered = await abortable(result, controller.signal);

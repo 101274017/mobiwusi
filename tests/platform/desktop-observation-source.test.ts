@@ -102,7 +102,7 @@ function mediaSetup(width: number, height: number) {
   const windows: FakeWindow[] = [];
   const sessions: FakeSession[] = [];
   const grants: MediaGrant[] = [];
-  const controls = { autoFrame: true, autoStop: true, delayClose: false, failSetup: false, beforeFrame: () => {}, requestChanges: {} as Partial<MediaRequest>, packetChanges: {} as Record<string, unknown>, framePng: encodePng(Buffer.alloc(width * height * 4, 255), width, height), readyWidth: width, readyHeight: height, frameWidth: width, frameHeight: height, lastPixels: null as Uint8Array | null };
+  const controls = { autoFrame: true, autoStop: true, delayClose: false, failSetup: false, now: Date.now, beforeFrame: () => {}, afterFrame: () => {}, requestChanges: {} as Partial<MediaRequest>, packetChanges: {} as Record<string, unknown>, framePng: encodePng(Buffer.alloc(width * height * 4, 255), width, height), readyWidth: width, readyHeight: height, frameWidth: width, frameHeight: height, lastPixels: null as Uint8Array | null };
   class FakeSession {
     displayHandler!: (request: MediaRequest, callback: (grant: MediaGrant) => void) => void;
     permissionCheck!: (...args: unknown[]) => boolean;
@@ -156,7 +156,8 @@ function mediaSetup(width: number, height: number) {
       const bytes = Uint8Array.from(controls.framePng);
       controls.lastPixels = bytes;
       controls.beforeFrame();
-      this.packet({ kind: 'frame', requestId, width: controls.frameWidth, height: controls.frameHeight, png: bytes.buffer, ...controls.packetChanges, ...packet }, event);
+      this.packet({ kind: 'frame', requestId, capturedAt: controls.now(), width: controls.frameWidth, height: controls.frameHeight, png: bytes.buffer, ...controls.packetChanges, ...packet }, event);
+      controls.afterFrame();
     }
   }
   const session = { fromPartition: vi.fn(() => { const created = new FakeSession(); sessions.push(created); return created; }) };
@@ -180,6 +181,7 @@ function sourceSetup(options: { consent?: boolean; scale?: number; size?: { widt
   let consent = options.consent ?? true;
   const canCapture = vi.fn(() => consent);
   const media = mediaSetup(width, height);
+  media.controls.now = options.now ?? (() => 1234);
   const onCaptureInvalidated = vi.fn();
   const source = createWindowsObservationSource({ desktopCapturer: { getSources }, screen, nativeImage, canCapture, platform: 'win32', now: options.now ?? (() => 1234), timeoutMs: options.timeoutMs, limits: options.limits, onCaptureInvalidated, ...(options.withoutMedia ? {} : media.ports) });
   openedSources.push(source);
@@ -362,12 +364,22 @@ describe('Windows 真实外部采集的授权与来源边界', () => {
     expect(captured).toMatchObject({ displayId: '7', width: 96, height: 72, geometry: { x: -64, y: -48, width: 64, height: 48, scaleFactor: 1.5, pixelX: -96, pixelY: -72 } });
   });
 
-  it('capturedAt 不因后续处理耗时而刷新旧截图时间', async () => {
+  it('capturedAt 使用帧生成时间，不把请求排队时间算作帧龄', async () => {
     let timestamp = 1000;
     const setup = sourceSetup({ now: () => timestamp });
     await setup.source.listSources();
-    setup.media.controls.beforeFrame = () => { timestamp = 9000; };
-    expect((await setup.source.capture({ sourceId: 'screen:1:0' })).capturedAt).toBe(1000);
+    setup.media.controls.beforeFrame = () => { timestamp = 2000; };
+    setup.media.controls.afterFrame = () => { timestamp = 9000; };
+    expect((await setup.source.capture({ sourceId: 'screen:1:0' })).capturedAt).toBe(2000);
+  });
+
+  it.each([1000, 1235, Number.NaN, '1234'])('拒绝超出请求时间范围的帧时间戳：%s', async capturedAt => {
+    const setup = sourceSetup();
+    await setup.source.listSources();
+    setup.media.controls.packetChanges = { capturedAt };
+    await expect(setup.source.capture({ sourceId: 'screen:1:0' })).rejects.toMatchObject({ code: 'capture_time_invalid' });
+    await nextTurn();
+    expect(setup.media.windows[0]!.isDestroyed()).toBe(true);
   });
 
   it('抓到像素后来源消失也不能返回旧帧，失败 PNG 必须清零', async () => {
@@ -778,6 +790,7 @@ describe('隔离媒体 worker 的单屏权限与生命周期', () => {
 describe('捕获 worker 的真实页面脚本时序（合成媒体，不读取桌面）', () => {
   function workerSetup() {
     let frameSequence = 0;
+    const clock = { now: 1234, delayEncoding: false, pendingEncoding: null as (() => void) | null };
     let command: (input: { kind: string; requestId?: string }) => void = () => {};
     const configuration = { width: 98, height: 74, minWidth: 97, maxWidth: 98, minHeight: 73, maxHeight: 74, maxDimension: 8192, maxPixels: 16_777_216, maxPngBytes: 24 * 1024 * 1024 };
     const track = { readyState: 'live', applyConstraints: vi.fn(async (_input: unknown) => {}), stop: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn() };
@@ -785,12 +798,17 @@ describe('捕获 worker 的真实页面脚本时序（合成媒体，不读取�
     const video = { videoWidth: 97, videoHeight: 73, srcObject: null, muted: false, play: vi.fn(async () => {}), pause: vi.fn(),
       requestVideoFrameCallback: vi.fn((callback: () => void) => { setImmediate(callback); return ++frameSequence; }), cancelVideoFrameCallback: vi.fn() };
     const drawing = { drawImage: vi.fn() };
-    const canvas = { width: 0, height: 0, getContext: () => drawing, toBlob: (callback: (blob: unknown) => void) => callback({ size: 33, arrayBuffer: async () => new ArrayBuffer(33) }) };
+    const canvas = { width: 0, height: 0, getContext: () => drawing, toBlob: (callback: (blob: unknown) => void) => {
+      const blob = { size: 33, arrayBuffer: async () => new ArrayBuffer(33) };
+      if (clock.delayEncoding) clock.pendingEncoding = () => callback(blob);
+      else callback(blob);
+    } };
     const host = { configuration, post: vi.fn(), onCommand: (callback: typeof command) => { command = callback; } };
     const window = { captureHost: host, addEventListener: vi.fn(), nuanbanCapture: undefined as { start(): Promise<boolean>; stop(): boolean } | undefined };
     const getDisplayMedia = vi.fn(async (_input: unknown) => stream);
-    runInNewContext(readFileSync('apps/desktop/observation/capture-worker.js', 'utf8'), { window, document: { getElementById: (identifier: string) => identifier === 'capture-video' ? video : canvas }, navigator: { mediaDevices: { getDisplayMedia } }, ArrayBuffer, Uint8Array });
-    return { worker: window.nuanbanCapture!, track, video, host, getDisplayMedia, command: (input: Parameters<typeof command>[0]) => command(input) };
+    class ControlledDate extends Date { static now() { return clock.now; } }
+    runInNewContext(readFileSync('apps/desktop/observation/capture-worker.js', 'utf8'), { window, document: { getElementById: (identifier: string) => identifier === 'capture-video' ? video : canvas }, navigator: { mediaDevices: { getDisplayMedia } }, ArrayBuffer, Uint8Array, Date: ControlledDate });
+    return { worker: window.nuanbanCapture!, track, video, host, getDisplayMedia, clock, command: (input: Parameters<typeof command>[0]) => command(input) };
   }
 
   it('取得授权流后才申请低帧率刷新，静止画面不依赖页面动画或第二次共享授权', async () => {
@@ -808,6 +826,20 @@ describe('捕获 worker 的真实页面脚本时序（合成媒体，不读取�
     expect(setup.getDisplayMedia).toHaveBeenCalledOnce();
     setup.worker.stop();
     expect(setup.track.stop).toHaveBeenCalledOnce();
+  });
+
+  it('帧时间固定在视频帧到达时，不被后续 PNG 编码等待刷新', async () => {
+    const setup = workerSetup();
+    expect(await setup.worker.start()).toBe(true);
+    setup.clock.now = 2000;
+    setup.clock.delayEncoding = true;
+    setup.command({ kind: 'capture', requestId: 'first' });
+    await vi.waitFor(() => expect(setup.clock.pendingEncoding).toBeTypeOf('function'));
+    setup.clock.now = 9000;
+    setup.clock.pendingEncoding!();
+    await nextTurn();
+    expect(setup.host.post).toHaveBeenCalledWith('frame', expect.objectContaining({ requestId: 'first', capturedAt: 2000 }));
+    setup.worker.stop();
   });
 
   it('刷新约束未完成前不播放或报告 ready，撤销后不能晚到恢复', async () => {
