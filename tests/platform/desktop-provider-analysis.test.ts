@@ -163,4 +163,31 @@ describe('指定模型到桌宠只读教学适配（合成供应测试）', () =
     const endpoint = provider(async (_input: ProviderInput) => { throw new Error('private-provider-body'); });
     await expect(createProviderAnalysisClient({ provider: endpoint }).analyze(requestInput())).rejects.toMatchObject({ code: 'ANALYSIS_FAILED', message: 'ANALYSIS_FAILED' });
   });
+
+  it.each([
+    ['AUTH_FAILED', 'ANALYSIS_AUTH_FAILED'], ['PROVIDER_UNAVAILABLE', 'ANALYSIS_UNAVAILABLE'],
+    ['RATE_LIMITED', 'ANALYSIS_RATE_LIMITED'], ['TIMEOUT', 'ANALYSIS_TIMEOUT'],
+    ['STREAM_INTERRUPTED', 'ANALYSIS_RESPONSE_INCOMPLETE'], ['constructor', 'ANALYSIS_FAILED'],
+  ])('已知供应故障仅转为固定状态码：%s', async (code, expected) => {
+    const endpoint = provider(async () => { throw Object.assign(new Error('private-provider-body'), { code }); });
+    await expect(createProviderAnalysisClient({ provider: endpoint }).analyze(requestInput())).rejects.toMatchObject({ code: expected, message: expected });
+  });
+
+  it.each(['closed', 'aborted', 'tampered'] as const)('等待本地核验不能凭回调返回值绕过门控：%s', async condition => {
+    const input = requestInput();
+    const controller = new AbortController();
+    input.signal = controller.signal;
+    let open = true;
+    input.canSend = () => open;
+    input.confirmCurrentFrame = vi.fn(async () => {
+      open = condition !== 'closed';
+      if (condition === 'aborted') controller.abort();
+      if (condition === 'tampered') input.frame.sanitizedPng.fill(0);
+      return true;
+    });
+    const endpoint = provider(async () => { open = false; return { text: '{"kind":"clarify","instruction":"请说明目标。"}' }; });
+    await expect(createProviderAnalysisClient({ provider: endpoint }).analyze(input)).rejects.toMatchObject({ code: 'OUTBOUND_CLOSED' });
+    expect(input.confirmCurrentFrame).toHaveBeenCalledOnce();
+    expect(endpoint.answer).toHaveBeenCalledOnce();
+  });
 });

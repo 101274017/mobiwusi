@@ -17,6 +17,8 @@
 
 `geometry` 的 `x/y/width/height` 默认是完整屏幕 DIP，不使用 workArea；支持多屏负原点和不同 DPI。额外字段 `{ coordinateSpace: 'screen-dip', scaleFactor, pixelX, pixelY, pixelWidth, pixelHeight, rotation }` 是完整屏幕的校验凭证，传给 `detect` 时应完整保留。物理原点必须来自 Windows `screen.dipToScreenRect(null, bounds)` 或 `Display.nativeOrigin`；媒体视频尺寸、PNG IHDR 与 NativeImage 尺寸必须与选定显示器的完整物理尺寸相符，不能证明时拒绝。启用固定区域后，返回的 `geometry` 是区域对应的 DIP/物理像素映射，`words[].rect`、`faces[].rect` 是裁剪图像素坐标；需要全局定位时使用 `globalRect`。`capturedAt` 保守记录 host 发起当前帧请求的时刻，worker 等待新的 `requestVideoFrameCallback` 后才读像素；它不是底层曝光时间，运行核心仍须核验帧龄，不能用检测完成时刻刷新旧帧。
 
+模型回复与下一帧的本地 OCR/人脸检查可能重叠。如果回复到达时最新已准入帧超过五秒，但已有同范围的新帧正在检测，运行核心仅等待该次本地检查完成，不重复上传或刷新旧帧时间。`AnalysisInput.confirmCurrentFrame()` 为回复侧提供此等待能力；发送侧仍使用同步 `canSend()` 严格检查原始准入帧的新鲜度。只有新的真实采集帧通过本地准入、五秒边界、来源/显示器/几何/签名一致性和任务身份检查后才安装结果；没有在途采集、安全检查失败、停止、超时或上下文变化时不接受旧回复。等待计入原有十五秒分析时限，不能借等待自动重试请求。
+
 Windows `window` 来源可列举但返回 `geometry: null, unavailableReason: 'window_geometry_unproven'`，当前明确拒绝 window 捕获，避免把 DWM、边框和裁剪猜测成指引坐标。用户可选择对应的真实 screen 来学习外部软件。来源丢失、重命名、显示器更换或 DPI/几何改变都要求重新选择，不能复用旧映射。
 
 ## 本人固定区域观察

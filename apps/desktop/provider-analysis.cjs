@@ -86,8 +86,11 @@ function createProviderAnalysisClient({ provider, now = Date.now } = {}) {
           image: { mime: 'image/png', bytes: input.frame.sanitizedPng, width: input.frame.width, height: input.frame.height } });
       } catch (error) {
         if (input.signal?.aborted || !input.canSend()) throw failure('OUTBOUND_CLOSED');
-        throw failure(['AUTH_FAILED', 'PROVIDER_UNAVAILABLE'].includes(error?.code) ? 'ANALYSIS_UNAVAILABLE' : 'ANALYSIS_FAILED');
+        const codes = { AUTH_FAILED: 'ANALYSIS_AUTH_FAILED', PROVIDER_UNAVAILABLE: 'ANALYSIS_UNAVAILABLE',
+          RATE_LIMITED: 'ANALYSIS_RATE_LIMITED', TIMEOUT: 'ANALYSIS_TIMEOUT', STREAM_INTERRUPTED: 'ANALYSIS_RESPONSE_INCOMPLETE' };
+        throw failure(Object.hasOwn(codes, error?.code) ? codes[error.code] : 'ANALYSIS_FAILED');
       }
+      if (!input.signal?.aborted && !input.canSend() && typeof input.confirmCurrentFrame === 'function') await input.confirmCurrentFrame();
       if (input.signal?.aborted || !input.canSend() || !isAdmittedFrame(input.frame, input.frame.capturedAt)) throw failure('OUTBOUND_CLOSED');
       if (typeof reply?.text !== 'string' || reply.text.length > 24000) throw failure('INVALID_ANALYSIS_RESPONSE');
       return parseResult(reply.text, input, elements);

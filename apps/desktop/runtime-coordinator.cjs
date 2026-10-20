@@ -8,6 +8,21 @@ function checkedLabels(value) {
   return [...new Map(value.map(label => [normalizeLabel(label), label])).values()];
 }
 
+function analysisFailureMessage(error, timedOut) {
+  const messages = {
+    ANALYSIS_TIMEOUT: '本次屏幕分析超时，已取消请求；可以手动重新提问或结束教学，不会自动重试。',
+    ANALYSIS_UNAVAILABLE: '云分析服务暂不可用，请检查模型配置或服务连接；未显示箭头，不会用演示数据替代。',
+    ANALYSIS_AUTH_FAILED: '模型认证或权限检查失败，请检查模型凭证和模型权限；未显示箭头。',
+    ANALYSIS_RATE_LIMITED: '模型服务暂时限流，未显示箭头；请稍后手动重新提问，不会自动重试。',
+    ANALYSIS_RESPONSE_INCOMPLETE: '模型结果未完整返回，未显示箭头；请手动重新提问，不会使用残缺结果。',
+    INVALID_ANALYSIS_RESPONSE: '模型返回的格式或目标未通过本机校验，未显示箭头；请重新提问。若反复出现，请检查模型是否支持图片与 JSON 指引。',
+    OUTBOUND_CLOSED: '分析返回时画面已过期或观察范围发生变化，未显示箭头。请保持目标区域可见，再点击“查找并指引”；不会使用旧位置。',
+  };
+  const code = timedOut ? 'ANALYSIS_TIMEOUT' : error?.code;
+  return Object.hasOwn(messages, code) ? messages[code]
+    : '本次分析未获得可核验的结果。可以重新提问、核验或结束，不会继续指错。';
+}
+
 function reviewSuggestion(value, sourceGuideId, timestamp) {
   if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) return null;
   const descriptors = Object.getOwnPropertyDescriptors(value);
@@ -507,13 +522,26 @@ function createDesktopRuntime(options) {
         controller.signal.addEventListener('abort', rejectCancellation, { once: true });
         const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, analysisTimeoutMs);
         timeout.unref?.();
+        const canSend = () => !controller.signal.aborted && sequence === analysisSequence && canUseFrame(job.frame, job.observation, job.task, true);
+        const confirmCurrentFrame = async () => {
+          if (canSend()) return true;
+          if (!captureJob || controller.signal.aborted || sequence !== analysisSequence || !gateOpen || !cloudConsent
+            || !sameGeneration(job.observation, job.task) || !sameFrameContext(latestFrame, job.frame)) return false;
+          state.analysis = { state: 'analyzing', message: '分析已返回，正在等待当前本地画面完成安全核验；通过后才会显示指引。' };
+          publish();
+          await Promise.race([captureJob, cancellation]);
+          return canSend();
+        };
         try {
           const result = await Promise.race([options.analyzer.analyze({
             frame: job.frame, question: job.question, reason: job.reason,
             observationId: job.observationId, guideId: job.guideId, observationGeneration: job.observation,
             taskGeneration: job.task, triggerId: job.triggerId,
             previousStep: job.previous ? { instruction: job.previous.instruction, expectedLabels: [...job.previous.expectedLabels] } : null,
-            signal: controller.signal, canSend: () => !controller.signal.aborted && sequence === analysisSequence && canUseFrame(job.frame, job.observation, job.task, true),
+            signal: controller.signal, canSend, confirmCurrentFrame,
+          }).then(async result => {
+            if (!await confirmCurrentFrame()) throw Object.assign(new Error('OUTBOUND_CLOSED'), { code: 'OUTBOUND_CLOSED' });
+            return result;
           }), cancellation]);
           if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && !controller.signal.aborted) {
             const installed = await installAnalysis(result, job);
@@ -525,8 +553,7 @@ function createDesktopRuntime(options) {
           if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && (!controller.signal.aborted || timedOut)) {
             clearTarget();
             state.task.state = 'needs_help';
-            state.analysis = { state: 'error', message: timedOut ? '本次屏幕分析超时，已取消请求；可以手动重新提问或结束教学，不会自动重试。'
-              : error?.code === 'ANALYSIS_UNAVAILABLE' ? '云分析服务尚未配置或未登录；不会用演示数据替代。' : '本次分析未获得可核验的结果。可以重新提问、核验或结束，不会继续指错。' };
+            state.analysis = { state: 'error', message: analysisFailureMessage(error, timedOut) };
             message(state.analysis.message, 'assistant');
             publish();
           }

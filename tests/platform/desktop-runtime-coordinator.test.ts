@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createDesktopRuntime, type AnalysisInput, type AnalysisResult, type DesktopRuntime, type ReviewSuggestion, type RuntimeOptions, type TeachingRecord } from '../../apps/desktop/runtime-coordinator.cjs';
 import { createDesktopAnalysisClient } from '../../apps/desktop/analysis-client.cjs';
+import { createProviderAnalysisClient } from '../../apps/desktop/provider-analysis.cjs';
 import type { ObservationFrame, ScreenGeometry } from '../../apps/desktop/observation-policy.cjs';
 import { syntheticDetection, syntheticFrame } from '../helpers/standalone-frame';
 
@@ -20,7 +21,7 @@ function fixture(callbacks: Pick<RuntimeOptions, 'recordTeaching' | 'suggestRevi
   const controls = { time: Date.now(), labels: ['设置', '显示', '文本大小', '返回'], geometry: { x: -800, y: 0, width: 800, height: 600, scaleFactor: 1 } as ScreenGeometry | null, status: 'complete' as 'complete' | 'unavailable' };
   const source = {
     capture: vi.fn(async () => syntheticFrame(controls.geometry, ++controls.time)),
-    detect: vi.fn(async (frame: ObservationFrame) => ({ ...syntheticDetection(frame, controls.labels), status: controls.status })),
+    detect: vi.fn<RuntimeOptions['source']['detect']>(async frame => ({ ...syntheticDetection(frame, controls.labels), status: controls.status })),
     stop: vi.fn(async () => undefined),
   };
   const analyze = vi.fn<(input: AnalysisInput) => Promise<AnalysisResult>>(async input => stepResponse(input));
@@ -157,6 +158,97 @@ describe('屏幕分析结果的可见反馈', () => {
     await setup.runtime.whenIdle();
     expect(setup.runtime.snapshot().task).toMatchObject({ targetState: 'visible', explanation: expect.stringContaining('请先核对') });
     expect(setup.runtime.snapshot().task.explanation).not.toContain('指引窗口');
+    expect(setup.analyze).toHaveBeenCalledOnce();
+  });
+});
+
+describe('分析返回与本地检测重叠时的安全续接', () => {
+  async function pendingRefresh(transport: 'provider' | 'service' | 'custom') {
+    const setup = fixture({ intervalMs: 1500 });
+    await setup.start();
+    const response = deferred<void>();
+    const sent = vi.fn();
+    setup.analyze.mockImplementationOnce(async input => {
+      if (transport === 'custom') {
+        sent();
+        await response.promise;
+        return stepResponse(input);
+      }
+      if (transport === 'provider') return createProviderAnalysisClient({ now: () => setup.controls.time, provider: {
+        answer: async () => {
+          sent();
+          await response.promise;
+          return { text: JSON.stringify({ kind: 'step', instruction: '请亲手打开显示设置。', target_id: input.frame.elements[1].id,
+            presentation: 'confirmed', expected_labels: ['字体大小'] }) };
+        },
+      } }).analyze(input);
+      return createDesktopAnalysisClient({
+        env: { NUANBAN_DESKTOP_API_BASE_URL: 'http://127.0.0.1:3000', NUANBAN_DESKTOP_API_TOKEN: 'synthetic-account-token' },
+        now: () => setup.controls.time,
+        fetch: async () => { sent(); await response.promise; return new Response(JSON.stringify(stepResponse(input))); },
+      }).analyze(input);
+    });
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(sent).toHaveBeenCalledOnce());
+    const detection = deferred<ReturnType<typeof syntheticDetection>>();
+    let refreshingFrame!: ObservationFrame;
+    setup.source.detect.mockImplementationOnce(frame => { refreshingFrame = frame; return detection.promise; });
+    await advanceObservation(setup, 1500);
+    await advanceObservation(setup, 4000);
+    expect(setup.analyze.mock.calls[0][0].canSend()).toBe(false);
+    response.resolve();
+    await vi.waitFor(() => expect(setup.runtime.snapshot().analysis.message).toContain('等待当前本地画面'));
+    expect(setup.onTarget.mock.calls.some(([target]) => target?.visible)).toBe(false);
+    return { ...setup, sent, refreshingFrame, detection };
+  }
+
+  it.each(['provider', 'service', 'custom'] as const)('新安全帧正在检测时等待核验，不重复上传或丢弃有效结果：%s', async transport => {
+    vi.useFakeTimers();
+    const setup = await pendingRefresh(transport);
+    setup.detection.resolve(syntheticDetection(setup.refreshingFrame, setup.controls.labels));
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+    expect(setup.runtime.snapshot().analysis.state).toBe('ready');
+    expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, label: '显示' }));
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(setup.sent).toHaveBeenCalledOnce();
+    expect(setup.source.capture).toHaveBeenCalledTimes(3);
+  });
+
+  it.each(['sensitive', 'stale', 'context', 'timeout', 'stop'] as const)('等待中的回复不能绕过安全、时效、上下文或取消：%s', async condition => {
+    vi.useFakeTimers();
+    const setup = await pendingRefresh('provider');
+    if (condition === 'stop') await setup.runtime.stopObservation();
+    if (condition === 'timeout') await advanceObservation(setup, 10000);
+    if (condition === 'stale') setup.controls.time += 1500;
+    if (condition === 'context') {
+      setup.refreshingFrame.displayId = 'other-display';
+      setup.analyze.mockImplementation(async input => ({ ...responseIdentity(input), kind: 'clarify', instruction: '请在新范围重新提问。' }));
+    }
+    setup.detection.resolve(syntheticDetection(setup.refreshingFrame,
+      condition === 'sensitive' ? [...setup.controls.labels, '验证码123456'] : setup.controls.labels));
+    await setup.runtime.whenIdle();
+    expect(setup.onTarget.mock.calls.some(([target]) => target?.visible)).toBe(false);
+    expect(setup.runtime.snapshot().task.state).not.toBe('awaiting_action');
+    expect(setup.records).toEqual(condition === 'stop' ? [expect.objectContaining({ result: 'interrupted' })] : []);
+    expect(setup.sent).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ['OUTBOUND_CLOSED', '画面已过期'], ['INVALID_ANALYSIS_RESPONSE', '格式或目标'],
+    ['ANALYSIS_AUTH_FAILED', '认证或权限'], ['ANALYSIS_RATE_LIMITED', '限流'],
+    ['ANALYSIS_TIMEOUT', '超时'], ['ANALYSIS_RESPONSE_INCOMPLETE', '未完整返回'],
+    ['ANALYSIS_UNAVAILABLE', '服务暂不可用'], ['constructor', '未获得可核验的结果'],
+  ])('分析失败说明恢复途径，但不暴露原始错误或自动重试：%s', async (code, expected) => {
+    const setup = fixture();
+    await setup.start();
+    setup.analyze.mockRejectedValueOnce(Object.assign(new Error('private-provider-body'), { code }));
+    await setup.runtime.ask('帮我找到设置');
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().analysis).toMatchObject({ state: 'error', message: expect.stringContaining(expected) });
+    expect(JSON.stringify(setup.runtime.snapshot())).not.toContain('private-provider-body');
+    expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+    expect(setup.onTarget).toHaveBeenLastCalledWith(null);
     expect(setup.analyze).toHaveBeenCalledOnce();
   });
 });

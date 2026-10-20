@@ -19,6 +19,7 @@ export interface AnalysisInput {
   frame: AdmittedFrame; question: string; reason: 'question' | 'page_changed' | 'verification';
   observationId: string; guideId: string; observationGeneration: number; taskGeneration: number; triggerId: string;
   previousStep: { instruction: string; expectedLabels: string[] } | null; signal: AbortSignal; canSend(): boolean;
+  confirmCurrentFrame?(): Promise<boolean>;
 }
 export interface RuntimeOptions {
   source: { capture(input: { sourceId: string; signal: AbortSignal; region?: { x: number; y: number; width: number; height: number } }): Promise<ObservationFrame>; detect(frame: ObservationFrame, input: { signal: AbortSignal }): Promise<LocalDetection>; stop?(): Promise<unknown> | void };

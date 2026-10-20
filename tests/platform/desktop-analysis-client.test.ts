@@ -72,6 +72,25 @@ describe('独立桌宠按需发送适配（合成HTTP单测，不是真实供应
     await failed.analyze(requestInput()).catch(error => expect(String(error)).not.toContain('provider-secret-token'));
   });
 
+  it.each(['closed', 'aborted', 'tampered'] as const)('等待本地核验后仍检查门控、取消与帧完整性：%s', async condition => {
+    const input = requestInput();
+    const controller = new AbortController();
+    input.signal = controller.signal;
+    let open = true;
+    input.canSend = () => open;
+    input.confirmCurrentFrame = vi.fn(async () => {
+      open = condition !== 'closed';
+      if (condition === 'aborted') controller.abort();
+      if (condition === 'tampered') input.frame.sanitizedPng.fill(0);
+      return true;
+    });
+    const fetchRequest = vi.fn<typeof fetch>(async () => { open = false; return new Response(JSON.stringify({ kind: 'clarify', instruction: '请说明目标。' })); });
+    const client = createDesktopAnalysisClient({ env, fetch: fetchRequest });
+    await expect(client.analyze(input)).rejects.toMatchObject({ code: 'OUTBOUND_CLOSED' });
+    expect(input.confirmCurrentFrame).toHaveBeenCalledOnce();
+    expect(fetchRequest).toHaveBeenCalledOnce();
+  });
+
   it('回复大小、格式和超时有界，不因错误常驻重连', async () => {
     const oversized = createDesktopAnalysisClient({ env, fetch: async () => new Response('x'.repeat(32001)) });
     await expect(oversized.analyze(requestInput())).rejects.toMatchObject({ code: 'INVALID_ANALYSIS_RESPONSE' });
