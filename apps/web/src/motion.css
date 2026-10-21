@@ -1,4 +1,4 @@
-/* 暖伴 · 全站动效层：只做 transform / opacity，减少动态时由全局规则停止 */
+/* 微光指引 · 全站动效层：只做 transform / opacity，减少动态时由全局规则停止 */
 @keyframes rise-in {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }

@@ -12,12 +12,12 @@ export function HomePage() {
   const todos = snapshot.todos.filter(todo => !todo.deletedAt && !todo.completedAt);
   return <>
     <PageTitle eyebrow="不用着急，我们慢慢来" title="今天想学点什么？" subtitle="从你的问题开始。不会预置学习记录，也不会替你点击电脑。" />
-    <section className="home-start" aria-label="开始使用暖伴">
+    <section className="home-start" aria-label="开始使用微光指引">
       <div className="home-start-copy">
-        <h2>暖伴在这里，陪你一步一步学会。</h2>
+        <h2>微光指引在这里，陪你一步一步学会。</h2>
         <p>可以打字、选图片，或通过独立桌宠在本人确认后观察真实软件。</p>
         <div className="home-actions">
-          <Link className="button primary" to="/chat/new"><MessageCircle size={20} />和暖伴说说</Link>
+          <Link className="button primary" to="/chat/new"><MessageCircle size={20} />和微光指引说说</Link>
           <Link className="button secondary" to="/overlay/guide"><Monitor size={20} />真实软件教学</Link>
         </div>
       </div>

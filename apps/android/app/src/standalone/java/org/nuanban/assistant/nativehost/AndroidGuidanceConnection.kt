@@ -52,17 +52,17 @@ class GuidanceConnectionActivity : Activity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         if (Build.VERSION.SDK_INT >= 31) window.setHideOverlayWindows(true)
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(28, 24, 28, 24) }
-        root.addView(TextView(this).apply { text = "暖伴教学服务连接\n请填写暖伴 HTTPS 服务地址及有效设备会话，不是模型供应商密钥。保存不会开启观察或云分析。更换连接会停止当前会话。"; textSize = 18f })
-        val endpoint = EditText(this).apply { hint = "暖伴 HTTPS 服务地址"; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI; isSaveEnabled = false; filters = arrayOf(android.text.InputFilter.LengthFilter(2048)) }
+        root.addView(TextView(this).apply { text = "微光指引教学服务连接\n请填写微光指引 HTTPS 服务地址及有效设备会话，不是模型供应商密钥。保存不会开启观察或云分析。更换连接会停止当前会话。"; textSize = 18f })
+        val endpoint = EditText(this).apply { hint = "微光指引 HTTPS 服务地址"; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI; isSaveEnabled = false; filters = arrayOf(android.text.InputFilter.LengthFilter(2048)) }
         val token = EditText(this).apply {
-            hint = "暖伴设备会话凭证（不回显已保存值）"
+            hint = "微光指引设备会话凭证（不回显已保存值）"
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             isSaveEnabled = false
             filters = arrayOf(android.text.InputFilter.LengthFilter(4096))
             if (Build.VERSION.SDK_INT >= 26) importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
             imeOptions = android.view.inputmethod.EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING
         }
-        val confirmed = CheckBox(this).apply { text = "我是本人，确认连接此暖伴服务；屏幕和云分析仍需另行当次同意。"; isSaveEnabled = false; filterTouchesWhenObscured = true }
+        val confirmed = CheckBox(this).apply { text = "我是本人，确认连接此微光指引服务；屏幕和云分析仍需另行当次同意。"; isSaveEnabled = false; filterTouchesWhenObscured = true }
         val status = TextView(this).apply { text = if (AndroidGuidanceConnection.read(this@GuidanceConnectionActivity) == null) "尚未配置可用连接。" else "已加密保存连接；不显示凭证，不代表服务已验收。" }
         root.addView(endpoint); root.addView(token); root.addView(confirmed); root.addView(status)
         root.addView(Button(this).apply { text = "本人保存连接（不采集）"; filterTouchesWhenObscured = true; setOnClickListener {

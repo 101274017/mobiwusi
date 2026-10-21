@@ -6,10 +6,10 @@ for (const [code, expected] of [['AUTH_FAILED', '模型网关拒绝了凭证或�
   test(code + ' 仅显示端口错误，不回退或自动重连', async ({ page }) => {
     await installTextBridge(page, code);
     await page.goto('/#/chat/new');
-    await page.getByLabel('想问暖伴的问题').fill(question);
+    await page.getByLabel('想问微光指引的问题').fill(question);
     await page.getByRole('button', { name: '发送', exact: true }).click();
     await expect(page.getByRole('alert', { name: '讲解未完成' })).toContainText(expected);
-    await expect(page.getByLabel('想问暖伴的问题')).toHaveValue(question);
+    await expect(page.getByLabel('想问微光指引的问题')).toHaveValue(question);
     await expect(page.getByRole('button', { name: '再讲一遍' })).toBeDisabled();
     expect(await page.evaluate(() => sessionStorage.getItem('text-request-count'))).toBe('1');
     await page.getByRole('button', { name: '重试这个问题' }).click();
@@ -36,14 +36,14 @@ test('旧场景查询参数不再改变业务或播种假资料', async ({ page 
 test('停止请求即取消端口，迟到回复不覆盖停止状态或创建笔记', async ({ page }) => {
   await installTextBridge(page, 'pending');
   await page.goto('/#/chat/new');
-  await page.getByLabel('想问暖伴的问题').fill(question);
+  await page.getByLabel('想问微光指引的问题').fill(question);
   await page.getByRole('button', { name: '发送', exact: true }).click();
   await expect(page.getByRole('button', { name: '讲解中', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: '停止讲解', exact: true }).click();
   await expect.poll(() => page.evaluate(() => sessionStorage.getItem('text-cancelled'))).toBe('true');
   await expect(page.locator('.caption')).toHaveText('已停止，本次讲解不会自动恢复。');
   await expect(page.locator('.message.assistant[data-state="completed"]')).toHaveCount(0);
-  await expect(page.getByLabel('想问暖伴的问题')).toHaveValue(question);
+  await expect(page.getByLabel('想问微光指引的问题')).toHaveValue(question);
   await page.goto('/#/notes');
   await expect(page.locator('.note-card')).toHaveCount(0);
 });
@@ -51,7 +51,7 @@ test('停止请求即取消端口，迟到回复不覆盖停止状态或创建�
 test('高风险问题在本机拦截，不发送到模型', async ({ page }) => {
   await installTextBridge(page);
   await page.goto('/#/chat/new');
-  await page.getByLabel('想问暖伴的问题').fill('教我提交验证码123456');
+  await page.getByLabel('想问微光指引的问题').fill('教我提交验证码123456');
   await page.getByRole('button', { name: '发送', exact: true }).click();
   await expect(page.locator('.caption')).toContainText('先停下来');
   expect(await page.evaluate(() => sessionStorage.getItem('text-request-count'))).toBeNull();

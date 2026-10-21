@@ -110,7 +110,7 @@ function createStandaloneHost(options) {
       reason: wakeFailure || (localWake.state === 'stopping' ? '正在等待本地麦克风进程真实退出，尚未确认停止。'
         : dictating && localWake.state === 'question' ? dictationPurpose === 'screen-guidance' ? '正在本机听写；停麦后按本次授权查找屏幕目标，只绘制指引。' : '正在本机听写，请直接说话；识别后填入发起输入框，不会自动发送。'
           : dictating && localWake.state === 'starting' ? '正在启动本次本机听写，请等候“正在本机听写”提示。'
-        : localWake.microphoneActive ? localWake.dictationAvailable ? '本地唤醒监听中；说“暖伴”后可在本机识别问题，未唤醒音频不上传。' : '本地唤醒监听中；说“暖伴”打开桌宠后，请输入问题。本机听写不可用。'
+        : localWake.microphoneActive ? localWake.dictationAvailable ? '本地唤醒监听中；说“小暖”后可在本机识别问题，未唤醒音频不上传。' : '本地唤醒监听中；说“小暖”打开桌宠后，请输入问题。本机听写不可用。'
           : ['error', 'unavailable'].includes(localWake.state) ? '本机中文离线语音引擎或麦克风不可用；未改用云端常听。请使用点击和文字提问。'
             : '本地语音唤醒未开启，麦克风需本人单独确认；不随桌宠启动自动恢复。') };
     state.capabilities = { selectedScreenCapture: process.platform === 'win32' ? 'implemented_unverified' : 'unsupported', realCaptureAccepted: false,
@@ -410,8 +410,8 @@ function createStandaloneHost(options) {
       if (!selected || !stillAuthorized()) return { ok: true, status: 'cancelled', snapshot: snapshot() };
       const region = selected.chooseRegion ? await regionSelector.select(selected.geometry) : null;
       if ((selected.chooseRegion && !region) || !stillAuthorized()) return { ok: true, status: 'cancelled', snapshot: snapshot() };
-      const consent = await showDialog({ type: 'info', title: '开启本地观察', message: resume ? '由你本人继续共享，并重新进行本地安全检查' : '允许暖伴在本机持续观察所选屏幕吗？',
-        detail: `${region ? `本次仅检测框选区域（${region.width}×${region.height}）。系统媒体仍共享所选屏幕；完整帧只在本机内存中临时裁剪并清零，框外内容不进入 OCR 或云端分析。区域是固定位置，不会跟随窗口移动。\n\n` : ''}只有你亲手操作电脑。暖伴不自动打开第三方应用，也不会点击或输入。关闭管理窗口后观察仍可继续；桌宠始终可以停止。发现敏感、未知或检测故障时会停止采集，必须由你本人确认后复查，不能自动恢复。\n\n云分析为单独可选用途：仅提问、显著变页或核验时，发送必要的本地检测脱敏画面；未勾选则不发送。未配置真实服务时不会使用模拟答案。`,
+      const consent = await showDialog({ type: 'info', title: '开启本地观察', message: resume ? '由你本人继续共享，并重新进行本地安全检查' : '允许微光指引在本机持续观察所选屏幕吗？',
+        detail: `${region ? `本次仅检测框选区域（${region.width}×${region.height}）。系统媒体仍共享所选屏幕；完整帧只在本机内存中临时裁剪并清零，框外内容不进入 OCR 或云端分析。区域是固定位置，不会跟随窗口移动。\n\n` : ''}只有你亲手操作电脑。微光指引不自动打开第三方应用，也不会点击或输入。关闭管理窗口后观察仍可继续；桌宠始终可以停止。发现敏感、未知或检测故障时会停止采集，必须由你本人确认后复查，不能自动恢复。\n\n云分析为单独可选用途：仅提问、显著变页或核验时，发送必要的本地检测脱敏画面；未勾选则不发送。未配置真实服务时不会使用模拟答案。`,
         buttons: ['开启本地观察', '取消'], defaultId: 1, cancelId: 1, checkboxLabel: '允许为当前教学按需发送脱敏画面到已配置的分析服务', checkboxChecked: false });
       if (consent.response !== 0 || !stillAuthorized()) return { ok: true, status: 'cancelled', snapshot: snapshot() };
       consentedSourceId = selected.id;
@@ -448,7 +448,7 @@ function createStandaloneHost(options) {
     finally { signal.removeEventListener('abort', abortRegion); }
     if ((selected.chooseRegion && !region) || signal.aborted || closing) return null;
     const consent = await showDialog({ type: 'question', title: '仅截取一帧', message: '允许在本机截取并脱敏这一帧吗？',
-      detail: `范围：${selected.name}${region ? `，框选 ${region.width}×${region.height}` : '，整块屏幕'}。如有持续观察，将先停止。\n\n此步不上传图片。截帧后停止本地采集，预览实际待发送的脱敏图；由你再次点击“仅分析此帧”并确认后，才向已配置的 AI 服务发送这张图片一次。分析后会仅在本机复核目标位置，不上传复核画面。\n\n文字与人脸会遮盖；其他画面仍可能包含私人内容，请优先框选目标图标。暖伴只显示箭头，不控制系统鼠标、不点击或输入。`,
+      detail: `范围：${selected.name}${region ? `，框选 ${region.width}×${region.height}` : '，整块屏幕'}。如有持续观察，将先停止。\n\n此步不上传图片。截帧后停止本地采集，预览实际待发送的脱敏图；由你再次点击“仅分析此帧”并确认后，才向已配置的 AI 服务发送这张图片一次。分析后会仅在本机复核目标位置，不上传复核画面。\n\n文字与人脸会遮盖；其他画面仍可能包含私人内容，请优先框选目标图标。微光指引只显示箭头，不控制系统鼠标、不点击或输入。`,
       buttons: ['本机截取一帧', '取消'], defaultId: 1, cancelId: 1, noLink: true });
     if (consent.response !== 0 || signal.aborted || closing) return null;
     return { sourceId: selected.id, ...(region ? { region } : {}) };
@@ -520,7 +520,7 @@ function createStandaloneHost(options) {
     wakeController = controller;
     wakeFailure = '';
     try {
-      const confirmation = await showDialog({ type: 'question', title: '单独开启本地语音唤醒', message: '允许暖伴在本机监听“暖伴 / 小暖”吗？',
+      const confirmation = await showDialog({ type: 'question', title: '单独开启本地语音唤醒', message: '允许微光指引在本机监听“小暖”等唤醒词吗？',
         detail: '仅使用本机离线中文引擎；未唤醒音频不上传、不保存。唤醒后的短问题在本机听写为文字；若已另行同意云端教学，文字可随必要脱敏画面发送分析。此确认不授予屏幕或云端权限，也不代替 Windows 麦克风权限。锁屏、停止或退出会关闭监听；重启不自动恢复。',
         buttons: ['本人同意开启', '暂不开启'], defaultId: 1, cancelId: 1, noLink: true });
       if (confirmation.response !== 0 || controller.signal.aborted || closing || consentGeneration !== wakeConsentGeneration) return;
@@ -632,7 +632,7 @@ function createStandaloneHost(options) {
   function menu() {
     const current = runtime.snapshot();
     return Menu.buildFromTemplate([
-      { label: '暖伴 · 独立桌宠', enabled: false }, { type: 'separator' },
+      { label: '微光指引 · 独立桌宠', enabled: false }, { type: 'separator' },
       { label: '角色', submenu: [
         { label: '栗栗 · 本地二维小鹿', type: 'radio', checked: lili.snapshot().enabled, click: () => runAction(() => selectLili(true)) },
         { label: '原有形象（花环水獭 / 原画 / 本地模型）', type: 'radio', checked: !lili.snapshot().enabled, click: () => runAction(() => selectLili(false)) },
@@ -644,7 +644,7 @@ function createStandaloneHost(options) {
       { label: '星云' + defaultPet.name + ' · 3D 形象', click: () => showPetPanel({ section: 'avatar' }) },
       { label: '停止星云形象（恢复本机桌宠）', enabled: ['connecting', 'ready', 'cleanup_failed'].includes(avatarService?.status().phase), click: () => runAction(() => avatarService.stop()) },
       { label: '光标指引 · 教我操作', click: () => showPetPanel({ section: 'guidance' }) },
-      { label: '和暖伴说说 / 教我操作', click: showPetPanel },
+      { label: '和微光指引说说 / 教我操作', click: showPetPanel },
       { label: '面对面实时语音…', click: () => runAction(openFaceVoice) },
       { label: '智能查询 · 已配置模型', click: () => searchBridge?.show() },
       { label: '开始本地观察…', enabled: !choosingSource && ['off', 'stopped'].includes(current.observation.state), click: () => runAction(() => chooseObservation()) },
@@ -691,8 +691,8 @@ function createStandaloneHost(options) {
     liliTray.setContextMenu(Menu.buildFromTemplate([
       { label: '显示桌宠 / 取消鼠标穿透', click: () => { lili.command({ type: 'display.set', options: { visible: true, clickThrough: false } }); if (live(petWindow)) petWindow.showInactive(); } },
       ...liliMenuItems(),
-      { label: '打开暖伴面板', click: () => { lili.command({ type: 'display.set', options: { visible: true, clickThrough: false } }); showPetPanel(); } },
-      { label: '退出暖伴（停止所有采集）', click: () => runAction(() => options.onExit()) },
+      { label: '打开微光指引面板', click: () => { lili.command({ type: 'display.set', options: { visible: true, clickThrough: false } }); showPetPanel(); } },
+      { label: '退出微光指引（停止所有采集）', click: () => runAction(() => options.onExit()) },
     ]));
   }
 
@@ -703,7 +703,7 @@ function createStandaloneHost(options) {
       const icon = nativeImage.createFromPath(path.join(__dirname, 'assets', 'lili', 'icon.png')).resize({ width: 32, height: 32 });
       if (icon.isEmpty()) return false;
       liliTray = new Tray(icon);
-      liliTray.setToolTip('栗栗 · 暖伴桌宠');
+      liliTray.setToolTip('栗栗 · 微光指引桌宠');
       liliTray.on('double-click', () => { lili.command({ type: 'display.set', options: { visible: true, clickThrough: false } }); if (live(petWindow)) petWindow.showInactive(); });
       return true;
     } catch { return false; }
@@ -845,11 +845,11 @@ function createStandaloneHost(options) {
       suggestReview: proposal => { if (!learningStore) throw new Error('加密教学仓储不可用'); const result = learningStore.suggestReview(proposal); publish(); return result; } });
     const area = screen.getPrimaryDisplay().workArea;
     petWindow = new BrowserWindow({ width: 300, height: Math.min(390, area.height - 24), x: area.x + area.width - 324, y: area.y + area.height - Math.min(414, area.height - 12),
-      title: '暖伴桌宠', show: false, transparent: true, frame: false, hasShadow: false, alwaysOnTop: true, skipTaskbar: true,
+      title: '微光指引桌宠', show: false, transparent: true, frame: false, hasShadow: false, alwaysOnTop: true, skipTaskbar: true,
       resizable: false, movable: true, backgroundColor: '#00000000', webPreferences: windowPreferences('pet-preload.cjs') });
-    guideWindow = new BrowserWindow({ width: 400, height: 300, title: '暖伴教学指引', show: false, transparent: true, frame: false,
+    guideWindow = new BrowserWindow({ width: 400, height: 300, title: '微光指引教学指引', show: false, transparent: true, frame: false,
       hasShadow: false, alwaysOnTop: true, skipTaskbar: true, focusable: false, resizable: false, backgroundColor: '#00000000', webPreferences: windowPreferences('guide-preload.cjs') });
-    captionWindow = new BrowserWindow({ width: 700, height: 116, title: '暖伴大字字幕', show: false, transparent: true, frame: false,
+    captionWindow = new BrowserWindow({ width: 700, height: 116, title: '微光指引大字字幕', show: false, transparent: true, frame: false,
       hasShadow: false, alwaysOnTop: true, skipTaskbar: true, focusable: false, resizable: false, backgroundColor: '#00000000', webPreferences: windowPreferences('caption-preload.cjs') });
     for (const window of [petWindow, guideWindow, captionWindow]) { secureWindow(window); window.setAlwaysOnTop(true, 'floating'); }
     syncPetProtection(runtime.snapshot().observation);

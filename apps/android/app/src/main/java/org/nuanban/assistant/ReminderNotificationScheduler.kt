@@ -46,7 +46,7 @@ class ReminderNotificationScheduler(context: Context) {
         notificationManager.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_ID,
-                "暖伴复习提醒",
+                "微光指引复习提醒",
                 NotificationManager.IMPORTANCE_DEFAULT,
             ).apply {
                 description = "只提醒用户确认过的复习待办，不承载敏感正文。"

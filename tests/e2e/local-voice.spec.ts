@@ -36,7 +36,7 @@ async function installVoiceFixture(page: Page, mode: 'normal' | 'cancel' | 'unav
         if (mode === 'cancel') return { ...state, phase: 'disabled' };
         if (mode === 'unavailable') { state = { ...state, phase: 'unavailable', message: '本机缺少离线中文语音引擎；没有改用云端常听。' }; throw new Error('synthetic engine unavailable'); }
         if (mode === 'pending') return new Promise(resolve => { lateEnable = () => resolve({ ...state, phase: 'listening', enabled: true, microphoneActive: true }); });
-        state = { ...state, phase: 'listening', enabled: true, microphoneActive: true, message: '本机监听中，说暖伴后在桌宠提问。' };
+        state = { ...state, phase: 'listening', enabled: true, microphoneActive: true, message: '本机监听中，说微光指引后在桌宠提问。' };
         return { ...state, phase: 'listening' };
       },
       disable: async () => {
@@ -128,13 +128,13 @@ test('开启等待时也能停止，迟到的开启回复不能覆盖停止状�
 test('点击说话后直接回填并保留已有草稿，不唤醒、不自动发送', async ({ page }) => {
   await installVoiceFixture(page);
   await page.goto('/#/chat/new');
-  await page.getByLabel('想问暖伴的问题').fill('我已有的问题');
+  await page.getByLabel('想问微光指引的问题').fill('我已有的问题');
   await page.getByRole('button', { name: '语音', exact: true }).click();
   const dialog = page.getByRole('dialog');
   expect(await page.evaluate(() => sessionStorage.getItem('voice-dictation-count'))).toBeNull();
   await dialog.getByRole('button', { name: '开始语音输入', exact: true }).click();
   await expect(dialog).toBeHidden();
-  await expect(page.getByLabel('想问暖伴的问题')).toHaveValue('我已有的问题\n教我在浏览器里收藏网页');
+  await expect(page.getByLabel('想问微光指引的问题')).toHaveValue('我已有的问题\n教我在浏览器里收藏网页');
   await expect(page.locator('.message.user')).toHaveCount(0);
   expect(await page.evaluate(() => sessionStorage.getItem('voice-dictation-count'))).toBe('1');
   expect(await page.evaluate(() => sessionStorage.getItem('voice-enable-count'))).toBeNull();
@@ -146,7 +146,7 @@ test('原生取消本次输入后保留草稿，不误报识别成功', async ({
   await dialog.getByRole('button', { name: '开始语音输入', exact: true }).click();
   await expect(dialog).toContainText('本次语音输入已取消');
   await dialog.getByRole('button', { name: '关闭窗口' }).click();
-  await expect(page.getByLabel('想问暖伴的问题')).toHaveValue('');
+  await expect(page.getByLabel('想问微光指引的问题')).toHaveValue('');
   await expect(page.locator('.message.user')).toHaveCount(0);
 });
 
@@ -158,7 +158,7 @@ test('听写进行时显示状态，取消后忽略迟到文字', async ({ page 
   await dialog.getByRole('button', { name: '取消本次输入', exact: true }).click();
   await expect(dialog).toContainText('本次语音输入已取消');
   await dialog.getByRole('button', { name: '关闭窗口' }).click();
-  await expect(page.getByLabel('想问暖伴的问题')).toHaveValue('');
+  await expect(page.getByLabel('想问微光指引的问题')).toHaveValue('');
   expect(await page.evaluate(() => sessionStorage.getItem('voice-dictation-cancel-count'))).toBe('1');
 });
 
@@ -171,7 +171,7 @@ test('关闭面板会取消本次听写，重新打开时不自动续录或回�
   await page.getByRole('button', { name: '语音', exact: true }).click();
   await expect(page.getByRole('dialog').getByRole('button', { name: '开始语音输入', exact: true })).toBeEnabled();
   await page.getByRole('dialog').getByRole('button', { name: '关闭窗口' }).click();
-  await expect(page.getByLabel('想问暖伴的问题')).toHaveValue('');
+  await expect(page.getByLabel('想问微光指引的问题')).toHaveValue('');
   expect(await page.evaluate(() => sessionStorage.getItem('voice-dictation-count'))).toBe('1');
 });
 
@@ -187,13 +187,13 @@ test('超时或识别失败如实提示，不回退浏览器或云端录音', as
 test('草稿字数不足时保留原文和识别文字，不能静默覆盖或截断', async ({ page }) => {
   await installVoiceFixture(page);
   await page.goto('/#/chat/new');
-  await page.getByLabel('想问暖伴的问题').fill('字'.repeat(1500));
+  await page.getByLabel('想问微光指引的问题').fill('字'.repeat(1500));
   await page.getByRole('button', { name: '语音', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('button', { name: '开始语音输入', exact: true }).click();
   await expect(dialog.getByRole('alert')).toContainText('没有覆盖原文字');
   await expect(dialog.getByRole('region', { name: '本次识别文字' })).toContainText('教我在浏览器里收藏网页');
   await dialog.getByRole('button', { name: '关闭窗口' }).click();
-  await expect(page.getByLabel('想问暖伴的问题')).toHaveValue('字'.repeat(1500));
+  await expect(page.getByLabel('想问微光指引的问题')).toHaveValue('字'.repeat(1500));
   await expect(page.locator('.message.user')).toHaveCount(0);
 });

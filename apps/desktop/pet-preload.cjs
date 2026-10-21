@@ -274,11 +274,11 @@ contextBridge.exposeInMainWorld('nuanbanPet', Object.freeze({
   },
   close: () => ipcRenderer.invoke('nuanban:pet:close'),
   openMain: (route = '/') => {
-    if (typeof route !== 'string' || !/^\/(?!\/)[^?#\\\s]*$/.test(route)) throw new TypeError('请使用暖伴内部页面路径');
+    if (typeof route !== 'string' || !/^\/(?!\/)[^?#\\\s]*$/.test(route)) throw new TypeError('请使用微光指引内部页面路径');
     return ipcRenderer.invoke('nuanban:pet:open-main', route);
   },
   openTool: route => {
-    if (typeof route !== 'string' || !/^\/(?!\/)[^?#\\\s]*$/.test(route)) throw new TypeError('请使用暖伴内部工具路径');
+    if (typeof route !== 'string' || !/^\/(?!\/)[^?#\\\s]*$/.test(route)) throw new TypeError('请使用微光指引内部工具路径');
     return ipcRenderer.invoke('nuanban:pet:open-tool', route);
   },
   showMenu: () => ipcRenderer.invoke('nuanban:pet:context-menu'),

@@ -69,7 +69,7 @@ class CaptureLabActivity : Activity() {
             setPadding(0, 10, 0, 10)
             column.addView(this)
         }
-        text("暖伴 · C01 原生验证", 25f)
+        text("微光指引 · C01 原生验证", 25f)
         text("仅供开发验证，不是教学或屏幕共享产品功能。\n请只打开合成测试页面，不要打开真实账号、聊天、支付或验证码页面。")
         text("本样例不读取帧像素、不编码、不保存、不上传；只统计内存帧隔离释放次数，不能判定内容安全。设有 30 秒自动停止计时（调度延迟待设备验证），停止后必须重新申请系统授权。")
         text("合成标记：NUANBAN-C01-SYNTHETIC", 19f)

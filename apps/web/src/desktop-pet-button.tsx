@@ -11,7 +11,7 @@ export function DesktopPetButton({ onOpened }: { onOpened(): void }) {
     if (opening) return;
     const bridge = localObservationBridge();
     if (!bridge) {
-      useApp.setState({ error: '请在暖伴桌面客户端中打开桌宠，网页预览不支持悬浮桌宠。' });
+      useApp.setState({ error: '请在微光指引桌面客户端中打开桌宠，网页预览不支持悬浮桌宠。' });
       return;
     }
     setOpening(true);

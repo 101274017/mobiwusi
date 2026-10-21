@@ -91,6 +91,6 @@
     if (typeof unsubscribe !== 'function') throw new Error('指引接口没有提供订阅取消函数');
   } catch (error) {
     clearGuide();
-    console.error('暖伴只读指引未就绪，请检查桌面主进程', error);
+    console.error('微光指引只读指引未就绪，请检查桌面主进程', error);
   }
 })();

@@ -13,7 +13,7 @@ test('首页为空白本机工作区，不预置学习资料或发生水平溢�
 test('只有真实端口完整回复后创建笔记，刷新保留实际学习资料', async ({ page }) => {
   await installTextBridge(page);
   await page.goto('/#/chat/new');
-  await page.getByLabel('想问暖伴的问题').fill('手机上的字太小，怎么调大？');
+  await page.getByLabel('想问微光指引的问题').fill('手机上的字太小，怎么调大？');
   await page.getByRole('button', { name: '发送', exact: true }).click();
   await expect(page.locator('.message.assistant[data-state="completed"]')).toContainText('合成接口回执');
   expect(await page.evaluate(() => sessionStorage.getItem('text-request-count'))).toBe('1');
@@ -31,10 +31,10 @@ test('只有真实端口完整回复后创建笔记，刷新保留实际学习�
 
 test('没有桌面模型接口时保留问题，不以固定回答创建笔记', async ({ page }) => {
   await page.goto('/#/chat/new');
-  await page.getByLabel('想问暖伴的问题').fill('字体怎么调大？');
+  await page.getByLabel('想问微光指引的问题').fill('字体怎么调大？');
   await page.getByRole('button', { name: '发送', exact: true }).click();
   await expect(page.getByRole('alert', { name: '讲解未完成' })).toContainText('当前没有桌面模型接口');
-  await expect(page.getByLabel('想问暖伴的问题')).toHaveValue('字体怎么调大？');
+  await expect(page.getByLabel('想问微光指引的问题')).toHaveValue('字体怎么调大？');
   await expect(page.locator('.message.assistant[data-state="completed"]')).toHaveCount(0);
   await page.goto('/#/notes');
   await expect(page.getByRole('heading', { name: '这里还没有笔记' })).toBeVisible();
@@ -56,7 +56,7 @@ test('本机待办由用户创建，确认时间后才保存，刷新可继续',
 test('清空资料后不会恢复样例', async ({ page }) => {
   await installTextBridge(page);
   await page.goto('/#/chat/new');
-  await page.getByLabel('想问暖伴的问题').fill('测试实际笔记');
+  await page.getByLabel('想问微光指引的问题').fill('测试实际笔记');
   await page.getByRole('button', { name: '发送', exact: true }).click();
   await expect(page.locator('.message.assistant[data-state="completed"]')).toBeVisible();
   await page.goto('/#/settings');

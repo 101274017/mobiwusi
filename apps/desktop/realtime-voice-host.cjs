@@ -117,7 +117,7 @@ function createRealtimeVoiceHost({ electron, showDialog, beforeStart, onState = 
     if (!['off', 'error'].includes(state)) return;
     if (!client.status().configured) {
       await showDialog({ type: 'info', title: '面对面语音待配置', message: '真实语音服务尚未配置，麦克风没有开启。',
-        detail: '桌宠需要暖伴后端地址 NUANBAN_DESKTOP_API_BASE_URL 和已认证设备的 NUANBAN_DESKTOP_API_TOKEN；后端另需 NUANBAN_REALTIME_API_KEY 与 NUANBAN_REALTIME_MODEL。\n\n供应密钥只配置在后端，不要填到设备令牌中，也不要发送到聊天里。配置后重新启动对应进程。不会用模拟回答假装已经接通。', buttons: ['知道了'] });
+        detail: '桌宠需要微光指引后端地址 NUANBAN_DESKTOP_API_BASE_URL 和已认证设备的 NUANBAN_DESKTOP_API_TOKEN；后端另需 NUANBAN_REALTIME_API_KEY 与 NUANBAN_REALTIME_MODEL。\n\n供应密钥只配置在后端，不要填到设备令牌中，也不要发送到聊天里。配置后重新启动对应进程。不会用模拟回答假装已经接通。', buttons: ['知道了'] });
       return;
     }
     const current = ++generation;
@@ -144,7 +144,7 @@ function createRealtimeVoiceHost({ electron, showDialog, beforeStart, onState = 
       privateSession = session.fromPartition('nuanban-voice-' + randomUUID(), { cache: false });
       const area = screen.getPrimaryDisplay().workArea;
       voiceWindow = new BrowserWindow({ width: Math.min(480, area.width), height: Math.min(760, area.height), minWidth: 320, minHeight: 480,
-        title: '暖伴 · 面对面语音', show: false, backgroundColor: '#fff8ed', alwaysOnTop: true, autoHideMenuBar: true,
+        title: '微光指引 · 面对面语音', show: false, backgroundColor: '#fff8ed', alwaysOnTop: true, autoHideMenuBar: true,
         skipTaskbar: presentation === 'pet',
         webPreferences: { preload: path.join(__dirname, 'realtime-voice-preload.cjs'), session: privateSession,
           sandbox: true, contextIsolation: true, nodeIntegration: false, webSecurity: true, backgroundThrottling: false, autoplayPolicy: 'no-user-gesture-required' } });

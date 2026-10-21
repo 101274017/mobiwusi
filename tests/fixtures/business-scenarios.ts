@@ -31,7 +31,7 @@ export class DemoConversation implements ConversationPort {
     if (this.scenario === 'permission-denied') throw new ServiceFailure('PERMISSION_DENIED', '当前请求未获许可。可以改用本机练习；这不代表系统权限状态。');
     if (this.scenario === 'provider-quota') throw new ServiceFailure('RATE_LIMITED', '讲解服务的演示配额不足，请稍后重试，或先做本机练习。', true);
     const risk = detectTextRisk(text);
-    const answers = risk === 'transaction' ? ['这涉及支付、转账或验证码，我们先停下来。','暖伴不会指导这类操作，也不会索取任何密码或验证码。','请通过自己熟悉的电话号码，与家人确认。']
+    const answers = risk === 'transaction' ? ['这涉及支付、转账或验证码，我们先停下来。','微光指引不会指导这类操作，也不会索取任何密码或验证码。','请通过自己熟悉的电话号码，与家人确认。']
       : risk === 'private' ? ['这里可能涉及密码或私人信息，请先不要发送。','演示不会查看你的真实屏幕。请离开敏感页面后重新提问。']
       : risk === 'medical' || risk === 'investment' ? ['我可以解释如何使用设备，但不能替你作医疗或投资决定。','用药问题请联系专业医护，财务决定请审慎核实。']
       : /字体|字太小/.test(text) ? ['字太小确实看着费劲，咱们一步一步来。','在下面的练习里，先打开「设置」，再找到「显示与字体」。','选择「大字体」并保存。每一步都由你自己点，我只帮你指路。']

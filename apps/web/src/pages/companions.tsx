@@ -82,7 +82,7 @@ function LiliCard() {
       <button className="button primary" type="button" disabled={!canCall || busy} onClick={() => { setError(''); setConfirm(true); }}>
         <Monitor size={19} aria-hidden="true" />{busy ? '正在请栗栗到桌面…' : '请栗栗到桌面'}
       </button>
-      {!canCall && <p className="small-note">浏览器里可查看角色；切换桌宠需要在暖伴桌面客户端中完成。</p>}
+      {!canCall && <p className="small-note">浏览器里可查看角色；切换桌宠需要在微光指引桌面客户端中完成。</p>}
       {notice && <p className="companion-notice" role="status">{notice}</p>}
       {error && !confirm && <p className="inline-error" role="alert">{error}</p>}
     </div>

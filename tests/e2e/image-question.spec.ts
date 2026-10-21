@@ -49,10 +49,10 @@ test('未接模型时图片可单独提交检查，但不读取、不发送、�
 test('网页没有原生接口时明确提示，不悄悄切换文字演示', async ({ page }) => {
   await page.goto('/#/chat/new');
   await chooseImage(page);
-  await page.getByLabel('想问暖伴的问题').fill('这张图怎么操作？');
+  await page.getByLabel('想问微光指引的问题').fill('这张图怎么操作？');
   await page.getByRole('button', { name: '发送', exact: true }).click();
   await expect(page.getByRole('alert', { name: '讲解未完成' })).toContainText('当前没有可用的桌面图片接口');
-  await expect(page.getByLabel('想问暖伴的问题')).toHaveValue('这张图怎么操作？');
+  await expect(page.getByLabel('想问微光指引的问题')).toHaveValue('这张图怎么操作？');
   await expect(page.locator('.message.assistant[data-state="completed"]')).toHaveCount(0);
 });
 
@@ -71,12 +71,12 @@ test('接口可用时必须本次确认；图片单独提交不再只预览，�
 test('安全阻断后保留图片和问题，换图必须重新确认，同一文件可以再次选择', async ({ page }) => {
   await installFixture(page, 'blocked');
   await chooseImage(page);
-  await page.getByLabel('想问暖伴的问题').fill('这张图怎么操作？');
+  await page.getByLabel('想问微光指引的问题').fill('这张图怎么操作？');
   const consent = page.getByRole('checkbox', { name: '仅本次允许发送检查通过的脱敏图片' });
   await consent.check();
   await page.getByRole('button', { name: '发送', exact: true }).click();
   await expect(page.getByRole('alert', { name: '讲解未完成' })).toContainText('未通过本机安全检查');
-  await expect(page.getByLabel('想问暖伴的问题')).toHaveValue('这张图怎么操作？');
+  await expect(page.getByLabel('想问微光指引的问题')).toHaveValue('这张图怎么操作？');
   await expect(consent).not.toBeChecked();
   await chooseImage(page);
   await expect(consent).not.toBeChecked();
@@ -87,13 +87,13 @@ test('安全阻断后保留图片和问题，换图必须重新确认，同一�
 test('停止后取消图片接口，保留草稿，迟到回答不覆盖停止状态', async ({ page }) => {
   await installFixture(page, 'pending');
   await chooseImage(page);
-  await page.getByLabel('想问暖伴的问题').fill('这张图怎么操作？');
+  await page.getByLabel('想问微光指引的问题').fill('这张图怎么操作？');
   await page.getByRole('checkbox', { name: '仅本次允许发送检查通过的脱敏图片' }).check();
   await page.getByRole('button', { name: '发送', exact: true }).click();
   await expect.poll(() => page.evaluate(() => sessionStorage.getItem('image-request-count'))).toBe('1');
   await page.getByRole('button', { name: '停止讲解', exact: true }).click();
   await expect(page.locator('.message.assistant[data-state="stopped"]')).toBeVisible();
-  await expect(page.getByLabel('想问暖伴的问题')).toHaveValue('这张图怎么操作？');
+  await expect(page.getByLabel('想问微光指引的问题')).toHaveValue('这张图怎么操作？');
   await expect(page.locator('.message.assistant')).not.toContainText('迟到结果');
   expect(await page.evaluate(() => sessionStorage.getItem('image-cancelled'))).toBe('true');
   await expect(page.locator('.media-preview')).toBeVisible();
@@ -103,7 +103,7 @@ test('停止后取消图片接口，保留草稿，迟到回答不覆盖停止�
 test('带图文字问题不自动生成学习笔记', async ({ page }) => {
   await installFixture(page, 'ready');
   await chooseImage(page);
-  await page.getByLabel('想问暖伴的问题').fill('怎么按图调整字号？');
+  await page.getByLabel('想问微光指引的问题').fill('怎么按图调整字号？');
   await page.getByRole('checkbox', { name: '仅本次允许发送检查通过的脱敏图片' }).check();
   await page.getByRole('button', { name: '发送', exact: true }).click();
   await expect(page.locator('.message.assistant[data-state="completed"]')).toContainText('合成接口回执');

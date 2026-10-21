@@ -445,7 +445,7 @@ function createDesktopRuntime(options) {
       return false;
     }
     state.task.explanation = state.task.presentation === 'uncertain_candidate'
-      ? '这是当前画面中的候选位置，尚未确认；请先核对。' : '请亲手操作；暖伴不会自动点击或输入。';
+      ? '这是当前画面中的候选位置，尚未确认；请先核对。' : '请亲手操作；微光指引不会自动点击或输入。';
     state.task.targetState = 'visible';
     targetTimer = setTimeout(() => {
       clearTarget();
@@ -532,7 +532,7 @@ function createDesktopRuntime(options) {
     state.task.awaitingReply = false;
     state.task.instruction = result.instruction;
     state.task.presentation = result.presentation;
-    state.task.explanation = result.presentation === 'uncertain_candidate' ? '这是当前画面中的候选位置，尚未确认；请先核对。' : '请亲手操作；暖伴不会自动点击或输入。';
+    state.task.explanation = result.presentation === 'uncertain_candidate' ? '这是当前画面中的候选位置，尚未确认；请先核对。' : '请亲手操作；微光指引不会自动点击或输入。';
     state.captions.text = result.instruction;
     previousStep = job.previous && !progressed ? job.previous : {
       element: { ...element, rect: { ...element.rect } }, signature: current.signature, frame: current,
@@ -811,7 +811,7 @@ function createDesktopRuntime(options) {
       clearTarget();
       state.task.state = 'ended';
       state.task.result = 'risk_blocked';
-      state.task.explanation = '涉及支付、转账、验证码或私人信息时，暖伴不继续指导该操作。请退出风险页面，必要时与家人电话确认。';
+      state.task.explanation = '涉及支付、转账、验证码或私人信息时，微光指引不继续指导该操作。请退出风险页面，必要时与家人电话确认。';
       state.captions.text = state.task.explanation;
       message(state.task.explanation, 'assistant');
       await recordTeaching('risk_blocked');

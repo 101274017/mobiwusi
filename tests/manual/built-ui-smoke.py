@@ -102,7 +102,7 @@ def run():
                     }};
                 """)
                 page.goto('https://appassets.androidplatform.net/assets/ui/index.html', wait_until='networkidle')
-                expect(page.get_by_role('heading', name='你好，今天也有暖伴陪着你。')).to_be_visible()
+                expect(page.get_by_role('heading', name='你好，今天也有微光指引陪着你。')).to_be_visible()
                 page.wait_for_function("window.syntheticBridgeMessages.some(message=>message.method==='capabilities')")
                 page.get_by_role('button', name='随时停止', exact=True).click()
                 page.wait_for_function("window.syntheticBridgeMessages.filter(message=>message.method==='stop_all').length===1")

@@ -26,7 +26,7 @@ class NativeCaptureControlActivity : Activity() {
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(24, 32, 24, 32); setBackgroundColor(Color.rgb(255, 249, 239)) }
         setContentView(ScrollView(this).apply { addView(root, ViewGroup.LayoutParams(-1, -1)) })
         fun text(value: String, size: Float = 17f) { root.addView(TextView(this).apply { text = value; textSize = size; setTextColor(Color.rgb(45, 52, 48)); setPadding(0, 10, 0, 10) }) }
-        text("暖伴 · Android 原生控制", 24f)
+        text("微光指引 · Android 原生控制", 24f)
         text("默认不启用捕获、浮层或流程指引。只有本页勾选本次说明并通过系统授权，才会短时启动本地隔离实验。原生帧不读像素、不编码、不保存、不上传；未验证检测器和目标版本始终阻断。")
         status = TextView(this).also { root.addView(it) }
         consent = CheckBox(this).apply { text = "我确认只使用合成内容，并同意本次 30 秒本地隔离实验。"; textSize = 17f }; root.addView(consent)

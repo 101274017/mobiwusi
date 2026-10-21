@@ -39,11 +39,11 @@ try {
     if (pet) break;
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  assert(pet, '暖伴桌宠窗口未启动');
+  assert(pet, '微光指引桌宠窗口未启动');
   await pet.waitForLoadState('networkidle');
   await pet.locator('#lili-pet[data-ready="true"]').waitFor({ state: 'visible', timeout: 15000 });
 
-  await verify('真实暖伴首帧、透明画布与本地资源', async () => {
+  await verify('真实微光指引首帧、透明画布与本地资源', async () => {
     assert.equal((await application.windows()).length, 3);
     const data = await pet.evaluate(async () => {
       const canvas = document.getElementById('lili-pet');
@@ -113,7 +113,7 @@ try {
     await pet.evaluate(() => window.nuanbanLili.command({ type: 'animation.configure', options: { reducedMotion: false } }));
   });
 
-  await verify('暖伴语义事件和业务文字气泡，无云端请求', async () => {
+  await verify('微光指引语义事件和业务文字气泡，无云端请求', async () => {
     const example = await pet.evaluate(async () => {
       const { runLiliExample } = await import(new URL('./examples/lili-control.js', document.baseURI).href);
       window.__liliExampleEvents = [];

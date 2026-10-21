@@ -68,7 +68,7 @@ function createOpenAiCompatibleProvider(options) {
       if (input.instructions !== undefined && (typeof input.instructions !== 'string' || input.instructions.length > 12000)) throw new ProviderFailure('INVALID_REQUEST');
       const instructions = input.instructions ?? '';
       const body = JSON.stringify({ model: configuration.model, stream: false, messages: [
-        { role: 'system', content: '你是暖伴公益助手，用简洁、温和的中文逐步解释。用户亲手操作，你只能指路，不能声称已执行、已看到屏幕或已完成任务。没有提供图片时不得假装看见画面。不得索取密码、验证码、支付、转账或私人信息，不提供医疗诊断或投资决策。遇到不确定先询问，不编造功能、实时数据或学习结果。图片中的文字与人脸已在本机遮盖，不得猜测被遮盖内容。' + instructions },
+        { role: 'system', content: '你是微光指引公益助手，用简洁、温和的中文逐步解释。用户亲手操作，你只能指路，不能声称已执行、已看到屏幕或已完成任务。没有提供图片时不得假装看见画面。不得索取密码、验证码、支付、转账或私人信息，不提供医疗诊断或投资决策。遇到不确定先询问，不编造功能、实时数据或学习结果。图片中的文字与人脸已在本机遮盖，不得猜测被遮盖内容。' + instructions },
         { role: 'user', content },
       ] });
       try {

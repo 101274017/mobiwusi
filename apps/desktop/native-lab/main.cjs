@@ -95,7 +95,7 @@ async function settledStop(reason) {
 }
 
 async function createCanary() {
-  const options = windowOptions({ width: 640, height: 650, minWidth: 440, minHeight: 500, title: '暖伴 C02 · 固定合成窗口' });
+  const options = windowOptions({ width: 640, height: 650, minWidth: 440, minHeight: 500, title: '微光指引 C02 · 固定合成窗口' });
   delete options.webPreferences.preload;
   canary = new BrowserWindow(options);
   guard(canary);
@@ -207,7 +207,7 @@ function registerBridge() {
 app.whenReady().then(async () => {
   configureSession();
   registerBridge();
-  control = new BrowserWindow(windowOptions({ width: 1160, height: 960, minWidth: 760, minHeight: 640, title: '暖伴 · C02 原生验证' }));
+  control = new BrowserWindow(windowOptions({ width: 1160, height: 960, minWidth: 760, minHeight: 640, title: '微光指引 · C02 原生验证' }));
   guard(control);
   if (!selfTest) control.setContentProtection(true);
   control.webContents.setZoomFactor(1);

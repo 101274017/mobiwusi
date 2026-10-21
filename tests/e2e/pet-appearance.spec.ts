@@ -10,7 +10,7 @@ test('栗栗透明预览可选择、保存与撤回，固定形象不使用通�
   await expect.poll(() => lili.evaluate(element => (element as HTMLImageElement).naturalWidth)).toBe(384);
   for (const label of ['眼睛', '嘴型', '动作姿态', '伙伴颜色']) await expect(page.getByLabel(label, { exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: '调用栗栗桌宠' })).toBeDisabled();
-  await expect(page.getByText('调用需要新版暖伴桌面客户端；若客户端已打开，请正常退出后重新启动。浏览器里仍可预览和保存选择。')).toBeVisible();
+  await expect(page.getByText('调用需要新版微光指引桌面客户端；若客户端已打开，请正常退出后重新启动。浏览器里仍可预览和保存选择。')).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('lili-companion.png'), fullPage: true });
   await page.getByRole('button', { name: '预览满意，确认应用' }).click();
   await page.getByRole('button', { name: '确认应用到本机' }).click();

@@ -97,13 +97,13 @@ export function LocalVoicePanel({ onTranscript }: { onTranscript?: (text: string
   const microphoneMayBeActive = status?.microphoneActive || status?.enabled;
   const showEnableHint = ['enable', 'dictate'].includes(pending) || (status !== null && !microphoneMayBeActive);
   return <div className="stack">
-    <p>点击“开始语音输入”，本人确认后直接说一句话，无需先说“暖伴”。识别文字会填入聊天框，由你检查后亲手发送。</p>
+    <p>点击“开始语音输入”，本人确认后直接说一句话，无需先说唤醒词。识别文字会填入聊天框，由你检查后亲手发送。</p>
     <section className="confirmation-box" aria-label="本地语音状态" aria-live="polite">
       <strong>{!status ? '麦克风状态待确认' : pending === 'dictate' && status.phase === 'question' ? '正在本机听写，请直接说话' : microphoneMayBeActive ? '桌宠语音正在运行或等待清理' : '桌宠麦克风未开启'}</strong>
       <p>{status?.message || '正在读取本机状态；打开这个面板不会开启麦克风。'}</p>
     </section>
     {showEnableHint && <section id="local-voice-enable-hint" className="confirmation-box" aria-label="开启本地语音提示" aria-live="polite">
-      <strong>{pending === 'enable' ? '还差一步：请本人确认开启' : pending === 'dictate' ? '请确认本次输入，再等候听写提示' : '想用语音和暖伴说话？'}</strong>
+      <strong>{pending === 'enable' ? '还差一步：请本人确认开启' : pending === 'dictate' ? '请确认本次输入，再等候听写提示' : '想用语音和微光指引说话？'}</strong>
       <p>{pending === 'dictate'
         ? '在原生窗口选择“本人同意本次输入”，看到“正在本机听写”后直接说话。不想继续可以点击“取消本次输入”。'
         : pending === 'enable'

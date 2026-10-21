@@ -45,7 +45,7 @@ function createObservationRegionSelector({ BrowserWindow, ipcMain }) {
       active = { finish };
       try {
         window = new BrowserWindow({ ...screenBounds,
-          title: '暖伴 · 本人框选观察区域', frame: false, transparent: true, alwaysOnTop: true, skipTaskbar: true,
+          title: '微光指引 · 本人框选观察区域', frame: false, transparent: true, alwaysOnTop: true, skipTaskbar: true,
           show: false, resizable: false, movable: false, hasShadow: false,
           webPreferences: { preload: path.join(__dirname, 'region-selector-preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, spellcheck: false } });
         window.setContentProtection(true);

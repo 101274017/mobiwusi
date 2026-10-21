@@ -79,7 +79,7 @@ export function LumiCard() {
     <div className="lumi-details">
       <div className="lumi-meta"><span className="eyebrow">原创三维伙伴 / MAGICAL KITTEN</span><Badge tone={active ? 'sage' : 'soft'}>{active ? '当前 3D 桌宠' : '已内置 · 无需导入'}</Badge></div>
       <h2 id="lumi-title">露米 <span>Lumi</span><Sparkles size={25} aria-hidden="true" /></h2>
-      <p className="lumi-description">带着星星魔杖，陪你慢慢想、轻轻笑。之前制作的小猫模型已收进暖伴，随时都能再见面。</p>
+      <p className="lumi-description">带着星星魔杖，陪你慢慢想、轻轻笑。之前制作的小猫模型已收进微光指引，随时都能再见面。</p>
       <div className="lumi-facts"><span><Box size={16} aria-hidden="true" />真实 3D · 可旋转</span><span>9 个动作 · 自带表情</span><span>1.75 MiB · v{lumiModel.version}</span></div>
       <fieldset className="lumi-action-picker"><legend>和露米打个招呼</legend><div>{lumiModel.actions.map(item => <button type="button" key={item.name} disabled={!ready} aria-pressed={action === item.name} onClick={() => view.current?.playAnimation(item.name)}>{item.label}</button>)}</div></fieldset>
       <div className="lumi-buttons">

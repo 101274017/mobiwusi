@@ -137,8 +137,10 @@ try {
   });
   await verify('return_hides_only_pet_tool_and_reopen_keeps_its_renderer', async () => {
     await tool.getByRole('button', { name: '返回桌宠全部功能' }).click();
-    await expect.poll(async () => (await windowState()).find(window => window.title === '暖伴桌宠 · 工具小屋')?.visible).toBe(false);
-    assert.equal((await windowState()).find(window => window.title === '暖伴 · 管理中心')?.visible, true);
+    await expect.poll(async () => (await windowState()).find(window => window.title === '微光指引桌宠 · 工具小屋')?.visible).toBe(false);
+    const managementState = (await windowState()).find(window => window.url === management.url());
+    assert.equal(managementState?.visible, true);
+    assert.match(managementState.title, /^微光指引 · (?:管理中心|陪你慢慢学会)$/);
     await expect(management.locator('#question')).toHaveValue(draft);
     await pet.evaluate(() => window.nuanbanPet.openTool('/chat/new'));
     await expect(tool).toHaveURL(/#\/chat\/new$/);

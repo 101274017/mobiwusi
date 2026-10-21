@@ -68,7 +68,7 @@ object AndroidGuidanceRuntime {
     private fun dispatch(frame: LocallySanitizedFrame) {
         val job = state.takeJob() ?: return
         val settings = connection
-        if (settings == null) { state.unavailable("未配置可用暖伴设备会话；没有上传，也不会以演示步骤代替。"); return }
+        if (settings == null) { state.unavailable("未配置可用微光指引设备会话；没有上传，也不会以演示步骤代替。"); return }
         val config = StandaloneGuidanceConfig(settings.baseUrl, settings.accessToken)
         if (config.endpointOrNull() == null) { state.unavailable("教学服务配置不可用；未发送画面。"); return }
         val png = frame.sanitizedPng()

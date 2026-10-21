@@ -25,7 +25,7 @@ function createManagementWindowVisibility(options = {}) {
   async function show(window, { route = '/', ready } = {}) {
     if (!live(window)) throw new Error('管理窗口未就绪');
     syncProtection(window);
-    window.setTitle('暖伴 · 管理中心');
+    window.setTitle('微光指引 · 管理中心');
     if (window.isMinimized()) window.restore();
     window.setSkipTaskbar(false);
     window.show();

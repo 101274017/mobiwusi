@@ -1,4 +1,4 @@
-/* 暖伴 · 日出暖光背景（欢迎页 ambient--full / 工作区 ambient）
+/* 微光指引 · 日出暖光背景（欢迎页 ambient--full / 工作区 ambient）
    只动画 transform 与 opacity，避免大面积 filter 与重绘。 */
 .ambient {
   position: fixed;

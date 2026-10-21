@@ -130,7 +130,7 @@ class NativeCaptureService : Service() {
             if (!NativeCaptureRuntime.gate.detectorReady()) { finish(CaptureStop.PRIVACY_BLOCKED); return START_NOT_STICKY }
             if (getSystemService(KeyguardManager::class.java).isKeyguardLocked) { finish(CaptureStop.LOCKED); return START_NOT_STICKY }
             val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(NotificationChannel(CHANNEL, "暖伴原生协助", NotificationManager.IMPORTANCE_LOW))
+            manager.createNotificationChannel(NotificationChannel(CHANNEL, "微光指引原生协助", NotificationManager.IMPORTANCE_LOW))
             if (!manager.areNotificationsEnabled() || manager.getNotificationChannel(CHANNEL)?.importance == NotificationManager.IMPORTANCE_NONE) {
                 finish(CaptureStop.NOTIFICATION_UNAVAILABLE)
                 return START_NOT_STICKY
@@ -181,7 +181,7 @@ class NativeCaptureService : Service() {
         val control = if (petTicket != null) PetControlActivity::class.java else NativeCaptureControlActivity::class.java
         val open = PendingIntent.getActivity(this, 2, Intent(this, control), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val description = if (petTicket != null) "持续本地观察；仅当次同意时按需分析脱敏画面；风险/未知立即停止。" else "采集帧只在内存中隔离释放，最多 30 秒；风险/未知立即停止。"
-        return Notification.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.ic_menu_view).setContentTitle("暖伴 · 本地隔离协助").setContentText(description).setContentIntent(open).setOngoing(true).addAction(Notification.Action.Builder(null, "立即停止", stop).build()).build()
+        return Notification.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.ic_menu_view).setContentTitle("微光指引 · 本地隔离协助").setContentText(description).setContentIntent(open).setOngoing(true).addAction(Notification.Action.Builder(null, "立即停止", stop).build()).build()
     }
 
     private fun quarantine(source: ImageReader, candidate: CaptureTicket) {
@@ -234,7 +234,7 @@ class NativeCaptureService : Service() {
     private fun addOverlay() {
         if (!Settings.canDrawOverlays(this)) { finish(CaptureStop.OVERLAY_UNAVAILABLE); return }
         val manager = getSystemService(WindowManager::class.java)
-        val markerView = TextView(this).apply { text = "暖伴 · 本地标记"; textSize = 14f; setTextColor(0xff3d2f18.toInt()); setBackgroundColor(0xffffd37a.toInt()); setPadding(12, 8, 12, 8) }
+        val markerView = TextView(this).apply { text = "微光指引 · 本地标记"; textSize = 14f; setTextColor(0xff3d2f18.toInt()); setBackgroundColor(0xffffd37a.toInt()); setPadding(12, 8, 12, 8) }
         val buttonView = Button(this).apply { text = "停止"; setOnClickListener { finish(CaptureStop.USER) } }
         val type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         val markerParams = WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, type, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, PixelFormat.TRANSLUCENT).apply { gravity = Gravity.TOP or Gravity.START; x = 16; y = 64 }

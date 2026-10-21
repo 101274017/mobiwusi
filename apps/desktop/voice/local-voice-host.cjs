@@ -131,7 +131,7 @@ function createLocalVoiceHost({ electron, showDialog, beforeStart = async () => 
       privateSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*', 'ws://*/*', 'wss://*/*'] }, (_details, callback) => callback({ cancel: true }));
       const area = screen.getPrimaryDisplay().workArea;
       window = new BrowserWindow({ width: Math.min(480, area.width), height: Math.min(760, area.height), minWidth: 320, minHeight: 480,
-        title: '暖伴 · 本地语音对话', show: false, backgroundColor: '#fff8ed', alwaysOnTop: true, autoHideMenuBar: true,
+        title: '微光指引 · 本地语音对话', show: false, backgroundColor: '#fff8ed', alwaysOnTop: true, autoHideMenuBar: true,
         webPreferences: { preload: path.join(__dirname, '..', 'realtime-voice-preload.cjs'), session: privateSession, sandbox: true, contextIsolation: true, nodeIntegration: false, webSecurity: true } });
       const opened = window;
       opened.setContentProtection(true);

@@ -28,13 +28,13 @@ test('模拟宿主停止失败时告知未确认，不产生未处理异常', as
 test('模拟原生暂停事件会停止讲解，恢复页面也不自动续播', async ({ page }) => {
   await installTextBridge(page, 'pending');
   await page.goto('/#/chat/new');
-  await page.getByLabel('想问暖伴的问题').fill('合成暂停问题');
+  await page.getByLabel('想问微光指引的问题').fill('合成暂停问题');
   await page.getByRole('button', { name: '发送', exact: true }).click();
   await expect(page.getByRole('button', { name: '讲解中', exact: true })).toBeDisabled();
   await page.evaluate(() => window.dispatchEvent(new Event('nuanban:host-pause')));
   await expect(page.locator('.caption')).toHaveText('已停止，本次讲解不会自动恢复。');
   await expect(page.locator('.message[data-state="stopped"]')).toHaveCount(1);
-  await page.getByLabel('想问暖伴的问题').fill('我准备好后再发送');
+  await page.getByLabel('想问微光指引的问题').fill('我准备好后再发送');
   await expect(page.getByRole('button', { name: '发送', exact: true })).toBeEnabled();
   await page.waitForTimeout(800);
   await expect(page.locator('.caption')).toHaveText('已停止，本次讲解不会自动恢复。');

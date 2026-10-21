@@ -18,7 +18,7 @@ export function localCompanionBridge(): LocalCompanionBridge | undefined {
 
 export async function showLiliCompanion(): Promise<LocalCompanionDescriptor> {
   const bridge = localCompanionBridge();
-  if (!bridge) throw new Error('请在暖伴桌面客户端中调用栗栗桌宠。');
+  if (!bridge) throw new Error('请在微光指引桌面客户端中调用栗栗桌宠。');
   const result = await bridge.showLili();
   if (!result || result.id !== 'lili' || typeof result.version !== 'string' || !/^\d+\.\d+\.\d+$/.test(result.version)) throw new Error('栗栗资源状态未确认，请重试。');
   return { id: result.id, version: result.version };

@@ -8,16 +8,22 @@ const guestEntry = {
   }],
 };
 
-test.describe('第一次进入暖伴', () => {
+test.describe('第一次进入微光指引', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test('首次访问跳转到欢迎页，可游客进入并记住选择', async ({ page }) => {
     await page.goto('/#/');
     await expect(page).toHaveURL(/#\/welcome$/);
+    await expect(page).toHaveTitle('微光指引 · 陪你慢慢学会');
+    await expect(page.locator('.welcome-brand strong')).toHaveText('微光指引');
+    await expect(page.locator('body')).not.toContainText(/暖伴|NUANBAN/);
     await expect(page.getByRole('heading', { name: /先坐一会儿/ })).toBeVisible();
     await page.getByRole('button', { name: '游客模式，直接进入' }).click();
     await expect(page).toHaveURL(/#\/$/);
     await expect(page.getByRole('heading', { name: '今天想学点什么？' })).toBeVisible();
+    await expect(page.locator('.brand strong')).toHaveText('微光指引');
+    await expect(page.locator('body')).not.toContainText(/暖伴|NUANBAN/);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
     expect(await page.evaluate(() => localStorage.getItem('nuanban.entry.v1'))).toContain('guest');
     await page.reload();
     await expect(page).toHaveURL(/#\/$/);
@@ -27,7 +33,7 @@ test.describe('第一次进入暖伴', () => {
   test('登录入口只展示真实账号状态，不收集任何凭证', async ({ page }) => {
     await page.goto('/#/welcome');
     await expect(page.locator('.welcome-status')).toHaveText('资料本机保存 · 模型按需调用');
-    await page.getByRole('button', { name: '登录暖伴账号' }).click();
+    await page.getByRole('button', { name: '登录微光指引账号' }).click();
     const panel = page.getByRole('region', { name: '账号服务状态' });
     await expect(panel).toBeVisible();
     await expect(panel).toContainText('不会生成任何凭证');

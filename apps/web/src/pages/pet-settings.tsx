@@ -73,7 +73,7 @@ export function PetsPage() {
           <div className="lili-resource-tags"><span>资源 ID：<code>lili</code></span><span>六种表情 · 六个动作</span></div>
           <p className="small-note">确认应用会在本机记住伙伴；调用会立即切换桌面角色，不会替你保存本页预览。栗栗的五官、围巾、配色和持灯侧保持统一，不使用下方通用微调。</p>
           <button className="button secondary" disabled={!canCall || calling || busy} onClick={() => void callLili()}><Monitor size={18} />{calling ? '正在调用栗栗…' : '调用栗栗桌宠'}</button>
-          {!canCall && <p className="small-note">调用需要新版暖伴桌面客户端；若客户端已打开，请正常退出后重新启动。浏览器里仍可预览和保存选择。</p>}
+          {!canCall && <p className="small-note">调用需要新版微光指引桌面客户端；若客户端已打开，请正常退出后重新启动。浏览器里仍可预览和保存选择。</p>}
           <p className="lili-call-status" role="status">{callStatus}</p>
           {callError && <p className="inline-error" role="alert">{callError}</p>}
         </section>}
@@ -83,7 +83,7 @@ export function PetsPage() {
           <label>动作姿态<select aria-label="动作姿态" disabled={isLili} value={draft.appearance.action} onChange={event => tune('action', event.target.value as PetAppearance['action'])}><option value="idle">安静陪伴</option><option value="greeting">招招手</option><option value="celebrating">一起庆祝</option></select></label>
           <label>伙伴颜色<input type="color" aria-label="伙伴颜色" disabled={isLili} value={draft.appearance.color} onChange={event => tune('color', event.target.value)} /></label>
         </div>
-        <p className="small-note">{isLili ? '动作在独立桌宠的菜单或暖伴事件中触发；运行桌宠无需打开 Blender。' : '通用微调只适用于猫、兔、狗的内置 SVG 形象，不代表生成动画。'}</p>
+        <p className="small-note">{isLili ? '动作在独立桌宠的菜单或微光指引事件中触发；运行桌宠无需打开 Blender。' : '通用微调只适用于猫、兔、狗的内置 SVG 形象，不代表生成动画。'}</p>
         <div className="stack"><button className="button primary" disabled={!changed || busy} onClick={() => setConfirmation('apply')}><Check size={19} />预览满意，确认应用</button><button className="button secondary" disabled={busy} onClick={reload}>放弃预览，读取当前设置</button><button className="button secondary" disabled={!preferences.previousPet || busy} onClick={() => setConfirmation('undo')}><RotateCcw size={18} />撤回上次应用</button></div>
       </section>
     </div>

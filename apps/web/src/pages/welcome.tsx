@@ -39,7 +39,7 @@ export function WelcomePage() {
       <section className="welcome-intro">
         <p className="welcome-brand">
           <BrandMark className="welcome-mark" size={44} />
-          <span><strong>暖伴</strong><small>陪你慢慢学会</small></span>
+          <span><strong>微光指引</strong><small>陪你慢慢学会</small></span>
         </p>
         <h1>先坐一会儿，<br /><span className="welcome-h1-accent">我们慢慢开始。</span></h1>
         <p className="welcome-lead">不用注册也能用。笔记和待办只留在这台电脑上，不会替你点按钮。</p>
@@ -52,15 +52,15 @@ export function WelcomePage() {
         </ul>
       </section>
 
-      <section className="welcome-card" aria-label="进入暖伴">
+      <section className="welcome-card" aria-label="进入微光指引">
         <span className="welcome-status"><i aria-hidden="true" />资料本机保存 · 模型按需调用</span>
-        <h2>{returning ? '欢迎回来' : '进入暖伴'}</h2>
+        <h2>{returning ? '欢迎回来' : '进入微光指引'}</h2>
         <p className="welcome-card-lead">{returning ? '上次是以游客身份进入的，可以继续。' : '先用游客身份进来，笔记和待办只留在这台电脑。'}</p>
         <button className="button primary full" type="button" onClick={enterAsGuest}>
           {returning ? '继续以游客身份进入' : '游客模式，直接进入'}
         </button>
         <button className="button secondary full" type="button" aria-expanded={loginOpen} onClick={() => setLoginOpen(open => !open)}>
-          {loginOpen ? '收起登录说明' : '登录暖伴账号'}
+          {loginOpen ? '收起登录说明' : '登录微光指引账号'}
         </button>
         {loginOpen && <div className="welcome-login" role="region" aria-label="账号服务状态">
           <strong>{loginState.title}</strong>
@@ -71,6 +71,6 @@ export function WelcomePage() {
         <p className="welcome-note">游客模式不建立账号，资料保存在本机，可在「设置与隐私」里清空。</p>
       </section>
     </main>
-    <footer className="welcome-foot">暖伴公益助手 · 本机资料 · 真实模型接口</footer>
+    <footer className="welcome-foot">微光指引公益助手 · 本机资料 · 真实模型接口</footer>
   </div>;
 }

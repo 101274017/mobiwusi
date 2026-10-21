@@ -110,7 +110,7 @@ function registerBridge() {
 }
 async function createWindow() {
   const startPage = managementIndex();
-  mainWindow = new BrowserWindow({ width:1360,height:920,minWidth:420,minHeight:640,title:'暖伴 · 管理中心',backgroundColor:'#FFF8EF',show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true} });
+  mainWindow = new BrowserWindow({ width:1360,height:920,minWidth:420,minHeight:640,title:'微光指引 · 管理中心',backgroundColor:'#FFF8EF',show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true} });
   managementVisibility.syncProtection(mainWindow);
   mainWindow.webContents.setWindowOpenHandler(() => ({action:'deny'}));
   mainWindow.webContents.on('will-navigate', event => event.preventDefault());
@@ -195,7 +195,7 @@ if (ownsInstance) app.whenReady().then(async () => {
     reminderStore, reminderNotifications, isQuitting: () => quitAfterLifecycle, hasManagementWindow: hasVisibleClientWindow, onExit: () => app.quit() });
   await Promise.all([standaloneHost.initialize(), process.argv.includes('--management') ? showMainWindow('/') : Promise.resolve()]);
 }).catch(() => {
-  dialog.showErrorBox('暖伴启动未完成', '独立桌宠加载失败，未自动开启屏幕或麦克风采集。请检查本地启动日志与依赖后重试。');
+  dialog.showErrorBox('微光指引启动未完成', '独立桌宠加载失败，未自动开启屏幕或麦克风采集。请检查本地启动日志与依赖后重试。');
   app.quit();
 });
 app.on('window-all-closed',()=>app.quit());

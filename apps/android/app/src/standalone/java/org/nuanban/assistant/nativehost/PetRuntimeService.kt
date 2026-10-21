@@ -75,13 +75,13 @@ class PetRuntimeService : Service() {
             check(Settings.canDrawOverlays(this) && PetRuntime.notificationGranted(this))
             check(!getSystemService(KeyguardManager::class.java).isKeyguardLocked)
             val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(NotificationChannel(CHANNEL, "暖伴独立桌宠与停止入口", NotificationManager.IMPORTANCE_LOW))
+            manager.createNotificationChannel(NotificationChannel(CHANNEL, "微光指引独立桌宠与停止入口", NotificationManager.IMPORTANCE_LOW))
             check(manager.getNotificationChannel(CHANNEL)?.importance != NotificationManager.IMPORTANCE_NONE)
             val open = PendingIntent.getActivity(this, 7310, Intent(this, PetControlActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             val stop = PendingIntent.getBroadcast(this, 7311, Intent(this, PetStopReceiver::class.java).setAction(PetStopReceiver.ACTION_STOP), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             val exit = PendingIntent.getBroadcast(this, 7312, Intent(this, PetStopReceiver::class.java).setAction(PetStopReceiver.ACTION_EXIT), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             val notification = Notification.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle("暖伴 · 独立桌宠")
+                .setContentTitle("微光指引 · 独立桌宠")
                 .setContentText("桌宠已驻留；点此查看观察状态与原生授权。")
                 .setContentIntent(open).setOngoing(true)
                 .addAction(Notification.Action.Builder(null, "停止观察/教学", stop).build())
@@ -119,12 +119,12 @@ class PetRuntimeService : Service() {
         val size = (64 * resources.displayMetrics.density).toInt()
         val layout = parameters(size, size)
         val pet = TextView(this).apply {
-            text = "暖伴\n点我"
+            text = "微光\n指引"
             textSize = 17f
             gravity = Gravity.CENTER
             setTextColor(0xff234635.toInt())
             setBackgroundColor(0xffe2f2df.toInt())
-            contentDescription = "暖伴独立桌宠，点击打开原生输入和停止面板，拖动移动位置"
+            contentDescription = "微光指引独立桌宠，点击打开原生输入和停止面板，拖动移动位置"
             filterTouchesWhenObscured = true
             setOnClickListener { togglePanel() }
         }

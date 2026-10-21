@@ -32,7 +32,7 @@ class PetControlActivity : Activity() {
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(28, 24, 28, 24) }
         fun label(value: String) { root.addView(TextView(this).apply { text = value; textSize = 18f; setPadding(0, 12, 0, 12) }) }
         fun button(value: String, action: () -> Unit) { root.addView(Button(this).apply { text = value; filterTouchesWhenObscured = true; setOnClickListener { action() } }) }
-        label("暖伴 · 独立桌宠控制")
+        label("微光指引 · 独立桌宠控制")
         label("启动桌宠不会抓屏或录音。管理界面关闭不退出桌宠；屏幕观察须本人当次同意和 Android 系统授权。系统杀进程、撤权或隐私暂停后不自动恢复。")
         status = TextView(this).also { root.addView(it) }
         button("打开悬浮窗授权") { startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + packageName))) }
@@ -47,7 +47,7 @@ class PetControlActivity : Activity() {
             filterTouchesWhenObscured = true
         }.also { root.addView(it) }
         cloudConsent = CheckBox(this).apply {
-            text = "可选：我是本人，同意本次在提问、页面变化或核验时，将已脱敏必要画面送往我配置的暖伴服务；不连续上传。"
+            text = "可选：我是本人，同意本次在提问、页面变化或核验时，将已脱敏必要画面送往我配置的微光指引服务；不连续上传。"
             isSaveEnabled = false
             filterTouchesWhenObscured = true
         }.also { root.addView(it) }

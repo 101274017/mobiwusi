@@ -42,7 +42,7 @@ describe('桌宠独立工具窗口，不复用或修改客户端主窗口', () =
     expect(current.windows).toHaveLength(0);
     await expect(current.tools.show('/pets/draw')).resolves.toBe(true);
     const window = current.windows[0]!;
-    expect(window.options).toMatchObject({ title: '暖伴桌宠 · 工具小屋', show: false, webPreferences: { preload: 'local-client/preload.cjs', contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true } });
+    expect(window.options).toMatchObject({ title: '微光指引桌宠 · 工具小屋', show: false, webPreferences: { preload: 'local-client/preload.cjs', contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true } });
     expect(window.loadFile).toHaveBeenCalledExactlyOnceWith('local-client/index.html');
     expect(window.setContentProtection).toHaveBeenCalledWith(true);
     expect(window.webContents.setWindowOpenHandler.mock.calls[0]![0]()).toEqual({ action: 'deny' });

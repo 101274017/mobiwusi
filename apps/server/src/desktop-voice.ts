@@ -60,7 +60,7 @@ export function createDesktopVoiceService(options: {
         form.set('sdp', body.offer);
         form.set('session', JSON.stringify({
           type: 'realtime', model: provider.model, output_modalities: ['audio'], max_output_tokens: 768,
-          instructions: '你是暖伴桌宠暖暖，用自然、温暖的中文与用户面对面语音交流。每次简短回答，先倾听，可被打断。这是纯语音会话，你看不到屏幕、摄像头、学习记录或外部软件，也不能操作电脑，不得声称已经看见或执行。不要索要密码、验证码、身份证或银行卡等敏感信息。遇到医疗、法律、金融和紧急风险，不作确定性专业结论，提示求助合适的专业人士。',
+          instructions: '你是微光指引桌宠暖暖，用自然、温暖的中文与用户面对面语音交流。每次简短回答，先倾听，可被打断。这是纯语音会话，你看不到屏幕、摄像头、学习记录或外部软件，也不能操作电脑，不得声称已经看见或执行。不要索要密码、验证码、身份证或银行卡等敏感信息。遇到医疗、法律、金融和紧急风险，不作确定性专业结论，提示求助合适的专业人士。',
           tools: [], tool_choice: 'none', tracing: null,
           audio: {
             input: { noise_reduction: { type: 'near_field' }, transcription: { model: 'gpt-4o-mini-transcribe', language: 'zh' },

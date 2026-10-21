@@ -1236,7 +1236,7 @@
         return;
       }
       void perform('open-tool', '桌宠工具未打开', () => {
-        if (typeof bridge?.openTool !== 'function') throw new Error('桌宠工具接口尚未加载，请在保存当前操作后重新打开暖伴。');
+        if (typeof bridge?.openTool !== 'function') throw new Error('桌宠工具接口尚未加载，请在保存当前操作后重新打开微光指引。');
         return bridge.openTool(button.dataset.tool);
       }, open);
     };

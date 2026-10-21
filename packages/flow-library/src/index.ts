@@ -98,7 +98,7 @@ export class LocalFlowLibrary {
 export const defaultFlowCatalog: FlowDefinition[] = Array.from({ length: 20 }, (_, index) => ({
   flowId: `flow-${String(index + 1).padStart(2, '0')}`,
   version: '1.0.0',
-  title: `暖伴基础流程 ${index + 1}`,
+  title: `微光指引基础流程 ${index + 1}`,
   owner: 'content-team',
   reviewer: 'safety-review',
   riskBoundary: '命中本地流程；未知页面暂停并要求用户确认',

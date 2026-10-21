@@ -4,8 +4,8 @@ const instancePattern = /^[a-z0-9-]{1,80}$/;
 const deepLinkPattern = /^nuanban:\/\/(?:review|todo)\/[a-z0-9-]{1,64}$/;
 const permissionStates = new Set(['unknown', 'granted', 'denied', 'unsupported']);
 
-const notificationTitle = '暖伴提醒';
-const notificationBody = '有一项提醒到期，请打开暖伴查看。';
+const notificationTitle = '微光指引提醒';
+const notificationBody = '有一项提醒到期，请打开微光指引查看。';
 
 function errorWithCode(code, message) {
   const error = new Error(message);

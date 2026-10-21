@@ -143,7 +143,7 @@ class CaptureLabService : Service() {
         val open = PendingIntent.getActivity(this, 2, Intent(this, CaptureLabActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         return Notification.Builder(this, CHANNEL)
             .setSmallIcon(android.R.drawable.ic_menu_view)
-            .setContentTitle("暖伴 C01 · 本地隔离采集")
+            .setContentTitle("微光指引 C01 · 本地隔离采集")
             .setContentText("30 秒自动停止计时；不读取像素、不保存、不上传。")
             .setContentIntent(open)
             .setOngoing(true)

@@ -2,7 +2,7 @@
   "name": "@nuanban/desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "暖伴 Windows 演示宿主，未完成生产原生验收",
+  "description": "微光指引 Windows 演示宿主，未完成生产原生验收",
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",

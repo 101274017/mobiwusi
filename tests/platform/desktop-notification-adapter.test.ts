@@ -72,7 +72,7 @@ describe('C08 桌面通知适配器预备层', () => {
 
     expect(adapter.submit(fixture())).toEqual({ status: 'submitted', instanceId: 'instance-1' });
     expect(receipts.map(item => item.state)).toEqual(['submitted', 'delivered']);
-    expect(FakeNotification.instances[0].options.body).toBe('有一项提醒到期，请打开暖伴查看。');
+    expect(FakeNotification.instances[0].options.body).toBe('有一项提醒到期，请打开微光指引查看。');
     expect(FakeNotification.instances[0].options.body).not.toContain('不应进入系统通知正文');
 
     FakeNotification.instances[0].emit('click');
