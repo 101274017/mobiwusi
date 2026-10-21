@@ -13,10 +13,10 @@
   let unsubscribe;
   let disposed = false;
 
-  function clearGuide() {
+  function clearGuide(preserveCurrent = false) {
     if (expiryTimer !== undefined) window.clearTimeout(expiryTimer);
     expiryTimer = undefined;
-    current = undefined;
+    if (!preserveCurrent) current = undefined;
     root.hidden = true;
     label.textContent = '';
     instruction.textContent = '';
@@ -29,15 +29,23 @@
 
   function renderGuide(state) {
     if (disposed) return;
-    clearGuide();
+    clearGuide(true);
     const rect = state?.rect;
-    if (state?.visible !== true || !['confirmed', 'uncertain_candidate'].includes(state.presentation) || !Number.isFinite(state.expiresAt) || state.expiresAt <= Date.now() || !rect || !['x', 'y', 'width', 'height'].every(field => Number.isFinite(rect[field])) || rect.width <= 0 || rect.height <= 0 || window.innerWidth < 32 || window.innerHeight < 32) return;
+    if (state?.visible !== true || !['confirmed', 'uncertain_candidate'].includes(state.presentation) || !Number.isFinite(state.expiresAt) || state.expiresAt <= Date.now() || !rect || !['x', 'y', 'width', 'height'].every(field => Number.isFinite(rect[field])) || rect.width <= 0 || rect.height <= 0) {
+      clearGuide();
+      return;
+    }
+    current = state;
+    expiryTimer = window.setTimeout(() => {
+      if (current && current.expiresAt > Date.now()) renderGuide(current);
+      else clearGuide();
+    }, Math.min(state.expiresAt - Date.now(), 2147483647));
+    if (window.innerWidth < 32 || window.innerHeight < 32) return;
     const left = Math.max(0, rect.x);
     const top = Math.max(0, rect.y);
     const right = Math.min(window.innerWidth, rect.x + rect.width);
     const bottom = Math.min(window.innerHeight, rect.y + rect.height);
     if (right <= left || bottom <= top) return;
-    current = state;
     root.dataset.presentation = state.presentation;
     target.style.left = `${left}px`;
     target.style.top = `${top}px`;
@@ -59,10 +67,6 @@
     const arrowAbove = above || bottom > window.innerHeight - 30;
     arrow.style.top = `${arrowAbove ? Math.max(0, top - 27) : bottom + 8}px`;
     arrow.style.transform = arrowAbove ? 'rotate(0deg)' : 'rotate(180deg)';
-    expiryTimer = window.setTimeout(() => {
-      if (current && current.expiresAt > Date.now()) renderGuide(current);
-      else clearGuide();
-    }, Math.min(state.expiresAt - Date.now(), 2147483647));
   }
 
   function resize() {
