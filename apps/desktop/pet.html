@@ -11,6 +11,8 @@
   <script defer src="./pet-artwork.js"></script>
   <script type="module" src="./model-runtime/model-renderer.js"></script>
   <script defer src="./pet-search.js"></script>
+  <script defer src="./pet-single-frame.js"></script>
+  <link rel="stylesheet" href="./pet-single-frame.css">
   <script type="module" src="./library-runtime/pet-library.js"></script>
   <script type="module" src="./avatar-runtime/xingyun-renderer.js"></script>
 </head>
@@ -187,6 +189,18 @@
         <section id="lesson-card" class="lesson-card" aria-labelledby="guidance-title" tabindex="-1" hidden>
           <p id="guidance-status" class="guidance-feedback muted" role="status">请先选择屏幕并允许按需脱敏分析。</p>
           <h2 id="guidance-title">光标指引 · 真实软件教学</h2>
+          <section id="single-frame-card" class="single-frame-card" aria-labelledby="single-frame-title">
+            <h3 id="single-frame-title">单帧图片指引 · 试验入口</h3>
+            <p class="fine-print">选择共享屏幕或框选区域，只截取一帧；预览后再授权 AI 分析。不需要开启连续观察。点击后先停止原有观察。</p>
+            <div class="button-row"><button id="single-frame-capture" type="button">① 选择范围并截一帧</button><button id="single-frame-cancel" type="button">取消单帧</button><button id="single-frame-exit" class="text-button" type="button">返回连续观察指引</button></div>
+            <div class="single-frame-controls">
+            <figure id="single-frame-preview" hidden><img id="single-frame-image" alt="实际将发送给 AI 的本地脱敏截图"><figcaption class="fine-print">仅此脱敏图会发送；文字、人脸已遮盖。若仍有私人内容，请取消并缩小范围。</figcaption></figure>
+            <label for="single-frame-question">你想在这张图片中找到什么？</label>
+            <textarea id="single-frame-question" rows="2" maxlength="1500" placeholder="例如：找到微信图标，指引我亲手打开"></textarea>
+            <button id="single-frame-analyze" class="primary-button" type="button" disabled>② 仅分析此帧并显示指引</button>
+            </div>
+            <p id="single-frame-status" class="fine-print" role="status" aria-live="polite">先截帧，再检查预览；不会自动上传。</p>
+          </section>
           <ol class="guidance-workflow" aria-label="屏幕查找流程"><li>选择屏幕<br><small>本人开启观察与授权</small></li><li>说出目标<br><small>例如“帮我找到设置”</small></li><li>看箭头操作<br><small>由你亲手点击</small></li></ol>
           <p id="guidance-analysis" class="fine-print" role="status" hidden></p>
           <div class="button-row"><button id="guidance-start-observation" type="button" disabled>① 选择屏幕与授权</button><button id="screen-voice-find" class="primary-button" type="button" disabled>② 语音查找并指引</button></div>

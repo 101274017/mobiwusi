@@ -15,6 +15,7 @@ const { registerDictationBridge } = require('./wake/dictation-bridge.cjs');
 const { loadXingyunCredentials } = require('./xingyun-credentials.cjs');
 const { createXingyunAvatarService, registerXingyunAvatarBridge, defaultPet } = require('./xingyun-avatar.cjs');
 const { createLiliHost } = require('./lili-host.cjs');
+const { createSingleFrameGuidance } = require('./single-frame-guidance.cjs');
 
 function createStandaloneHost(options) {
   const { BrowserWindow, ipcMain, screen, Menu, Tray, dialog, desktopCapturer, nativeImage, safeStorage, powerMonitor, session } = options.electron;
@@ -26,6 +27,8 @@ function createStandaloneHost(options) {
   let petWindow = null;
   let petDisplayCompatible = options.petDisplayCompatible === true;
   let petProtected;
+  let singleFrameProtecting = false;
+  let singleFrameEpoch = 0;
   let guideWindow = null;
   let captionWindow = null;
   let guideTimer = null;
@@ -66,6 +69,12 @@ function createStandaloneHost(options) {
   const source = options.source ?? createWindowsObservationSource({ desktopCapturer, screen, nativeImage, BrowserWindow, ipcMain, session,
     canCapture: ({ sourceId }) => consentedSourceId === sourceId && runtime?.snapshot().observation.state === 'observing',
     onCaptureInvalidated: event => { consentedSourceId = null; clearGuide(); if (runtime) runAction(() => stop(captureFailureReason(event?.reason))); } });
+  const singleFrameSource = options.singleFrameSource ?? createWindowsObservationSource({ desktopCapturer, screen, nativeImage, BrowserWindow, ipcMain, session,
+    canCapture: input => singleFrame.canCapture(input),
+    onCaptureInvalidated: () => { runAction(() => singleFrame.cancel()); } });
+  const singleFrame = createSingleFrameGuidance({ source: singleFrameSource, provider: options.questioner, nativeImage,
+    selectSource: selectSingleFrameSource, onTarget: showGuide, clearTarget: clearGuide,
+    onState: state => { if (live(petWindow)) petWindow.webContents.send('nuanban:pet:single-frame:state', state); } });
   const wake = (options.createWakeSource ?? createWindowsLocalWake)({
     onState: () => { if (runtime) publish(); },
     onWake: event => {
@@ -238,7 +247,7 @@ function createStandaloneHost(options) {
 
   function syncPetProtection(observation) {
     if (!live(petWindow)) return;
-    const required = !petDisplayCompatible || observation?.captureActive !== false;
+    const required = !petDisplayCompatible || singleFrameProtecting || observation?.captureActive !== false;
     if (petProtected === required) return;
     petWindow.setContentProtection(required);
     petProtected = required;
@@ -376,6 +385,7 @@ function createStandaloneHost(options) {
 
   async function chooseObservation(resume = false) {
     if (closing || choosingSource) throw new Error('正在等待本人选择观察范围或桌宠正在退出');
+    await singleFrame.cancel();
     if (!['off', 'stopped', 'privacy_paused'].includes(runtime.snapshot().observation.state)) throw new Error('请先停止当前观察，再重新选择范围');
     if (runtime.snapshot().observation.state === 'privacy_paused' && !resume) throw new Error('请本人点击继续共享，不能跳过隐私暂停');
     choosingSource = true;
@@ -410,6 +420,62 @@ function createStandaloneHost(options) {
       else await runtime.startObservation(input);
       return { ok: true, snapshot: snapshot() };
     } finally { choosingSource = false; }
+  }
+
+  async function selectSingleFrameSource(sources, signal) {
+    const available = sources.filter(item => item.type === 'screen' && item.geometry && !item.unavailableReason);
+    if (!available.length) throw new Error('没有可验证位置的真实屏幕来源。');
+    const selected = await new Promise(resolve => {
+      let chosen = null;
+      const selection = Menu.buildFromTemplate([
+        { label: '选择单帧共享范围（不持续上传）', enabled: false },
+        ...available.flatMap(item => [
+          { label: `截取一帧 · ${item.name.replace(/[\r\n]/g, ' ').slice(0, 80)}`, click: () => { chosen = item; } },
+          { label: `框选一帧 · ${item.name.replace(/[\r\n]/g, ' ').slice(0, 80)}`, click: () => { chosen = { ...item, chooseRegion: true }; } },
+        ]),
+        { type: 'separator' }, { label: '取消', click: () => { chosen = null; } },
+      ]);
+      const abort = () => { selection.closePopup?.(petWindow); resolve(null); };
+      signal.addEventListener('abort', abort, { once: true });
+      selection.popup({ window: petWindow, callback: () => { signal.removeEventListener('abort', abort); resolve(chosen); } });
+      if (signal.aborted) abort();
+    });
+    if (!selected || signal.aborted || closing) return null;
+    const abortRegion = () => regionSelector.cancel();
+    signal.addEventListener('abort', abortRegion, { once: true });
+    let region;
+    try { region = selected.chooseRegion ? await regionSelector.select(selected.geometry) : null; }
+    finally { signal.removeEventListener('abort', abortRegion); }
+    if ((selected.chooseRegion && !region) || signal.aborted || closing) return null;
+    const consent = await showDialog({ type: 'question', title: '仅截取一帧', message: '允许在本机截取并脱敏这一帧吗？',
+      detail: `范围：${selected.name}${region ? `，框选 ${region.width}×${region.height}` : '，整块屏幕'}。如有持续观察，将先停止。\n\n此步不上传图片。截帧后停止本地采集，预览实际待发送的脱敏图；由你再次点击“仅分析此帧”并确认后，才向已配置的 AI 服务发送这张图片一次。分析后会仅在本机复核目标位置，不上传复核画面。\n\n文字与人脸会遮盖；其他画面仍可能包含私人内容，请优先框选目标图标。暖伴只显示箭头，不控制系统鼠标、不点击或输入。`,
+      buttons: ['本机截取一帧', '取消'], defaultId: 1, cancelId: 1, noLink: true });
+    if (consent.response !== 0 || signal.aborted || closing) return null;
+    return { sourceId: selected.id, ...(region ? { region } : {}) };
+  }
+
+  async function runSingleFrame(operation) {
+    if (closing || choosingSource) throw new Error('正在选择共享范围或桌宠正在退出。');
+    choosingSource = true;
+    const epoch = ++singleFrameEpoch;
+    singleFrameProtecting = true;
+    syncPetProtection(runtime.snapshot().observation);
+    try { return await operation(epoch); }
+    finally { singleFrameProtecting = false; choosingSource = false; syncPetProtection(runtime.snapshot().observation); }
+  }
+
+  async function analyzeSingleFrame(input) {
+    if (!input || Array.isArray(input) || Object.keys(input).length !== 2 || typeof input.previewId !== 'string'
+      || input.previewId.length > 80 || typeof input.question !== 'string' || !input.question.trim() || input.question.length > 1500) throw new Error('单帧分析参数无效。');
+    return runSingleFrame(async epoch => {
+      const state = singleFrame.snapshot();
+      if (state.state !== 'preview' || !state.hasPreview) throw new Error('请先重新截帧并检查预览。');
+      const consent = await showDialog({ type: 'question', title: '仅发送已预览的这一帧', message: '允许把预览的脱敏图片交给 AI 分析一次吗？',
+        detail: '仅发送这一张图片及你输入的问题，不持续上传。分析完成后只在本机复核位置；如果画面或目标已变化，则不显示旧坐标。所有实际操作由你本人完成。',
+        buttons: ['发送这一帧并分析', '取消'], defaultId: 1, cancelId: 1, noLink: true });
+      if (consent.response !== 0 || closing || epoch !== singleFrameEpoch) return { state: 'cancelled', message: '未发送图片，可检查预览后重新决定。', hasPreview: singleFrame.snapshot().hasPreview };
+      return singleFrame.analyze(input);
+    });
   }
 
   async function authorizeObservationCloud(observationGeneration) {
@@ -534,13 +600,15 @@ function createStandaloneHost(options) {
 
   async function stop(reason = 'user') {
     regionSelector.cancel();
+    singleFrameEpoch += 1;
+    const singleFrameStopping = singleFrame.cancel().then(() => true, () => false);
     const voiceStopping = voiceHost?.stop(reason) ?? { stopped: true, microphoneActive: false };
     searchBridge?.cancel();
     observationConsentGeneration += 1;
     consentedSourceId = null;
-    const [result, localWake, voiceResult, avatarResult] = await Promise.all([runtime.stopObservation(reason), disableWake(), voiceStopping, avatarService?.stop(reason) ?? { stopped: true }]);
-    return { ...result, avatarStopped: avatarResult.stopped, stopped: result.stopped === true && voiceResult.stopped === true && localWake.microphoneActive === false && localWake.enabled === false && avatarResult.stopped === true,
-      microphoneActive: localWake.microphoneActive || voiceResult.microphoneActive, captureActive: result.captureActive || localWake.microphoneActive || voiceResult.microphoneActive };
+    const [result, localWake, voiceResult, avatarResult, singleFrameStopped] = await Promise.all([runtime.stopObservation(reason), disableWake(), voiceStopping, avatarService?.stop(reason) ?? { stopped: true }, singleFrameStopping]);
+    return { ...result, avatarStopped: avatarResult.stopped, singleFrameStopped, stopped: singleFrameStopped && result.stopped === true && voiceResult.stopped === true && localWake.microphoneActive === false && localWake.enabled === false && avatarResult.stopped === true,
+      microphoneActive: localWake.microphoneActive || voiceResult.microphoneActive, captureActive: !singleFrameStopped || result.captureActive || localWake.microphoneActive || voiceResult.microphoneActive };
   }
 
   function closePetWindow() {
@@ -796,6 +864,19 @@ function createStandaloneHost(options) {
     captionWindow.webContents.on('did-finish-load', updateCaptions);
     handle('nuanban:pet:snapshot', snapshot);
     handle('nuanban:pet:command', command);
+    handle('nuanban:pet:single-frame:snapshot', () => singleFrame.snapshot());
+    handle('nuanban:pet:single-frame:capture', input => {
+      if (input !== undefined) throw new Error('单帧截图参数无效。');
+      return runSingleFrame(async epoch => {
+        observationConsentGeneration += 1;
+        consentedSourceId = null;
+        await runtime.stopObservation('user');
+        if (epoch !== singleFrameEpoch || closing) return { state: { state: 'cancelled', message: '单帧截图已取消，未发送图片。', hasPreview: false } };
+        return singleFrame.capture();
+      });
+    });
+    handle('nuanban:pet:single-frame:analyze', analyzeSingleFrame);
+    handle('nuanban:pet:single-frame:cancel', async () => { singleFrameEpoch += 1; regionSelector.cancel(); await singleFrame.cancel(); return singleFrame.snapshot(); });
     handle('nuanban:pet:drag', dragPet);
     handle('nuanban:lili:bootstrap', lili.bootstrap);
     handle('nuanban:lili:select', selectLili);
@@ -845,6 +926,8 @@ function createStandaloneHost(options) {
   }
 
   async function dispose(reason) {
+    singleFrameEpoch += 1;
+    const singleFrameStopping = singleFrame.cancel().then(() => true, () => false);
     clearPetDrag();
     lili.rememberPosition(live(petWindow) ? petWindow.getBounds() : null);
     lili.dispose();
@@ -859,12 +942,12 @@ function createStandaloneHost(options) {
     clearTimeout(guideTimer);
     clearInterval(reminderTimer);
     consentedSourceId = null;
-    const [runtimeResult, localWake, voiceResult, avatarResult] = await Promise.all([
+    const [runtimeResult, localWake, voiceResult, avatarResult, singleFrameStopped] = await Promise.all([
       runtime ? runtime.dispose(reason) : { stopped: true, captureActive: false, mediaActive: false, reason }, disableWake(), voiceStopping,
-      avatarService?.dispose() ?? { stopped: true },
+      avatarService?.dispose() ?? { stopped: true }, singleFrameStopping,
     ]);
-    const result = { ...runtimeResult, avatarStopped: avatarResult.stopped, stopped: runtimeResult.stopped === true && voiceResult.stopped === true && localWake.microphoneActive === false && localWake.enabled === false && avatarResult.stopped === true,
-      microphoneActive: localWake.microphoneActive || voiceResult.microphoneActive, captureActive: runtimeResult.captureActive || localWake.microphoneActive || voiceResult.microphoneActive };
+    const result = { ...runtimeResult, avatarStopped: avatarResult.stopped, singleFrameStopped, stopped: singleFrameStopped && runtimeResult.stopped === true && voiceResult.stopped === true && localWake.microphoneActive === false && localWake.enabled === false && avatarResult.stopped === true,
+      microphoneActive: localWake.microphoneActive || voiceResult.microphoneActive, captureActive: !singleFrameStopped || runtimeResult.captureActive || localWake.microphoneActive || voiceResult.microphoneActive };
     if (result.stopped) {
       avatarBridge?.dispose();
       for (const unsubscribe of listeners.splice(0)) unsubscribe();

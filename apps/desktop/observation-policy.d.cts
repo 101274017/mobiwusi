@@ -20,6 +20,7 @@ export interface AdmittedFrame {
 }
 export interface DeniedFrame { decision: 'pause'; risk: string; reason: string; policyVersion: string }
 export function evaluateLocalFrame(frame: ObservationFrame, detection: LocalDetection, options?: { now?: number; maxAgeMs?: number }): AdmittedFrame | DeniedFrame;
+export function evaluateSelectedFrame(frame: ObservationFrame, detection: LocalDetection, options?: { now?: number; maxAgeMs?: number }): AdmittedFrame | DeniedFrame;
 export function isAdmittedFrame(frame: unknown, now?: number, maxAgeMs?: number): frame is AdmittedFrame;
 export function isRestrictedText(value: unknown): boolean;
 export function normalizeLabel(value: unknown): string;

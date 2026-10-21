@@ -101,6 +101,14 @@ function deny(reason, risk = 'unknown') {
 }
 
 function evaluateLocalFrame(frame, detection, options = {}) {
+  return evaluateFrame(frame, detection, options, false);
+}
+
+function evaluateSelectedFrame(frame, detection, options = {}) {
+  return evaluateFrame(frame, detection, options, true);
+}
+
+function evaluateFrame(frame, detection, options, selected) {
   const now = options.now ?? Date.now();
   if (!frame || !Buffer.isBuffer(frame.png) || !Number.isInteger(frame.width) || !Number.isInteger(frame.height)
     || frame.width < 1 || frame.height < 1 || frame.width > 16384 || frame.height > 16384
@@ -118,7 +126,7 @@ function evaluateLocalFrame(frame, detection, options = {}) {
     !['微信', '开始', '搜索', '此电脑', '回收站', '控制面板'].includes(control?.label)
     || !['taskbar', 'desktop'].includes(control?.surface) || !validRect(control.rect, frame.width, frame.height))
     || (shellControls.length && (!frame.sourceId.startsWith('screen:') || !frame.geometry || detection.sourceId !== frame.sourceId))) return deny('invalid_local_regions');
-  if (detection.words.length === 0 && !shellControls.length) return deny('no_readable_text');
+  if (!selected && detection.words.length === 0 && !shellControls.length) return deny('no_readable_text');
   if (detection.words.some(word => typeof word?.text !== 'string' || !word.text.length || word.text.length > 512 || !validRect(word.rect, frame.width, frame.height))
     || detection.faces.some(face => !validRect(face?.rect, frame.width, frame.height))) return deny('invalid_local_regions');
   const text = detection.words.map(word => word.text).join(' ');
@@ -144,9 +152,13 @@ function evaluateLocalFrame(frame, detection, options = {}) {
   else if (positiveMarkers.length >= 2 && allowedWords.length >= 3 && unknownCount <= allowedWords.length * 2) scene = 'settings';
   else if (allowedWords.length >= 3 && unknownCount <= 1 && [...labels].filter(label => browserLabels.has(label)).length >= 2) scene = 'browser_controls';
   else if (allowedWords.length >= 4 && unknownCount <= 1 && [...labels].filter(label => editorLabels.has(label)).length >= 3) scene = 'editor_controls';
-  if (!shellControls.length && digest(detection.sanitizedPng) === frame.frameHash) return deny('unredacted_frame');
+  const requiresRedaction = !selected || detection.words.length > 0 || detection.faces.length > 0;
+  if (requiresRedaction && !shellControls.length && digest(detection.sanitizedPng) === frame.frameHash) return deny('unredacted_frame');
   let sanitizedPng;
-  if (shellControls.length || !scene || detection.sanitizedPng.length > 2_000_000) {
+  if (selected) {
+    sanitizedPng = Buffer.from(detection.sanitizedPng);
+    scene = 'selected_frame';
+  } else if (shellControls.length || !scene || detection.sanitizedPng.length > 2_000_000) {
     if (!allowedWords.length) return deny('unclassified_screen');
     try { sanitizedPng = createControlLayout(allowedWords, frame.width, frame.height); }
     catch { return deny('control_layout_unavailable'); }
@@ -154,7 +166,7 @@ function evaluateLocalFrame(frame, detection, options = {}) {
   } else sanitizedPng = Buffer.from(detection.sanitizedPng);
   if (sanitizedPng.length > 2_000_000) { sanitizedPng.fill(0); return deny('control_layout_limit'); }
   const sanitizedHash = digest(sanitizedPng);
-  if (sanitizedHash === frame.frameHash) { sanitizedPng.fill(0); return deny('unredacted_frame'); }
+  if (requiresRedaction && sanitizedHash === frame.frameHash) { sanitizedPng.fill(0); return deny('unredacted_frame'); }
   if (now - frame.capturedAt > (options.maxAgeMs ?? 5000)) { sanitizedPng.fill(0); return deny('stale_frame'); }
   const elements = allowedWords.map((word, index) => ({ id: `element_${frame.frameHash.slice(0, 12)}_${index}`, label: word.text.trim(), rect: { ...word.rect }, ...(word.surface ? { surface: word.surface } : {}) }));
   const contextWords = scene === 'controls_only' ? allowedWords : detection.words;
@@ -176,4 +188,4 @@ function isAdmittedFrame(frame, now = Date.now(), maxAgeMs = 5000) {
     && Buffer.isBuffer(frame.sanitizedPng) && digest(frame.sanitizedPng) === frame.sanitizedHash);
 }
 
-module.exports = { evaluateLocalFrame, isAdmittedFrame, isRestrictedText, normalizeLabel, safeSummary, validRect, policyVersion };
+module.exports = { evaluateLocalFrame, evaluateSelectedFrame, isAdmittedFrame, isRestrictedText, normalizeLabel, safeSummary, validRect, policyVersion };

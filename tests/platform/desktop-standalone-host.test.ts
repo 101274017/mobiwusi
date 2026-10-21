@@ -86,7 +86,7 @@ function fixture(overrides: Record<string, unknown> = {}) {
     } }; } } }, userDataPath: join(process.cwd(), '.cache', 'synthetic-host-unused'),
     source, analyzer, questioner, createWakeSource: (callbacks: WakeCallbacks) => { wakeCallbacks = callbacks; return wake; },
     createLearningStore: () => learning, reminderStore, isQuitting: () => false, hasManagementWindow: vi.fn(() => false), onExit: vi.fn(), showManagement, showPetTool };
-  const host = createStandaloneHost({ ...options, ...overrides });
+  const host = createStandaloneHost({ ...options, ...overrides, electron: { ...options.electron, ...(overrides.electron as Record<string, unknown> | undefined) } });
   hosts.push(host);
   const event = () => ({ sender: windows[0].webContents, senderFrame: windows[0].webContents.mainFrame });
   const invoke = (channel: string, payload?: unknown, sender = event()) => handlers.get(channel)!(sender, payload);
@@ -95,6 +95,78 @@ function fixture(overrides: Record<string, unknown> = {}) {
     wakeUp: () => wakeCallbacks.onWake({ localOnly: true, generation: wakeState.generation }),
     question: (text: string) => wakeCallbacks.onQuestion(text) };
 }
+
+function singleFrameHostFixture() {
+  const geometry = { coordinateSpace: 'screen-dip', x: -800, y: 0, width: 800, height: 600, scaleFactor: 1 };
+  const singleFrameSource = {
+    listSources: vi.fn(async () => [{ id: 'screen:1:0', name: '单帧合成屏幕', type: 'screen', geometry }]),
+    capture: vi.fn(async () => Object.assign(syntheticFrame(geometry), { sourceId: 'screen:1:0', sourceIdentity: 'single-frame-test' })),
+    detect: vi.fn(async (frame: ReturnType<typeof syntheticFrame>) => syntheticDetection(frame)), stop: vi.fn(async () => undefined),
+  };
+  const nativeImage = { createFromBuffer: () => ({ isEmpty: () => false, crop: (rect: { width: number; height: number }) => ({ toBitmap: () => Buffer.alloc(rect.width * rect.height * 4, 255) }) }) };
+  const questioner = { answer: vi.fn(async () => ({ text: JSON.stringify({ kind: 'step', instruction: '请亲手双击微信图标', label: '微信', rect: { x: 100, y: 120, width: 60, height: 50 }, confidence: 0.95 }) })) };
+  return { ...fixture({ singleFrameSource, questioner, electron: { nativeImage } }), singleFrameSource, singleFrameQuestioner: questioner };
+}
+
+describe('单帧可信 IPC、原生确认与既有 overlay 集成', () => {
+  it('选择范围后只预览，确认发送后才分析并显示既有箭头窗口', async () => {
+    const current = singleFrameHostFixture();
+    await current.host.initialize(); current.choose();
+    current.host.setPetDisplayCompatibility(true);
+    current.dialog.showMessageBox.mockResolvedValue({ response: 0, checkboxChecked: false });
+    const preview = await current.invoke('nuanban:pet:single-frame:capture') as { preview: { id: string }; state: { state: string } };
+    expect(preview.state.state).toBe('preview');
+    expect(current.singleFrameQuestioner.answer).not.toHaveBeenCalled();
+    expect(current.source.capture).not.toHaveBeenCalled();
+    expect(current.host.snapshot().observation.captureActive).toBe(false);
+    const result = await current.invoke('nuanban:pet:single-frame:analyze', { previewId: preview.preview.id, question: '找到微信图标' });
+    expect(result).toMatchObject({ state: 'shown', target: { x: -700, y: 120, width: 60, height: 50 } });
+    expect(current.singleFrameQuestioner.answer).toHaveBeenCalledOnce();
+    expect(current.singleFrameSource.capture).toHaveBeenCalledTimes(2);
+    expect(current.windows[1].isVisible()).toBe(true);
+    expect(current.windows[1].webContents.send).toHaveBeenCalledWith('nuanban:guide:state', expect.objectContaining({ visible: true, rect: { x: 100, y: 120, width: 60, height: 50 } }));
+    expect(current.windows[0].protection).toBe(false);
+  });
+
+  it('取消原生发送授权不触发模型调用，预览可保留', async () => {
+    const current = singleFrameHostFixture(); await current.host.initialize(); current.choose();
+    current.dialog.showMessageBox.mockResolvedValueOnce({ response: 0, checkboxChecked: false });
+    const captured = await current.invoke('nuanban:pet:single-frame:capture') as { preview: { id: string } };
+    current.dialog.showMessageBox.mockResolvedValueOnce({ response: 1, checkboxChecked: false });
+    expect(await current.invoke('nuanban:pet:single-frame:analyze', { previewId: captured.preview.id, question: '找到微信' })).toMatchObject({ state: 'cancelled', hasPreview: true });
+    expect(current.singleFrameQuestioner.answer).not.toHaveBeenCalled();
+    expect(current.windows[1].isVisible()).toBe(false);
+  });
+
+  it('锁屏后迟到的发送确认无效，不上传已清除的帧', async () => {
+    const current = singleFrameHostFixture(); await current.host.initialize(); current.choose();
+    current.dialog.showMessageBox.mockResolvedValueOnce({ response: 0, checkboxChecked: false });
+    const captured = await current.invoke('nuanban:pet:single-frame:capture') as { preview: { id: string } };
+    let confirm!: (value: { response: number; checkboxChecked: boolean }) => void;
+    current.dialog.showMessageBox.mockImplementationOnce(() => new Promise(resolve => { confirm = resolve; }));
+    const waiting = current.invoke('nuanban:pet:single-frame:analyze', { previewId: captured.preview.id, question: '找到微信' });
+    await vi.waitFor(() => expect(confirm).toBeTypeOf('function'));
+    current.powerMonitor.emit('lock-screen');
+    await vi.waitFor(async () => expect(await current.invoke('nuanban:pet:single-frame:snapshot')).toMatchObject({ state: 'idle', hasPreview: false }));
+    confirm({ response: 0, checkboxChecked: false });
+    expect(await waiting).toMatchObject({ state: 'cancelled', hasPreview: false });
+    expect(current.singleFrameQuestioner.answer).not.toHaveBeenCalled();
+  });
+
+  it('单帧 IPC 拒绝未信任窗口与自选捕获参数', async () => {
+    const current = singleFrameHostFixture(); await current.host.initialize();
+    expect(() => current.invoke('nuanban:pet:single-frame:capture', undefined, { sender: current.windows[1].webContents, senderFrame: current.windows[1].webContents.mainFrame })).toThrow('不可信');
+    expect(() => current.invoke('nuanban:pet:single-frame:capture', { sourceId: 'screen:1:0' })).toThrow('参数无效');
+    expect(current.singleFrameSource.capture).not.toHaveBeenCalled();
+  });
+  it.each(['stop', 'dispose'] as const)('单帧清理失败不阻断其他能力停止：%s', async operation => {
+    const current = singleFrameHostFixture(); await current.host.initialize();
+    current.singleFrameSource.stop.mockRejectedValueOnce(new Error('synthetic stop failure'));
+    expect(await current.host[operation]('user')).toMatchObject({ stopped: false, singleFrameStopped: false, captureActive: true });
+    expect(current.source.stop).toHaveBeenCalled();
+    expect(current.wake.disable).toHaveBeenCalled();
+  });
+});
 
 function faceVoiceFixture() {
   let voiceState = { state: 'off', active: false, microphoneActive: false, configured: true, mode: 'local' };

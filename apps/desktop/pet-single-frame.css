@@ -1,0 +1,14 @@
+.single-frame-card { margin: 14px 0; padding: 14px; border: 1px solid var(--line, #e3ddd3); border-radius: 14px; background: var(--surface, #fffaf2); }
+.single-frame-card h3 { margin: 0 0 8px; font-size: 15px; }
+.single-frame-card figure { margin: 12px 0; }
+.single-frame-card img { display: block; width: 100%; max-height: 144px; object-fit: contain; border-radius: 8px; background: #272727; }
+.single-frame-card label { display: block; margin: 10px 0 6px; font-size: 13px; }
+.single-frame-card textarea { box-sizing: border-box; width: 100%; min-height: 56px; max-height: 96px; margin-bottom: 10px; padding: 9px; resize: vertical; border: 1px solid var(--line, #e3ddd3); border-radius: 8px; font: inherit; }
+.single-frame-card [hidden] { display: none !important; }
+.pet-panel:not([data-single-frame="active"]) .single-frame-controls,
+.pet-panel:not([data-single-frame="active"]) #single-frame-cancel,
+.pet-panel:not([data-single-frame="active"]) #single-frame-exit { display: none; }
+.pet-panel[data-view="guidance"][data-single-frame="active"] #lesson-card > :not(#guidance-title):not(#single-frame-card),
+.pet-panel[data-view="guidance"][data-single-frame="active"] > #question-form,
+.pet-panel[data-view="guidance"][data-single-frame="active"] > #guidance-reply-form { display: none; }
+.pet-panel[data-view="guidance"][data-single-frame="active"] .single-frame-card { margin: 10px 0 0; }

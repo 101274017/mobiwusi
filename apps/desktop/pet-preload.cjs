@@ -1,4 +1,37 @@
 const { contextBridge, ipcRenderer } = require('electron');
+function projectSingleFrameState(value) {
+  const states = ['idle', 'capturing', 'preview', 'analyzing', 'verifying', 'shown', 'clarify', 'unsupported', 'error', 'expired', 'cancelled'];
+  if (!value || !states.includes(value.state) || typeof value.message !== 'string' || value.message.length > 1000 || typeof value.hasPreview !== 'boolean') throw new TypeError('单帧状态无效');
+  return { state: value.state, message: value.message, hasPreview: value.hasPreview };
+}
+contextBridge.exposeInMainWorld('nuanbanSingleFrame', Object.freeze({
+  snapshot: () => ipcRenderer.invoke('nuanban:pet:single-frame:snapshot').then(projectSingleFrameState),
+  capture: async () => {
+    const result = await ipcRenderer.invoke('nuanban:pet:single-frame:capture');
+    const projected = { state: projectSingleFrameState(result?.state) };
+    const preview = result?.preview;
+    if (preview !== undefined) {
+      if (!preview || typeof preview.id !== 'string' || !/^[a-f0-9-]{36}$/.test(preview.id) || typeof preview.dataUrl !== 'string'
+        || preview.dataUrl.length > 2_700_000 || !/^data:image\/png;base64,[A-Za-z0-9+/]+=*$/.test(preview.dataUrl)
+        || !['width', 'height'].every(key => Number.isSafeInteger(preview[key]) && preview[key] > 0 && preview[key] <= 16384)
+        || !Number.isFinite(preview.expiresAt)) throw new TypeError('单帧预览无效');
+      projected.preview = { id: preview.id, dataUrl: preview.dataUrl, width: preview.width, height: preview.height, expiresAt: preview.expiresAt };
+    }
+    return projected;
+  },
+  analyze: input => {
+    if (!input || Object.keys(input).length !== 2 || typeof input.previewId !== 'string' || !/^[a-f0-9-]{36}$/.test(input.previewId)
+      || typeof input.question !== 'string' || !input.question.trim() || input.question.length > 1500) throw new TypeError('单帧提问无效');
+    return ipcRenderer.invoke('nuanban:pet:single-frame:analyze', { previewId: input.previewId, question: input.question }).then(projectSingleFrameState);
+  },
+  cancel: () => ipcRenderer.invoke('nuanban:pet:single-frame:cancel').then(projectSingleFrameState),
+  onState: listener => {
+    if (typeof listener !== 'function') throw new TypeError('单帧状态监听无效');
+    const handler = (_event, value) => listener(projectSingleFrameState(value));
+    ipcRenderer.on('nuanban:pet:single-frame:state', handler);
+    return () => ipcRenderer.removeListener('nuanban:pet:single-frame:state', handler);
+  },
+}));
 contextBridge.exposeInMainWorld('nuanbanLili', Object.freeze({
   bootstrap: () => ipcRenderer.invoke('nuanban:lili:bootstrap'),
   select: enabled => {
