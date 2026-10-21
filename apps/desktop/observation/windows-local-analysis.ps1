@@ -41,6 +41,8 @@ try {
     if ($request.protocol -ne 1 -or $request.operation -notin @('probe', 'detect')) { throw [System.IO.InvalidDataException]::new('protocol_invalid') }
     if ($request.operation -eq 'detect' -and $null -ne $request.shellGeometry) {
         if ($request.sourceId -notmatch '^screen:\d+:\d+$' -or $request.shellGeometry.pixelWidth -ne $request.width -or $request.shellGeometry.pixelHeight -ne $request.height) { throw [System.IO.InvalidDataException]::new('shell_geometry_invalid') }
+        Add-Type -AssemblyName UIAutomationClient
+        Add-Type -AssemblyName UIAutomationTypes
         . (Join-Path $PSScriptRoot 'windows-shell-controls.ps1')
     }
     $phase = 'winrt_load'

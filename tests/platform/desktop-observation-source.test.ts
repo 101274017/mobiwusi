@@ -936,6 +936,19 @@ describe('Windows 本地 OCR/人脸检测与内存脱敏', () => {
     expect(scopeCheck).toBeLessThan(nameRead);
   });
 
+  it('在加载 Shell 检测函数前初始化 Windows PowerShell 5 的 UI Automation 类型', () => {
+    const script = readFileSync(new URL('../../apps/desktop/observation/windows-local-analysis.ps1', import.meta.url), 'utf8');
+    const geometryCheck = script.indexOf("throw [System.IO.InvalidDataException]::new('shell_geometry_invalid')");
+    const clientLoad = script.indexOf('Add-Type -AssemblyName UIAutomationClient');
+    const typesLoad = script.indexOf('Add-Type -AssemblyName UIAutomationTypes');
+    const detectorLoad = script.indexOf(". (Join-Path $PSScriptRoot 'windows-shell-controls.ps1')");
+    expect(geometryCheck).toBeGreaterThan(0);
+    expect(clientLoad).toBeGreaterThan(geometryCheck);
+    expect(typesLoad).toBeGreaterThan(geometryCheck);
+    expect(detectorLoad).toBeGreaterThan(clientLoad);
+    expect(detectorLoad).toBeGreaterThan(typesLoad);
+  });
+
   it('选图通过独立附件入口检测，不冒充屏幕或借用屏幕坐标', async () => {
     const setup = helperSetup();
     const detector = setup.detector();
