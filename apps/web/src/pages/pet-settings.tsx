@@ -7,7 +7,7 @@ import { useApp } from '../store';
 import { Pet, PageTitle, Badge, Modal } from '../components';
 import './pet-settings.css';
 import { LocalModelPanel } from '../three-d/model-panel';
-import { LumiCard } from '../three-d/lumi-card';
+import { CompanionCatalog } from './companions';
 import { localCompanionBridge, showLiliCompanion } from '../local-companion';
 
 const pets = [{ id: 'cat', name: '小橘猫', color: '#D98347' }, { id: 'rabbit', name: '小白兔', color: '#D7C5AB' }, { id: 'dog', name: '小暖狗', color: '#C19165' }, { id: 'lili', name: '栗栗小鹿', color: '#A66B4B' }] as const;
@@ -56,8 +56,8 @@ export function PetsPage() {
     } catch { }
   }
   return <>
-    <PageTitle eyebrow="B03 · 我的伙伴收藏" title="我的小伙伴" subtitle="露米小猫已加入三维伙伴收藏。先看看、打个招呼，再把喜欢的小伙伴请到桌面。" />
-    <LumiCard />
+    <PageTitle eyebrow="我的伙伴收藏" title="我的小伙伴" subtitle="小鹿栗栗与小猫露米，各有自己的小天地。先认识、再预览，由你决定谁来陪伴。" />
+    <CompanionCatalog />
     <div className="pet-editor-grid">
       <section className="panel pet-editor-preview" aria-label="桌宠微调预览">
         <Badge tone="sage">当前陪伴伙伴</Badge><div className="pet-editor-current"><Pet kind={preferences.pet} color={preferences.petColor} /><p>当前设置 · 本机保存</p></div>

@@ -11,7 +11,7 @@ test('内置小猫可真实旋转与播放动作，纯预览不调用或上传',
   const uploads: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => { if (request.method() === 'POST') uploads.push(request.url()); });
-  await page.goto('/#/pets');
+  await page.goto('/#/pets/lumi');
   const card = page.getByRole('region', { name: '露米 Lumi' });
   await expect(card.getByRole('img', { name: /露米魔法小猫/ })).toBeVisible();
   await expect(card.getByRole('button', { name: '设为桌面小伙伴' })).toBeDisabled();
@@ -56,7 +56,7 @@ test('模拟原生桥：取消不替换，确认本机保存，刷新后再次�
       onChanged: listener => { listeners.add(listener); return () => { listeners.delete(listener); }; },
     };
   }, { modelBytes: bytes, id: hash });
-  await page.goto('/#/pets');
+  await page.goto('/#/pets/lumi');
   const card = page.getByRole('region', { name: '露米 Lumi' });
   await card.getByRole('button', { name: '设为桌面小伙伴' }).click();
   await page.getByRole('button', { name: '先不更换', exact: true }).click();
@@ -73,8 +73,10 @@ test('模拟原生桥：取消不替换，确认本机保存，刷新后再次�
   await card.getByRole('button', { name: '再次召唤桌宠' }).click();
   await expect(card.getByRole('status')).toContainText('小猫已保存并调用到桌面');
   expect(await page.evaluate(() => localStorage.getItem('test-lumi-calls'))).toBe('2');
+  await page.getByRole('link', { name: '管理本机模型与切回原画' }).click();
   const panel = page.getByRole('region', { name: '让你的 3D 伙伴，来到桌面。' });
   await panel.getByRole('button', { name: '切回原画 / 内置桌宠' }).click();
   await page.getByRole('button', { name: '确认切回', exact: true }).click();
+  await page.getByRole('region', { name: '小鹿与小猫伙伴收藏' }).getByRole('link', { name: /认识小猫露米/ }).click();
   await expect(card.getByRole('button', { name: '设为桌面小伙伴' })).toBeVisible();
 });
