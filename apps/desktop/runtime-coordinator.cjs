@@ -119,10 +119,14 @@ function createDesktopRuntime(options) {
     if (frame && frame !== latestFrame && frame !== analysisFrame && frame !== pendingAnalysis?.frame) frame.sanitizedPng?.fill(0);
   }
 
-  function sameFrameContext(first, second) {
+  function sameFrameScope(first, second) {
     return Boolean(first && second && first.sourceId === second.sourceId && first.displayId === second.displayId
-      && first.width === second.width && first.height === second.height && first.signature === second.signature
+      && first.width === second.width && first.height === second.height
       && JSON.stringify(first.geometry) === JSON.stringify(second.geometry));
+  }
+
+  function sameFrameContext(first, second) {
+    return sameFrameScope(first, second) && first.signature === second.signature;
   }
 
   function invalidateAnalysis() {
@@ -341,7 +345,9 @@ function createDesktopRuntime(options) {
     clearTimeout(timer);
     timer = null;
     if (disposed || state.observation.state !== 'observing') return;
-    timer = setTimeout(() => { timer = null; requestFrame('page_changed'); }, intervalMs);
+    const targetAge = previousStep && state.task.state === 'awaiting_action' && latestFrame
+      ? Math.max(0, now() - latestFrame.capturedAt) : 0;
+    timer = setTimeout(() => { timer = null; requestFrame('page_changed'); }, Math.max(0, intervalMs - targetAge));
     timer.unref?.();
   }
 
@@ -403,6 +409,16 @@ function createDesktopRuntime(options) {
     if (!sameFrameContext(originalFrame, currentFrame)) return null;
     const matches = currentFrame.elements.filter(element => normalizeLabel(element.label) === normalizeLabel(original.label)
       && Math.abs(element.rect.x - original.rect.x) <= 4 && Math.abs(element.rect.y - original.rect.y) <= 4);
+    return matches.length === 1 ? matches[0] : null;
+  }
+
+  function currentShellElement(step, frame) {
+    const original = step?.element;
+    if (!original || !['taskbar', 'desktop'].includes(original.surface)
+      || !sameFrameScope(step.frame, frame) || !isAdmittedFrame(frame, now(), maxAgeMs)) return null;
+    const matches = frame.elements.filter(element => element.surface === original.surface
+      && normalizeLabel(element.label) === normalizeLabel(original.label)
+      && ['x', 'y', 'width', 'height'].every(key => Math.abs(element.rect[key] - original.rect[key]) <= 4));
     return matches.length === 1 ? matches[0] : null;
   }
 
@@ -656,16 +672,32 @@ function createDesktopRuntime(options) {
         }
         const recoveredStaleFrame = staleFrameRetries > 0;
         const changed = Boolean(old && !sameFrameContext(old, admitted));
+        const retainedTarget = ((reason === 'page_changed' && state.task.state === 'awaiting_action')
+          || (reason === 'verification' && state.task.state === 'verifying'))
+          && previousStep && !verifiedTransition(previousStep, admitted)
+          ? currentShellElement(previousStep, admitted) : null;
         latestFrame = admitted;
         gateOpen = true;
         state.observation.reason = admitted.scene === 'controls_only' ? 'controls_only' : null;
-        if (changed) {
+        if (changed && !retainedTarget) {
           clearTarget();
           invalidateAnalysis();
         }
         release(old);
         if (!sameGeneration(generation, task)) return;
         if (state.analysis.state === 'capture_retry' && analysisBeforeRetry) state.analysis = analysisBeforeRetry;
+        if (retainedTarget) {
+          const targetState = state.task.targetState;
+          state.task.state = 'awaiting_action';
+          showStepTarget(admitted, retainedTarget);
+          if (changed || reason === 'verification' || recoveredStaleFrame || targetState !== state.task.targetState) {
+            state.analysis = { state: 'ready', message: reason === 'verification'
+              ? '已检查新画面，尚未观察到预期变化；不会因为点击“我点好了”就进入下一步。'
+              : '新的本地安全画面已核对；请核对箭头并亲手操作。' };
+            publish();
+          }
+          return;
+        }
         if (reason === 'verification' && previousStep
           && (previousStep.signature === admitted.signature || admitted.capturedAt <= previousStep.issuedAt)) {
           state.task.state = 'awaiting_action';

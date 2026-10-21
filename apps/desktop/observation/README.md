@@ -57,6 +57,8 @@ PowerShell 5.1 helper 以隐藏、无 profile、非交互进程启动；原图�
 
 敏感词、个人信息、检测不完整、同帧校验失败、脱敏缺失或过期帧依旧立即关闭出口并停止采集；不能生成安全布局时不回退原图。完全没有可识别通用控件的画面仍为 `unclassified_screen` 并暂停，恢复须本人新的明确操作，可先框选目标软件的控件区域；这不等于已经发现敏感内容，也不承诺识别任意软件或任意图片。布局图同样限制尺寸、像素数、控件数和绘制工作量；用完按既有帧生命周期清零。
 
+已展示的任务栏或桌面系统入口会在后续完整、安全且未过期的新帧中重新核验。只有观察来源、显示器、尺寸和坐标映射不变，且同一入口的本机核验标签、surface 与位置尺寸仍在四像素容差内唯一匹配时，才可在无关控件变化（例如任务栏输入法标识位移）后续显箭头，不重复调用云分析，也不认定用户已经完成操作。入口消失、被遮挡、失去本机核验、位置尺寸超出容差或出现新的预期操作证据时，不沿用旧指引。等待操作时，后续采集间隔扣除已用的帧处理时间，避免在慢速本地处理后额外叠加等待；原有隐私检查、五秒过期、来源变更与慢响应门控仍保持有效，不会延长旧帧的有效期。
+
 ## 验证（不采集用户桌面）
 
 针对性测试：`pnpm exec vitest run tests/platform/desktop-observation-region.test.ts tests/platform/desktop-observation-source.test.ts tests/platform/desktop-observation-policy.test.ts tests/platform/desktop-runtime-coordinator.test.ts tests/platform/management-observation-bridge.test.ts tests/platform/desktop-pet-ui.test.ts`。覆盖本人框选/取消、隔离 IPC、1× 至 2× DPI 的裁剪坐标、区域锁定、连续本地观察、未知/敏感场景熔断及桌宠状态；测试依赖注入不代表真实桌面验收。
