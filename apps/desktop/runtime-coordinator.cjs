@@ -55,7 +55,7 @@ function createDesktopRuntime(options) {
   const intervalMs = options.intervalMs ?? 1500;
   const maxAgeMs = options.maxAgeMs ?? 5000;
   const staleFrameRetryLimit = 2;
-  const analysisTimeoutMs = options.analysisTimeoutMs ?? 15000;
+  const analysisTimeoutMs = options.analysisTimeoutMs ?? 50000;
   if (!Number.isSafeInteger(analysisTimeoutMs) || analysisTimeoutMs < 1 || analysisTimeoutMs > 60000) throw new TypeError('屏幕分析超时配置无效');
   const notify = options.onState ?? (() => undefined);
   const renderTarget = options.onTarget ?? (() => undefined);

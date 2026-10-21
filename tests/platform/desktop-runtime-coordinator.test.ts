@@ -298,8 +298,8 @@ describe('屏幕分析结果的可见反馈', () => {
 });
 
 describe('分析返回与本地检测重叠时的安全续接', () => {
-  async function pendingRefresh(transport: 'provider' | 'service' | 'custom') {
-    const setup = fixture({ intervalMs: 1500 });
+  async function pendingRefresh(transport: 'provider' | 'service' | 'custom', analysisTimeoutMs = 15000) {
+    const setup = fixture({ intervalMs: 1500, analysisTimeoutMs });
     await setup.start();
     const response = deferred<void>();
     const sent = vi.fn();
@@ -352,7 +352,7 @@ describe('分析返回与本地检测重叠时的安全续接', () => {
 
   it.each(['sensitive', 'stale', 'context', 'timeout', 'stop'] as const)('等待中的回复不能绕过安全、时效、上下文或取消：%s', async condition => {
     vi.useFakeTimers();
-    const setup = await pendingRefresh('provider');
+    const setup = await pendingRefresh('provider', condition === 'timeout' ? 6000 : 15000);
     if (condition === 'stop') await setup.runtime.stopObservation();
     if (condition === 'timeout') await advanceObservation(setup, 10000);
     if (condition === 'stale') {
@@ -642,6 +642,61 @@ afterEach(async () => {
 });
 
 describe('驻留运行核心（合成端口单测，不替代原生/供应验收）', () => {
+  it('默认屏幕分析保留模型完整时限及安全收尾时间，并拒绝超时后的迟到结果', async () => {
+    vi.useFakeTimers();
+    const setup = fixture();
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.start();
+    await setup.runtime.ask('帮我找到设置', setup.runtime.snapshot().observation.generation);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    const input = setup.analyze.mock.calls[0][0];
+
+    await vi.advanceTimersByTimeAsync(45000);
+    expect(input.signal.aborted).toBe(false);
+    expect(setup.runtime.snapshot().task.state).toBe('analyzing');
+    await vi.advanceTimersByTimeAsync(4999);
+    expect(input.signal.aborted).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await setup.runtime.whenIdle();
+    expect(input.signal.aborted).toBe(true);
+    expect(setup.runtime.snapshot()).toMatchObject({ task: { state: 'needs_help' }, analysis: { state: 'error', message: expect.stringContaining('超时') } });
+    response.resolve(stepResponse(input));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(setup.runtime.snapshot().task.state).toBe('needs_help');
+    expect(setup.onTarget.mock.calls.every(([target]) => target === null)).toBe(true);
+    expect(setup.analyze).toHaveBeenCalledOnce();
+  });
+
+  it.each([16000, 30000, 44000])('直接模型慢响应 %i 毫秒后仍通过新鲜安全帧显示指引，且不重复请求', async delay => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 1500 });
+    const response = deferred<{ text: string }>();
+    const answer = vi.fn(() => response.promise);
+    const analyzer = createProviderAnalysisClient({ provider: { answer }, now: () => setup.controls.time });
+    setup.analyze.mockImplementationOnce(input => analyzer.analyze(input));
+    await setup.start();
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(answer).toHaveBeenCalledOnce());
+    const input = setup.analyze.mock.calls[0][0];
+
+    await advanceObservation(setup, delay);
+    expect(input.signal.aborted).toBe(false);
+    expect(input.canSend()).toBe(true);
+    expect(setup.controls.time - input.frame.capturedAt).toBeGreaterThan(15000);
+    response.resolve({ text: JSON.stringify({ kind: 'step', instruction: '请亲手打开显示设置。', target_id: input.frame.elements[1].id,
+      presentation: 'confirmed', expected_labels: ['字体大小'] }) });
+    await setup.runtime.whenIdle();
+
+    expect(setup.runtime.snapshot()).toMatchObject({ task: { state: 'awaiting_action' }, analysis: { state: 'ready' } });
+    expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ expiresAt: expect.any(Number) }));
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(answer).toHaveBeenCalledOnce();
+    expect(setup.records).toEqual([]);
+  });
+
   it('挂起的屏幕分析超时会解除忙碌状态、关闭发送资格，并丢弃迟到结果', async () => {
     vi.useFakeTimers();
     const setup = fixture({ analysisTimeoutMs: 100 });
