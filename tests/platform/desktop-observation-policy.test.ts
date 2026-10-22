@@ -6,6 +6,65 @@ import { createControlLayout } from '../../apps/desktop/observation/control-layo
 import { syntheticDetection, syntheticFrame, syntheticPng } from '../helpers/standalone-frame';
 
 describe('独立桌宠本地帧门控（合成单测，不是真实外部软件验收）', () => {
+  it.each([
+    ['验证码123456', '私人聊天', '银行卡支付'], ['验', '证', '码', '123456'],
+    ['Password', 'bank account', 'synthetic@example.test'], ['未知页面', '未经分类的正文'], [],
+  ])('已授权连续共享不按文字内容、页面分类或空文字暂停：%j', (...labels: string[]) => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, labels);
+    const result = evaluateLocalFrame(frame, detection, { authorizedSharing: true });
+    expect(result).toMatchObject({ decision: 'allow', scene: 'authorized_sharing', reason: 'authorized_sharing', redactionProfile: 'all_text_and_faces_v1' });
+    if (result.decision !== 'allow') throw new Error('expected authorized sharing');
+    expect(result.sanitizedPng).toEqual(detection.sanitizedPng);
+    expect(result.sanitizedPng).not.toBe(detection.sanitizedPng);
+    expect(result.sanitizedPng).not.toEqual(frame.png);
+    expect(result.elements).toEqual([]);
+    expect(isAdmittedFrame(result, frame.capturedAt)).toBe(true);
+    expect(isAdmittedFrame({ ...result }, frame.capturedAt)).toBe(false);
+    expect(isAdmittedFrame(result, frame.capturedAt + 5001)).toBe(false);
+  });
+
+  it('已授权的空文字无人脸画面允许无需遮盖，但检测出文字或人脸仍禁止原图回退', () => {
+    const frame = syntheticFrame();
+    const detection = { ...syntheticDetection(frame, []), sanitizedPng: Buffer.from(frame.png) };
+    expect(evaluateLocalFrame(frame, detection, { authorizedSharing: true }).decision).toBe('allow');
+    expect(evaluateLocalFrame(frame, detection)).toMatchObject({ decision: 'pause', reason: 'no_readable_text' });
+    detection.faces.push({ rect: { x: 20, y: 20, width: 100, height: 100 } });
+    expect(evaluateLocalFrame(frame, detection, { authorizedSharing: true })).toMatchObject({ decision: 'pause', reason: 'unredacted_frame' });
+    detection.faces = [];
+    detection.words.push({ text: '私人聊天', rect: { x: 20, y: 20, width: 100, height: 30 } });
+    expect(evaluateLocalFrame(frame, detection, { authorizedSharing: true })).toMatchObject({ decision: 'pause', reason: 'unredacted_frame' });
+  });
+
+  it('已授权连续共享保留大图的完整脱敏像素与公共控件，不因云发送限制退为控件布局', () => {
+    const png = syntheticPng(255, 1200, 1000, true);
+    const frame = { ...syntheticFrame(), width: 1200, height: 1000, geometry: null, png, frameHash: createHash('sha256').update(png).digest('hex') };
+    const detection = { ...syntheticDetection(frame, ['设置', '未知正文', '私人聊天']), sanitizedPng: syntheticPng(0, 1200, 1000, true) };
+    expect(detection.sanitizedPng.length).toBeGreaterThan(2_000_000);
+    const result = evaluateLocalFrame(frame, detection, { authorizedSharing: true });
+    expect(result).toMatchObject({ decision: 'allow', scene: 'authorized_sharing', elements: [{ label: '设置' }] });
+    if (result.decision !== 'allow') throw new Error('expected complete sanitized image');
+    expect(result.sanitizedPng.equals(detection.sanitizedPng)).toBe(true);
+    expect(result.elements.map(element => element.label)).toEqual(['设置']);
+    expect(JSON.stringify(result.elements)).not.toContain('私人聊天');
+  });
+
+  it.each(['unavailable', 'incomplete', 'mismatch', 'bounds', 'corrupt', 'future', 'stale', 'word_limit'] as const)('连续共享授权不绕过检测、完整性与时效校验：%s', condition => {
+    const frame = syntheticFrame();
+    const detection = syntheticDetection(frame, ['私人聊天']);
+    let timestamp = frame.capturedAt;
+    let reason = 'invalid_or_stale_frame';
+    if (condition === 'unavailable') { detection.status = 'unavailable'; reason = 'local_detector_unavailable'; }
+    if (condition === 'incomplete') { detection.redaction.text = false; reason = 'incomplete_local_detection'; }
+    if (condition === 'mismatch') { detection.frameHash = '0'.repeat(64); reason = 'detector_frame_mismatch'; }
+    if (condition === 'bounds') { detection.words[0].rect.x = -1; reason = 'invalid_local_regions'; }
+    if (condition === 'corrupt') frame.png[0] = 0;
+    if (condition === 'future') frame.capturedAt += 1;
+    if (condition === 'stale') { timestamp += 5001; reason = 'stale_frame'; }
+    if (condition === 'word_limit') { detection.words = Array.from({ length: 8193 }, () => detection.words[0]); reason = 'local_detection_limit'; }
+    expect(evaluateLocalFrame(frame, detection, { now: timestamp, authorizedSharing: true })).toMatchObject({ decision: 'pause', reason });
+  });
+
   it('无文字的任务栏软件只使用同帧公共图标布局，不上传未脱敏原图或窗口标题', () => {
     const frame = syntheticFrame();
     const detection = { ...syntheticDetection(frame, []), sourceId: frame.sourceId,

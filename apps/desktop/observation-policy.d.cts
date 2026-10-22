@@ -19,7 +19,7 @@ export interface AdmittedFrame {
   sanitizedPng: Buffer; redactionProfile: 'all_text_and_faces_v1'; scene: string;
 }
 export interface DeniedFrame { decision: 'pause'; risk: string; reason: string; policyVersion: string }
-export function evaluateLocalFrame(frame: ObservationFrame, detection: LocalDetection, options?: { now?: number; maxAgeMs?: number }): AdmittedFrame | DeniedFrame;
+export function evaluateLocalFrame(frame: ObservationFrame, detection: LocalDetection, options?: { now?: number; maxAgeMs?: number; authorizedSharing?: boolean }): AdmittedFrame | DeniedFrame;
 export function evaluateSelectedFrame(frame: ObservationFrame, detection: LocalDetection, options?: { now?: number; maxAgeMs?: number }): AdmittedFrame | DeniedFrame;
 export function isAdmittedFrame(frame: unknown, now?: number, maxAgeMs?: number): frame is AdmittedFrame;
 export function isRestrictedText(value: unknown): boolean;

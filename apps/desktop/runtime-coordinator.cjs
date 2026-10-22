@@ -14,6 +14,7 @@ function analysisFailureMessage(error, timedOut) {
     ANALYSIS_UNAVAILABLE: '云分析服务暂不可用，请检查模型配置或服务连接；未显示箭头，不会用演示数据替代。',
     ANALYSIS_AUTH_FAILED: '模型认证或权限检查失败，请检查模型凭证和模型权限；未显示箭头。',
     ANALYSIS_RATE_LIMITED: '模型服务暂时限流，未显示箭头；请稍后手动重新提问，不会自动重试。',
+    ANALYSIS_IMAGE_TOO_LARGE: '脱敏画面超过分析服务大小上限，本次未发送，未显示箭头；当前本地共享仍保持。可停止共享后重新选择较小区域，再手动提问。',
     ANALYSIS_RESPONSE_INCOMPLETE: '模型结果未完整返回，未显示箭头；请手动重新提问，不会使用残缺结果。',
     INVALID_ANALYSIS_RESPONSE: '模型返回的格式或目标未通过本机校验，未显示箭头；请重新提问。若反复出现，请检查模型是否支持图片与 JSON 指引。',
     OUTBOUND_CLOSED: '分析返回时画面已过期或观察范围发生变化，未显示箭头。请保持目标区域可见，再点击“查找并指引”；不会使用旧位置。',
@@ -345,7 +346,7 @@ function createDesktopRuntime(options) {
     clearTimeout(timer);
     timer = null;
     if (disposed || state.observation.state !== 'observing') return;
-    const targetAge = previousStep && state.task.state === 'awaiting_action' && latestFrame
+    const targetAge = hasActiveGuidanceTask() && latestFrame
       ? Math.max(0, now() - latestFrame.capturedAt) : 0;
     timer = setTimeout(() => { timer = null; requestFrame('page_changed'); }, Math.max(0, intervalMs - targetAge));
     timer.unref?.();
@@ -643,7 +644,7 @@ function createDesktopRuntime(options) {
         if (!sameGeneration(generation)) return;
         detection = await options.source.detect(frame, { signal: controller.signal });
         if (!sameGeneration(generation)) return;
-        const admitted = evaluateLocalFrame(frame, detection, { now: now(), maxAgeMs });
+        const admitted = evaluateLocalFrame(frame, detection, { now: now(), maxAgeMs, authorizedSharing: true });
         if (admitted.decision !== 'allow') {
           if (admitted.reason === 'stale_frame' && detection?.status === 'complete') {
             if (!sameGeneration(generation, task)) return;
@@ -678,7 +679,8 @@ function createDesktopRuntime(options) {
           ? currentShellElement(previousStep, admitted) : null;
         latestFrame = admitted;
         gateOpen = true;
-        state.observation.reason = admitted.scene === 'controls_only' ? 'controls_only' : null;
+        const sharingUpdated = state.observation.reason !== 'authorized_sharing';
+        state.observation.reason = 'authorized_sharing';
         if (changed && !retainedTarget) {
           clearTarget();
           invalidateAnalysis();
@@ -686,6 +688,7 @@ function createDesktopRuntime(options) {
         release(old);
         if (!sameGeneration(generation, task)) return;
         if (state.analysis.state === 'capture_retry' && analysisBeforeRetry) state.analysis = analysisBeforeRetry;
+        if (sharingUpdated) publish();
         if (retainedTarget) {
           const targetState = state.task.targetState;
           state.task.state = 'awaiting_action';

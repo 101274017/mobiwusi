@@ -642,7 +642,7 @@ describe('桌宠面对面语音入口', () => {
     const current = petHarness({ ...snapshot(), voice: { state: 'listening', active: true, microphoneActive: true, message: '实时语音中' } });
     await settle();
     expect(current.element('stop-observation').disabled).toBe(false);
-    expect(current.element('stop-observation').textContent).toBe('停止观察与语音');
+    expect(current.element('stop-observation').textContent).toBe('停止共享与语音');
     expect(current.element('toggle-wake').disabled).toBe(true);
     expect(current.element('start-dictation').disabled).toBe(true);
     expect(current.element('start-voice-chat').textContent).toBe('回到面对面语音');
@@ -1574,6 +1574,22 @@ describe('合成 snapshot 的桌宠 DOM 隔离测试，不代表真实跨应用�
       expect(harness.element('analysis-status').textContent).toBe('按需分析中');
       expect(harness.element('privacy-detail').textContent).toContain('冲突');
     }
+  });
+
+  it('已授权持续共享显示新策略说明，并保留用户主动停止入口', async () => {
+    const harness = petHarness(snapshot({ state: 'observing', captureActive: true, reason: 'authorized_sharing' }));
+    await settle();
+    expect(harness.element('observation-status').textContent).toBe('正在本地观察');
+    expect(harness.element('observation-detail').textContent).toContain('已授权持续实时共享');
+    expect(harness.element('observation-detail').textContent).toContain('不再按敏感文字、未知页面或无文字自动暂停');
+    expect(harness.element('observation-detail').textContent).toContain('本地仍遮盖文字与人脸');
+    expect(harness.element('observation-detail').textContent).not.toContain('控件布局模式');
+    expect(harness.element('privacy-notice').hidden).toBe(true);
+    expect(harness.element('stop-observation').disabled).toBe(false);
+    expect(harness.element('stop-observation').textContent).toBe('停止共享');
+    harness.click('stop-observation');
+    await settle();
+    expect(harness.bridge.command).toHaveBeenCalledExactlyOnceWith({ type: 'observation.stop' });
   });
 
   it.each(['stopped', 'privacy_paused'])('捕获失败处于 %s 时在本地观察区显示具体恢复提示', async state => {

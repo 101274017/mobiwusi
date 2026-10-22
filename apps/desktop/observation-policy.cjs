@@ -2,7 +2,7 @@ const { createHash } = require('node:crypto');
 const { createControlLayout } = require('./observation/control-layout.cjs');
 const { LIMITS } = require('./observation/observation-common.cjs');
 
-const policyVersion = 'windows-local-ocr-v8';
+const policyVersion = 'windows-local-ocr-v9';
 const admittedFrames = new WeakSet();
 const privatePattern = /密码|口令|验证码|动态码|私聊|聊天记录|私人聊天|发送给|身份证|银行卡|支付|付款|收款|转账|交易确认|安全密钥|访问令牌|password|passcode|one[ -]?time|verification code|private (?:chat|message)|credit card|bank account|payment|transfer money|bearer\s|api[ _-]?key|secret key/i;
 const personalPattern = /(?:\b1[3-9]\d{9}\b)|(?:\b\d{17}[\dXx]\b)|(?:[\w.+-]+@[\w.-]+\.[A-Za-z]{2,})|(?:\b(?:sk|pk)[-_][A-Za-z0-9]{16,})/;
@@ -110,6 +110,7 @@ function evaluateSelectedFrame(frame, detection, options = {}) {
 
 function evaluateFrame(frame, detection, options, selected) {
   const now = options.now ?? Date.now();
+  const authorizedSharing = !selected && options.authorizedSharing === true;
   if (!frame || !Buffer.isBuffer(frame.png) || !Number.isInteger(frame.width) || !Number.isInteger(frame.height)
     || frame.width < 1 || frame.height < 1 || frame.width > 16384 || frame.height > 16384
     || !Number.isFinite(frame.capturedAt) || frame.capturedAt > now
@@ -126,12 +127,12 @@ function evaluateFrame(frame, detection, options, selected) {
     !['微信', '开始', '搜索', '此电脑', '回收站', '控制面板'].includes(control?.label)
     || !['taskbar', 'desktop'].includes(control?.surface) || !validRect(control.rect, frame.width, frame.height))
     || (shellControls.length && (!frame.sourceId.startsWith('screen:') || !frame.geometry || detection.sourceId !== frame.sourceId))) return deny('invalid_local_regions');
-  if (!selected && detection.words.length === 0 && !shellControls.length) return deny('no_readable_text');
+  if (!selected && !authorizedSharing && detection.words.length === 0 && !shellControls.length) return deny('no_readable_text');
   if (detection.words.some(word => typeof word?.text !== 'string' || !word.text.length || word.text.length > 512 || !validRect(word.rect, frame.width, frame.height))
     || detection.faces.some(face => !validRect(face?.rect, frame.width, frame.height))) return deny('invalid_local_regions');
   const text = detection.words.map(word => word.text).join(' ');
   if (text.length > 20000) return deny('local_text_limit');
-  if (isRestrictedText(text) || isRestrictedText(detection.words.map(word => word.text).join(''))) return deny('sensitive_screen', 'private');
+  if (!authorizedSharing && (isRestrictedText(text) || isRestrictedText(detection.words.map(word => word.text).join('')))) return deny('sensitive_screen', 'private');
   const { controls: allowedWords, matchedCount } = recognizedControls(detection.words);
   for (const control of shellControls) {
     const duplicate = allowedWords.findIndex(word => normalizeLabel(word.text) === normalizeLabel(control.label)
@@ -152,19 +153,19 @@ function evaluateFrame(frame, detection, options, selected) {
   else if (positiveMarkers.length >= 2 && allowedWords.length >= 3 && unknownCount <= allowedWords.length * 2) scene = 'settings';
   else if (allowedWords.length >= 3 && unknownCount <= 1 && [...labels].filter(label => browserLabels.has(label)).length >= 2) scene = 'browser_controls';
   else if (allowedWords.length >= 4 && unknownCount <= 1 && [...labels].filter(label => editorLabels.has(label)).length >= 3) scene = 'editor_controls';
-  const requiresRedaction = !selected || detection.words.length > 0 || detection.faces.length > 0;
+  const requiresRedaction = (!selected && !authorizedSharing) || detection.words.length > 0 || detection.faces.length > 0;
   if (requiresRedaction && !shellControls.length && digest(detection.sanitizedPng) === frame.frameHash) return deny('unredacted_frame');
   let sanitizedPng;
-  if (selected) {
+  if (selected || authorizedSharing) {
     sanitizedPng = Buffer.from(detection.sanitizedPng);
-    scene = 'selected_frame';
+    scene = selected ? 'selected_frame' : 'authorized_sharing';
   } else if (shellControls.length || !scene || detection.sanitizedPng.length > 2_000_000) {
     if (!allowedWords.length) return deny('unclassified_screen');
     try { sanitizedPng = createControlLayout(allowedWords, frame.width, frame.height); }
     catch { return deny('control_layout_unavailable'); }
     scene = 'controls_only';
   } else sanitizedPng = Buffer.from(detection.sanitizedPng);
-  if (sanitizedPng.length > 2_000_000) { sanitizedPng.fill(0); return deny('control_layout_limit'); }
+  if (!authorizedSharing && sanitizedPng.length > 2_000_000) { sanitizedPng.fill(0); return deny('control_layout_limit'); }
   const sanitizedHash = digest(sanitizedPng);
   if (requiresRedaction && sanitizedHash === frame.frameHash) { sanitizedPng.fill(0); return deny('unredacted_frame'); }
   if (now - frame.capturedAt > (options.maxAgeMs ?? 5000)) { sanitizedPng.fill(0); return deny('stale_frame'); }
@@ -172,7 +173,7 @@ function evaluateFrame(frame, detection, options, selected) {
   const contextWords = scene === 'controls_only' ? allowedWords : detection.words;
   const signature = digest(JSON.stringify(contextWords.map(word => [normalizeLabel(word.text), Math.round(word.rect.x / 4), Math.round(word.rect.y / 4), Math.round(word.rect.width / 4), Math.round(word.rect.height / 4), ...(word.surface ? [word.surface] : [])])));
   const admitted = {
-    decision: 'allow', risk: 'safe', reason: scene === 'controls_only' ? 'locally_projected_controls' : 'locally_checked', policyVersion, frameId: frame.frameId ?? frame.frameHash,
+    decision: 'allow', risk: 'safe', reason: authorizedSharing ? 'authorized_sharing' : scene === 'controls_only' ? 'locally_projected_controls' : 'locally_checked', policyVersion, frameId: frame.frameId ?? frame.frameHash,
     frameHash: frame.frameHash, sanitizedHash, capturedAt: frame.capturedAt, sourceId: frame.sourceId,
     sourceName: frame.sourceName ?? '', displayId: frame.displayId, width: frame.width, height: frame.height,
     geometry: frame.geometry ? { ...frame.geometry } : null, signature, elements, sanitizedPng,

@@ -57,9 +57,10 @@ try {
         async detect(frame, options) {
           const start = Date.now();
           const detection = await detector.detect(frame, options);
-          const admitted = evaluateLocalFrame(frame, detection);
+          const admitted = evaluateLocalFrame(frame, detection, { authorizedSharing: true });
           frames.push({ width: frame.width, height: frame.height, elapsedMs: Date.now() - start, status: detection.status,
             words: detection.words.length, sanitizedBytes: detection.sanitizedPng?.length,
+            syntheticPrivateTextDetected: detection.words.map(word => word.text).join('').includes('私人聊天'),
             decision: admitted.decision, reason: admitted.reason, scene: admitted.scene, outboundBytes: admitted.sanitizedPng?.length });
           admitted.sanitizedPng?.fill(0);
           return detection;
@@ -71,7 +72,7 @@ try {
       for (let iteration = 0; iteration < 3; iteration += 1) {
         await runtime.whenIdle();
         assert.equal(runtime.snapshot().observation.state, 'observing');
-        assert.equal(runtime.snapshot().observation.reason, 'controls_only');
+        assert.equal(runtime.snapshot().observation.reason, 'authorized_sharing');
         if (iteration < 2) await new Promise(resolve => setTimeout(resolve, 150));
       }
       assert(frames.length >= 3);
@@ -79,26 +80,31 @@ try {
       const staleFrames = frames.filter(frame => frame.reason === 'stale_frame');
       assert(admittedFrames.length >= 3, JSON.stringify(frames));
       assert(frames.every(frame => frame.status === 'complete' && frame.sanitizedBytes > 2_000_000
-        && (frame.decision === 'allow' && frame.scene === 'controls_only' && frame.outboundBytes <= 2_000_000
+        && (frame.decision === 'allow' && frame.scene === 'authorized_sharing' && frame.outboundBytes === frame.sanitizedBytes
           || frame.reason === 'stale_frame' && frame.elapsedMs > 5000 && frame.outboundBytes === undefined)), JSON.stringify(frames));
       checks.push('complete_large_frames_remain_observing_across_three_real_native_checks');
       if (staleFrames.length) checks.push('expired_synthetic_frames_are_discarded_without_stopping_shared_session');
-      await runtime.stopObservation('user');
-      assert.equal(runtime.snapshot().observation.captureActive, false);
-      checks.push('stop_waits_for_native_detector_cleanup');
+      const framesBeforePrivateText = frames.length;
       await sourceWindow.webContents.executeJavaScript(`(() => {
         const context = document.querySelector('canvas').getContext('2d');
         context.fillStyle = 'black'; context.font = '36px sans-serif'; context.fillText('私人聊天', 30, 700);
       })()`);
-      await runtime.startObservation({ actor: 'owner', confirmed: true, sourceId: 'screen:0:0', cloudConsent: false });
+      await new Promise(resolve => setTimeout(resolve, 150));
       await runtime.whenIdle();
-      assert.equal(runtime.snapshot().observation.state, 'privacy_paused');
-      assert.equal(runtime.snapshot().observation.reason, 'sensitive_screen');
+      assert(frames.slice(framesBeforePrivateText).some(frame => frame.syntheticPrivateTextDetected && frame.decision === 'allow'), JSON.stringify(frames));
+      assert.equal(runtime.snapshot().observation.state, 'observing');
+      assert.equal(runtime.snapshot().observation.reason, 'authorized_sharing');
+      assert.equal(runtime.snapshot().observation.captureActive, true);
+      checks.push('synthetic_private_text_does_not_interrupt_authorized_sharing');
+      await runtime.stopObservation('user');
       assert.equal(runtime.snapshot().observation.captureActive, false);
-      const pausedCaptures = captureCalls;
+      await runtime.whenIdle();
+      checks.push('user_stop_waits_for_native_detector_cleanup');
+      const stoppedCaptures = captureCalls;
       await new Promise(resolve => setTimeout(resolve, 400));
-      assert.equal(captureCalls, pausedCaptures);
-      checks.push('sensitive_synthetic_text_still_stops_capture_without_automatic_resume');
+      assert.equal(captureCalls, stoppedCaptures);
+      assert.equal(runtime.snapshot().observation.state, 'stopped');
+      checks.push('user_stop_prevents_further_capture_and_automatic_resume');
       assert.equal(cloudCalls, 0);
       assert.equal(global.__nuanbanSmoke.screenRequestAttempts, 0);
       checks.push('no_user_desktop_capture_or_cloud_calls');

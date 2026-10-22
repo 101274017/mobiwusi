@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
 import { createDesktopAnalysisClient, analysisEndpoint } from '../../apps/desktop/analysis-client.cjs';
 import type { AnalysisInput } from '../../apps/desktop/runtime-coordinator.cjs';
-import { syntheticDetection, syntheticFrame } from '../helpers/standalone-frame';
+import { syntheticDetection, syntheticFrame, syntheticPng } from '../helpers/standalone-frame';
 
 const { evaluateLocalFrame } = createRequire(import.meta.url)('../../apps/desktop/observation-policy.cjs') as typeof import('../../apps/desktop/observation-policy.cjs');
 
@@ -17,6 +18,21 @@ function requestInput(): AnalysisInput {
 const env = { NUANBAN_DESKTOP_API_BASE_URL: 'http://127.0.0.1:3000', NUANBAN_DESKTOP_API_TOKEN: 'synthetic-account-token' };
 
 describe('独立桌宠按需发送适配（合成HTTP单测，不是真实供应验收）', () => {
+  it('已授权的大图保留本地准入资格，但超出服务图像上限时明确拒绝发送且不回退原图', async () => {
+    const fetchRequest = vi.fn<typeof fetch>();
+    const raw = syntheticFrame();
+    const png = syntheticPng(255, 1200, 1000, true);
+    Object.assign(raw, { png, width: 1200, height: 1000, geometry: null, frameHash: createHash('sha256').update(png).digest('hex') });
+    const detection = { ...syntheticDetection(raw), sanitizedPng: syntheticPng(0, 1200, 1000, true) };
+    const frame = evaluateLocalFrame(raw, detection, { authorizedSharing: true, now: raw.capturedAt });
+    if (frame.decision !== 'allow') throw new Error('expected authorized sharing frame');
+    const client = createDesktopAnalysisClient({ env, fetch: fetchRequest, now: () => raw.capturedAt });
+    await expect(client.analyze({ ...requestInput(), frame })).rejects.toMatchObject({ code: 'ANALYSIS_IMAGE_TOO_LARGE' });
+    expect(fetchRequest).not.toHaveBeenCalled();
+    expect(frame.sanitizedPng.equals(detection.sanitizedPng)).toBe(true);
+    expect(frame.sanitizedPng.equals(raw.png)).toBe(false);
+  });
+
   it('默认无配置时明确不可用，不发送、不回退演示数据', async () => {
     const fetchRequest = vi.fn<typeof fetch>();
     const client = createDesktopAnalysisClient({ env: {}, fetch: fetchRequest });

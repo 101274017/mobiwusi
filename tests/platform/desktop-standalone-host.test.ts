@@ -569,6 +569,26 @@ describe('独立桌宠单次听写接线（合成语音，不打开真实麦克�
 });
 
 describe('桌宠查找的补充画面授权（合成屏幕与原生确认，不实际采集）', () => {
+  it('开启前明确告知授权后持续共享和停止入口，默认不同意云分析', async () => {
+    const current = fixture();
+    await current.host.initialize();
+    current.choose();
+    current.dialog.showMessageBox.mockResolvedValueOnce({ response: 0, checkboxChecked: false });
+    await current.invoke('nuanban:pet:command', { type: 'observation.start' });
+    await vi.waitFor(() => expect(current.host.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'authorized_sharing', cloudConsent: false }));
+    expect(current.dialog.showMessageBox).toHaveBeenLastCalledWith(current.windows[0], expect.objectContaining({
+      title: '开启本地观察', defaultId: 1, cancelId: 1, checkboxChecked: false,
+      detail: expect.stringContaining('不再识别敏感文字来决定是否暂停'),
+    }));
+    const detail = (current.dialog.showMessageBox.mock.calls.at(-1)?.[1] as { detail: string }).detail;
+    expect(detail).toContain('停止共享');
+    expect(detail).toContain('关闭管理窗口不会停止共享');
+    expect(current.analyzer.analyze).not.toHaveBeenCalled();
+    await current.invoke('nuanban:pet:command', { type: 'observation.stop' });
+    expect(current.host.snapshot().observation).toMatchObject({ state: 'stopped', captureActive: false });
+    expect(current.source.stop).toHaveBeenCalledOnce();
+  });
+
   it('对同一观察范围单独弹窗，同意后不重选屏幕、不自动分析或开麦', async () => {
     const current = fixture();
     await current.host.initialize();

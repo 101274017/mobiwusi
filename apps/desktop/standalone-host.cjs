@@ -411,8 +411,8 @@ function createStandaloneHost(options) {
       if (!selected || !stillAuthorized()) return { ok: true, status: 'cancelled', snapshot: snapshot() };
       const region = selected.chooseRegion ? await regionSelector.select(selected.geometry) : null;
       if ((selected.chooseRegion && !region) || !stillAuthorized()) return { ok: true, status: 'cancelled', snapshot: snapshot() };
-      const consent = await showDialog({ type: 'info', title: '开启本地观察', message: resume ? '由你本人继续共享，并重新进行本地安全检查' : '允许微光指引在本机持续观察所选屏幕吗？',
-        detail: `${region ? `本次仅检测框选区域（${region.width}×${region.height}）。系统媒体仍共享所选屏幕；完整帧只在本机内存中临时裁剪并清零，框外内容不进入 OCR 或云端分析。区域是固定位置，不会跟随窗口移动。\n\n` : ''}只有你亲手操作电脑。微光指引不自动打开第三方应用，也不会点击或输入。关闭管理窗口后观察仍可继续；桌宠始终可以停止。发现敏感、未知或检测故障时会停止采集，必须由你本人确认后复查，不能自动恢复。\n\n云分析为单独可选用途：仅提问、显著变页或核验时，发送必要的本地检测脱敏画面；未勾选则不发送。未配置真实服务时不会使用模拟答案。`,
+      const consent = await showDialog({ type: 'info', title: '开启本地观察', message: resume ? '由你本人重新授权，继续实时共享所选范围' : '允许微光指引在本机持续观察所选屏幕吗？',
+        detail: `${region ? `本次仅检测框选区域（${region.width}×${region.height}）。系统媒体仍共享所选屏幕；完整帧只在本机内存中临时裁剪并清零，框外内容不进入 OCR 或云端分析。区域是固定位置，不会跟随窗口移动。\n\n` : ''}授权后将持续实时共享所选范围，不再识别敏感文字来决定是否暂停，也不会因未知页面或没有文字自动中断。请自行留意共享内容，可随时在桌宠点击“停止共享”或从托盘停止；关闭管理窗口不会停止共享。仍保留本地文字、人脸遮盖；系统撤权、共享来源断开或本地检测故障时停止采集，需由你本人重新授权。只有你亲手操作电脑，微光指引不会自动打开第三方应用、点击或输入。\n\n云分析为单独可选用途：仅提问、显著变页或核验时，发送必要的本地检测脱敏画面；未勾选则不发送。未配置真实服务时不会使用模拟答案。`,
         buttons: ['开启本地观察', '取消'], defaultId: 1, cancelId: 1, checkboxLabel: '允许为当前教学按需发送脱敏画面到已配置的分析服务', checkboxChecked: false });
       if (consent.response !== 0 || !stillAuthorized()) return { ok: true, status: 'cancelled', snapshot: snapshot() };
       consentedSourceId = selected.id;

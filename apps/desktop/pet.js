@@ -434,6 +434,8 @@
     const source = text(observation.sourceName);
     const reasonDetail = ['capture_retry', 'capture_error'].includes(analysis.state) ? text(analysis.message, '正在重新采集最新本地画面；不会使用过期画面，也不会重新请求屏幕共享。')
       : state.safeObserving && observation.reason === 'controls_only'
+      : state.safeObserving && observation.reason === 'authorized_sharing'
+      ? '已授权持续实时共享，不再按敏感文字、未知页面或无文字自动暂停。可随时点击“停止共享”关闭；本地仍遮盖文字与人脸，云分析仅在另行授权后按需发送。'
       ? '正在本地观察（安全控件布局模式）：只保留已识别的通用控件标签和位置，不包含原画面、正文、文件名或图片。仅在本人另行授权后，才按需发送控件布局用于教学；不会自动操作。'
       : text(observation.reason) && analysis.state === 'error' ? text(analysis.message, observation.reason) : text(observation.reason);
     element('observation-detail').textContent = state.cleanupFailed ? `停止清理尚未确认，请退出桌宠并重新启动。${text(observation.reason)}` : unsafe ? '隐私或停止状态与采集 / 分析信号不一致。请立即停止观察，再检查运行核心。' : state.safetyUnclassified ? 'unclassified_screen / unknown：当前本地分类器尚未识别此画面，不等于已发现敏感内容。已支持设置、桌面、文件管理器及常见浏览器/编辑器控件；可在继续共享时选择“框选观察区域”，只保留目标软件。仍未分类时继续保持暂停，不会发送画面。' : text(reasonDetail, source ? `共享来源：${source}` : ready && observation.state === 'off' && observation.captureActive === false ? '尚未共享屏幕。提问不会由面板自动开启观察。' : ready && observation.state === 'stopped' && observation.captureActive === false ? '采集已由运行核心报告停止，重新开启仍需本人确认。' : '等待运行核心确认共享来源与采集状态。');
@@ -448,7 +450,7 @@
     element('start-observation').disabled = !state.canStart;
     element('stop-observation').disabled = !state.canStop;
     element('start-observation').textContent = pending.has('observation.start') ? '等待选择来源…' : '开启本地观察';
-    element('stop-observation').textContent = pending.has('observation.stop') ? '正在请求停止…' : record(runtime.wake).state === 'enabled' || record(runtime.voice).active === true ? '停止观察与语音' : task.kind === 'text' && task.state === 'analyzing' ? '停止本次提问' : '停止观察';
+    element('stop-observation').textContent = pending.has('observation.stop') ? '正在请求停止…' : record(runtime.wake).state === 'enabled' || record(runtime.voice).active === true ? '停止共享与语音' : task.kind === 'text' && task.state === 'analyzing' ? '停止本次提问' : '停止共享';
     const voice = record(runtime.voice);
     element('voice-chat-status').textContent = text(voice.message, '面对面语音默认关闭；不会自动打开麦克风。');
     for (const identifier of ['start-voice-chat', 'pet-voice', 'feature-voice']) element(identifier).disabled = !ready || pending.has('voice.open');

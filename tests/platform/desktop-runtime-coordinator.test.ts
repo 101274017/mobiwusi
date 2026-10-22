@@ -239,6 +239,31 @@ describe('屏幕分析结果的可见反馈', () => {
     expect(setup.analyze).toHaveBeenCalledOnce();
   });
 
+  it('首次指引分析期间不等待轮询间隔，尽早取得新鲜本地画面以缩短续显空档', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 1500 });
+    await setup.start();
+    const originalCapture = setup.source.capture.getMockImplementation()!;
+    let delayNextCapture = true;
+    setup.source.capture.mockImplementation(async (...argumentsList) => {
+      const frame = await originalCapture(...argumentsList);
+      if (delayNextCapture) {
+        delayNextCapture = false;
+        setup.controls.time += 2000;
+      }
+      return frame;
+    });
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(setup.source.capture).toHaveBeenCalledTimes(3);
+    await setup.runtime.stopObservation('user');
+  });
+
   it('回复落在两次捕获间隙且画面过期时立即重采集核验，不上传第二次也不丢弃箭头', async () => {
     const setup = fixture();
     await setup.start();
@@ -256,11 +281,12 @@ describe('屏幕分析结果的可见反馈', () => {
     expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, label: '显示' }));
   });
 
-  it('回复等待新帧时仍检查隐私，不以重新采集绕过敏感画面保护', async () => {
+  it('回复等待新帧时保留授权共享，不因敏感文字停止且不安装过期指引', async () => {
     const setup = fixture();
     await setup.start();
     const response = deferred<AnalysisResult>();
     setup.analyze.mockImplementationOnce(() => response.promise);
+    setup.analyze.mockImplementation(async input => ({ ...responseIdentity(input), kind: 'unsupported', instruction: '当前新画面没有可核验的目标，请重新提问。' }));
     await setup.runtime.ask('帮我找到显示设置');
     await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
     const input = setup.analyze.mock.calls[0][0];
@@ -268,9 +294,10 @@ describe('屏幕分析结果的可见反馈', () => {
     setup.controls.labels.push('私人聊天');
     response.resolve(stepResponse(input));
     await setup.runtime.whenIdle();
-    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false });
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'authorized_sharing' });
     expect(setup.onTarget.mock.calls.some(([target]) => target?.visible)).toBe(false);
-    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(input.signal.aborted).toBe(true);
+    expect(setup.analyze).toHaveBeenCalledTimes(2);
   });
 
   it('指引窗口拒绝显示时明确告知，而不是宣称已有箭头', async () => {
@@ -366,8 +393,13 @@ describe('分析返回与本地检测重叠时的安全续接', () => {
     setup.detection.resolve(syntheticDetection(setup.refreshingFrame,
       condition === 'sensitive' ? [...setup.controls.labels, '验证码123456'] : setup.controls.labels));
     await setup.runtime.whenIdle();
-    expect(setup.onTarget.mock.calls.some(([target]) => target?.visible)).toBe(false);
-    expect(setup.runtime.snapshot().task.state).not.toBe('awaiting_action');
+    if (condition === 'sensitive') {
+      expect(setup.onTarget.mock.calls.some(([target]) => target?.visible)).toBe(true);
+      expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+    } else {
+      expect(setup.onTarget.mock.calls.some(([target]) => target?.visible)).toBe(false);
+      expect(setup.runtime.snapshot().task.state).not.toBe('awaiting_action');
+    }
     expect(setup.records).toEqual(condition === 'stop' ? [expect.objectContaining({ result: 'interrupted' })] : []);
     expect(setup.sent).toHaveBeenCalledOnce();
   });
@@ -447,9 +479,10 @@ describe('当前观察范围的单独画面分析授权', () => {
     await expect(setup.runtime.authorizeCloudAnalysis({ actor: 'owner', confirmed: true, observationGeneration: generation })).rejects.toThrow('已变化');
     setup.controls.labels = ['未知正文', '未知控件'];
     await setup.start(false);
-    expect(setup.runtime.snapshot().observation.state).toBe('privacy_paused');
-    await expect(setup.runtime.authorizeCloudAnalysis({ actor: 'owner', confirmed: true, observationGeneration: setup.runtime.snapshot().observation.generation })).rejects.toThrow('已变化');
-    expect(setup.runtime.snapshot().observation.cloudConsent).toBe(false);
+    const unknownGeneration = setup.runtime.snapshot().observation.generation;
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'authorized_sharing', cloudConsent: false });
+    await expect(setup.runtime.authorizeCloudAnalysis({ actor: 'owner', confirmed: true, observationGeneration: unknownGeneration })).resolves.toBeDefined();
+    expect(setup.runtime.snapshot().observation.cloudConsent).toBe(true);
     expect(setup.analyze).not.toHaveBeenCalled();
   });
 });
@@ -481,7 +514,7 @@ describe('观察与教学快照的独立代次', () => {
     expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, label: '显示' }));
   });
 
-  it('未确认整页类别时使用安全控件布局持续本地观察，未授权不出云，敏感内容仍停止', async () => {
+  it('未授权云分析时仍持续本地共享，敏感文字不再停止且不出云', async () => {
     vi.useFakeTimers();
     const setup = fixture({ intervalMs: 1500 });
     setup.controls.labels = ['文件', '编辑', '查看', '练习文档', '普通正文', '第二行内容'];
@@ -489,18 +522,18 @@ describe('观察与教学快照的独立代次', () => {
     for (let count = 0; count < 4; count += 1) {
       await vi.advanceTimersByTimeAsync(1600);
       await setup.runtime.whenIdle();
-      expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'controls_only' });
+      expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'authorized_sharing' });
     }
     expect(setup.source.stop).not.toHaveBeenCalled();
     expect(setup.analyze).not.toHaveBeenCalled();
     setup.controls.labels = ['文件', '编辑', '查看', '私人聊天'];
     await vi.advanceTimersByTimeAsync(1600);
     await setup.runtime.whenIdle();
-    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false, reason: 'sensitive_screen' });
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'authorized_sharing' });
     expect(setup.analyze).not.toHaveBeenCalled();
   });
 
-  it('本人授权后的教学只接收安全控件布局，不接收未知正文或原始屏幕', async () => {
+  it('本人授权后的教学接收完整脱敏帧，不接收原始屏幕', async () => {
     const setup = fixture();
     setup.controls.labels = ['文件', '编辑', '查看', '练习文档', '普通正文', '第二行内容'];
     await setup.start();
@@ -508,13 +541,13 @@ describe('观察与教学快照的独立代次', () => {
     await setup.runtime.whenIdle();
     expect(setup.analyze).toHaveBeenCalledTimes(1);
     const input = setup.analyze.mock.calls[0][0];
-    expect(input.frame.scene).toBe('controls_only');
+    expect(input.frame.scene).toBe('authorized_sharing');
     expect(input.frame.elements.map(element => element.label)).toEqual(['文件', '编辑', '查看']);
     expect(input.frame.sanitizedPng).not.toEqual(syntheticFrame().png);
     expect(setup.runtime.snapshot().observation.state).toBe('observing');
   });
 
-  it('普通桌面与文件管理器的新帧持续观察，未知页面仍熔断且不能自动恢复', async () => {
+  it('普通桌面与未知页面持续观察，手动停止后不自动恢复', async () => {
     vi.useFakeTimers();
     const setup = fixture({ intervalMs: 1500 });
     setup.controls.labels = ['此电脑', '回收站', '控制面板', '练习.txt'];
@@ -531,13 +564,14 @@ describe('观察与教学快照的独立代次', () => {
     setup.controls.labels = ['未知页面内容', '另一段未经分类的正文'];
     await vi.advanceTimersByTimeAsync(1600);
     await setup.runtime.whenIdle();
-    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false, reason: 'unclassified_screen' });
-    expect(setup.runtime.snapshot().analysis.message).toContain('框选观察区域');
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'authorized_sharing' });
     const captures = setup.source.capture.mock.calls.length;
     setup.controls.labels = ['设置', '显示', '文本大小', '返回'];
+    await setup.runtime.stopObservation('user');
     await vi.advanceTimersByTimeAsync(6000);
     expect(setup.source.capture).toHaveBeenCalledTimes(captures);
     expect(setup.analyze).not.toHaveBeenCalled();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'stopped', captureActive: false });
   });
 
   it('每一帧都绑定本人所选区域，不引用可变参数，重新整屏授权后才清除裁剪', async () => {
@@ -931,7 +965,7 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     await setup.runtime.whenIdle();
     expect(setup.source.capture).toHaveBeenCalledTimes(7);
     expect(setup.analyze).toHaveBeenCalledOnce();
-    expect(setup.runtime.snapshot().observation).toEqual({ ...current.observation, reason: null });
+    expect(setup.runtime.snapshot().observation).toEqual({ ...current.observation, reason: 'authorized_sharing' });
     expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
     expect(setup.source.stop).not.toHaveBeenCalled();
   });
@@ -960,20 +994,33 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     expect(setup.runtime.snapshot()).toMatchObject({ observation: { state: 'observing', captureActive: true }, task: { state: 'needs_help' }, analysis: { state: 'capture_error' } });
   });
 
-  it.each(['sensitive', 'unknown', 'unavailable'] as const)('重采集过程中出现 %s 仍立即暂停，不继续重试', async condition => {
+  it.each(['sensitive', 'unknown'] as const)('重采集过程中出现 %s 仍保持授权共享并继续分析', async condition => {
     const setup = fixture();
     await setup.start();
     setup.source.capture.mockImplementationOnce(async () => syntheticFrame(setup.controls.geometry, setup.controls.time - 6000));
     setup.source.detect.mockImplementationOnce(async frame => syntheticDetection(frame, setup.controls.labels));
     setup.source.detect.mockImplementationOnce(async frame => ({ ...syntheticDetection(frame,
-      condition === 'sensitive' ? [...setup.controls.labels, '验证码123456'] : condition === 'unknown' ? ['未知正文'] : setup.controls.labels),
-      status: condition === 'unavailable' ? 'unavailable' : 'complete' }));
+      condition === 'sensitive' ? [...setup.controls.labels, '验证码123456'] : [...setup.controls.labels, '未知正文']),
+      status: 'complete' }));
+    await setup.runtime.ask('帮我找到显示设置');
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture).toHaveBeenCalledTimes(3);
+    expect(setup.source.stop).not.toHaveBeenCalled();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, cloudConsent: true, reason: 'authorized_sharing' });
+    expect(setup.analyze).toHaveBeenCalledOnce();
+  });
+
+  it('重采集过程中本地检测不可用仍停止采集，不继续重试', async () => {
+    const setup = fixture();
+    await setup.start();
+    setup.source.capture.mockImplementationOnce(async () => syntheticFrame(setup.controls.geometry, setup.controls.time - 6000));
+    setup.source.detect.mockImplementationOnce(async frame => syntheticDetection(frame, setup.controls.labels));
+    setup.source.detect.mockImplementationOnce(async frame => ({ ...syntheticDetection(frame, setup.controls.labels), status: 'unavailable' }));
     await setup.runtime.ask('帮我找到显示设置');
     await setup.runtime.whenIdle();
     expect(setup.source.capture).toHaveBeenCalledTimes(3);
     expect(setup.source.stop).toHaveBeenCalledOnce();
-    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false, cloudConsent: false,
-      reason: condition === 'sensitive' ? 'sensitive_screen' : condition === 'unknown' ? 'unclassified_screen' : 'local_detector_unavailable' });
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false, cloudConsent: false, reason: 'local_detector_unavailable' });
     expect(setup.analyze).not.toHaveBeenCalled();
   });
 
@@ -1017,21 +1064,34 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     expect(current.analysis.message).not.toContain('观察可继续');
   });
 
-  it('敏感/未知/检测故障停止采集，离开页面不会自行恢复', async () => {
+  it('敏感文字不会停止已授权共享，用户手动停止后不会自行恢复', async () => {
     const setup = fixture();
     setup.controls.labels = ['设置', '显示', '文本大小', '验证码123456'];
     await setup.start();
-    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false });
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'authorized_sharing' });
+    expect(setup.source.stop).not.toHaveBeenCalled();
+    expect(setup.analyze).not.toHaveBeenCalled();
+    const captures = setup.source.capture.mock.calls.length;
+    await setup.runtime.stopObservation('user');
+    await new Promise(resolve => setTimeout(resolve, 10));
+    expect(setup.source.capture).toHaveBeenCalledTimes(captures);
+    expect(setup.source.stop).toHaveBeenCalledOnce();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'stopped', captureActive: false });
+  });
+
+  it('本地检测故障仍停止采集，恢复必须由本人重新授权', async () => {
+    const setup = fixture();
+    setup.controls.status = 'unavailable';
+    await setup.start();
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'privacy_paused', captureActive: false, reason: 'local_detector_unavailable' });
     expect(setup.source.stop).toHaveBeenCalledOnce();
     expect(setup.analyze).not.toHaveBeenCalled();
-    setup.controls.labels = ['设置', '显示', '文本大小', '返回'];
+    setup.controls.status = 'complete';
     await expect(setup.runtime.startObservation({ actor: 'owner', confirmed: true, sourceId: 'screen:test:0' })).rejects.toThrow('继续共享');
     await expect(setup.runtime.resumeObservation({ actor: 'family', confirmed: true, sourceId: 'screen:test:0' })).rejects.toThrow('本人');
     await setup.runtime.resumeObservation({ actor: 'owner', confirmed: true, sourceId: 'screen:test:0' });
     await setup.runtime.whenIdle();
-    expect(setup.runtime.snapshot().observation.state).toBe('observing');
-    expect(JSON.stringify(setup.runtime.snapshot())).not.toContain('123456');
-    expect(JSON.stringify(setup.runtime.snapshot())).not.toContain('sanitizedPng');
+    expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'authorized_sharing' });
   });
 
   it('先失效发送资格和目标，再停本地源；迟到回答不会恢复指引', async () => {
@@ -1240,7 +1300,7 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
   });
 
-  it.each(['sensitive', 'unavailable'] as const)('完成验证必须重新通过本地安全与新鲜度检查：%s', async condition => {
+  it.each(['sensitive', 'unavailable'] as const)('完成验证保留授权共享且仍需本地检测完整：%s', async condition => {
     const setup = fixture();
     setup.analyze.mockImplementation(async input => input.previousStep ? completedResponse(input) : stepResponse(input));
     await beginTeaching(setup);
@@ -1249,9 +1309,11 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     if (condition === 'unavailable') setup.controls.status = 'unavailable';
     await setup.runtime.verify();
     await setup.runtime.whenIdle();
-    expect(setup.runtime.snapshot().observation.state).toBe('privacy_paused');
-    expect(setup.analyze).toHaveBeenCalledOnce();
-    expect(setup.records).toEqual([]);
+    expect(setup.runtime.snapshot().observation.state).toBe(condition === 'sensitive' ? 'observing' : 'privacy_paused');
+    if (condition === 'sensitive') expect(setup.runtime.snapshot().observation.reason).toBe('authorized_sharing');
+    expect(setup.analyze).toHaveBeenCalledTimes(condition === 'sensitive' ? 2 : 1);
+    expect(setup.records).toHaveLength(condition === 'sensitive' ? 1 : 0);
+    if (condition === 'sensitive') expect(setup.records[0]).toMatchObject({ result: 'completed', mastery: 'unmastered' });
     expect(setup.suggestReview).not.toHaveBeenCalled();
   });
 
@@ -1376,7 +1438,7 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
   );
 
   it.each(['sensitive', 'unknown', 'unavailable', 'failed'] as const)(
-    '慢响应期间最新本地检测不安全或不完整时立即失效：%s', async condition => {
+    '慢响应遇到文字变化不停止共享，但上下文变化或检测故障仍使旧分析失效：%s', async condition => {
       vi.useFakeTimers();
       const setup = fixture({ intervalMs: 1500 });
       const pending = await beginSlowAnalysis(setup);
@@ -1386,8 +1448,14 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
         if (condition === 'unavailable') setup.controls.status = 'unavailable';
         if (condition === 'failed') setup.source.detect.mockRejectedValueOnce(new Error('synthetic detection failure'));
         await advanceObservation(setup, 6000);
-        expect(setup.runtime.snapshot().observation.state).toBe('privacy_paused');
+        if (condition === 'sensitive' || condition === 'unknown') {
+          expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'authorized_sharing' });
+          expect(setup.source.stop).not.toHaveBeenCalled();
+        } else {
+          expect(setup.runtime.snapshot().observation.state).toBe('privacy_paused');
+        }
         expect(pending.request.canSend()).toBe(false);
+        expect(pending.request.signal.aborted).toBe(true);
       } finally { pending.complete(); }
       await setup.runtime.whenIdle();
       expect(setup.runtime.snapshot().task.state).not.toBe('completed');
