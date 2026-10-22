@@ -163,6 +163,8 @@ node infra/windows/tools/configure-vision-provider.mjs `
 - 说明：`NUANBAN_AI_*` 对应的工作区对话实现尚未提交（见仓库当前未提交改动）；已部署的提交版后端只使用 `NUANBAN_VISION_*` 的单帧指引路由。
 - 计费与合规：真实供应商会产生费用并接收脱敏后的文本/单帧图像，属于所有者自担的外部条件，不能写成已验收供应。
 
+**当前线上状态（2026-10-22 22:39，Asia/Shanghai）**：已配置真实供应商 `https://api.openai-next.com/v1`，文本与视觉模型均为 `gpt-4o-mini`；密钥只存在于服务器 `C:\nuanban\config\vision-provider.json`（`SYSTEM`/`Administrators` 可读），服务日志只记录 base 与 model。实测：ECS 本机 `GET /models` 与 `POST /chat/completions` 均返回 200（服务器出网访问该网关正常）；`/v1/standalone/guidance/analyze`、`/v1/conversations` 无令牌均返回 401。**浏览器端仍无法自建会话**：公网 HTTP 表面只有 `device-challenges`/`device-exchange`/`refresh`，没有账号或设备引导路由，网页在 `VITE_API_MODE=local` 下继续按设计报“没有桌面模型接口”。要让网页 AI 可用，需要新增受控的会话引导（邀请码 + 速率限制 + 本地保存令牌/刷新）并重新构建前端，属于产品代码改动，未包含在本次部署。
+
 ## 实际部署记录（2026-10-22，Asia/Shanghai）
 
 本节记录**本次真实执行过的一次部署**及其实测结果，不是发布签收。
