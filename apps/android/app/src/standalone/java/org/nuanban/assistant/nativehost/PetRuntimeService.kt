@@ -28,6 +28,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import org.nuanban.assistant.MainActivity
+import org.nuanban.assistant.R
 import kotlin.math.abs
 
 class PetRuntimeService : Service() {
@@ -80,7 +81,7 @@ class PetRuntimeService : Service() {
             val open = PendingIntent.getActivity(this, 7310, Intent(this, PetControlActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             val stop = PendingIntent.getBroadcast(this, 7311, Intent(this, PetStopReceiver::class.java).setAction(PetStopReceiver.ACTION_STOP), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             val exit = PendingIntent.getBroadcast(this, 7312, Intent(this, PetStopReceiver::class.java).setAction(PetStopReceiver.ACTION_EXIT), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-            val notification = Notification.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.ic_dialog_info)
+            val notification = Notification.Builder(this, CHANNEL).setSmallIcon(R.drawable.ic_stat_nuanban)
                 .setContentTitle("微光指引 · 独立桌宠")
                 .setContentText("桌宠已驻留；点此查看观察状态与原生授权。")
                 .setContentIntent(open).setOngoing(true)

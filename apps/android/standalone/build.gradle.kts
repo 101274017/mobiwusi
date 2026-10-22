@@ -20,6 +20,7 @@ android {
         rootProject.file("app/src/standalone/java"),
         rootProject.file("../../packages/contracts/kotlin/src/main/kotlin"),
     )
+    sourceSets["main"].res.srcDir(rootProject.file("app/src/main/res"))
     sourceSets["main"].assets.srcDir(rootProject.file("app/src/main/assets"))
 }
 

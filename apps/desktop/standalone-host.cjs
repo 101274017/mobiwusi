@@ -16,6 +16,7 @@ const { loadXingyunCredentials } = require('./xingyun-credentials.cjs');
 const { createXingyunAvatarService, registerXingyunAvatarBridge, defaultPet } = require('./xingyun-avatar.cjs');
 const { createLiliHost } = require('./lili-host.cjs');
 const { createSingleFrameGuidance } = require('./single-frame-guidance.cjs');
+const { PRODUCT_ICON_PATH } = require('./brand.cjs');
 
 function createStandaloneHost(options) {
   const { BrowserWindow, ipcMain, screen, Menu, Tray, dialog, desktopCapturer, nativeImage, safeStorage, powerMonitor, session } = options.electron;
@@ -700,7 +701,7 @@ function createStandaloneHost(options) {
     if (liliTray) return true;
     if (!Tray || !nativeImage?.createFromPath) return false;
     try {
-      const icon = nativeImage.createFromPath(path.join(__dirname, 'assets', 'lili', 'icon.png')).resize({ width: 32, height: 32 });
+      const icon = nativeImage.createFromPath(PRODUCT_ICON_PATH).resize({ width: 32, height: 32 });
       if (icon.isEmpty()) return false;
       liliTray = new Tray(icon);
       liliTray.setToolTip('栗栗 · 微光指引桌宠');
@@ -845,11 +846,11 @@ function createStandaloneHost(options) {
       suggestReview: proposal => { if (!learningStore) throw new Error('加密教学仓储不可用'); const result = learningStore.suggestReview(proposal); publish(); return result; } });
     const area = screen.getPrimaryDisplay().workArea;
     petWindow = new BrowserWindow({ width: 300, height: Math.min(390, area.height - 24), x: area.x + area.width - 324, y: area.y + area.height - Math.min(414, area.height - 12),
-      title: '微光指引桌宠', show: false, transparent: true, frame: false, hasShadow: false, alwaysOnTop: true, skipTaskbar: true,
+      title: '微光指引桌宠', icon: PRODUCT_ICON_PATH, show: false, transparent: true, frame: false, hasShadow: false, alwaysOnTop: true, skipTaskbar: true,
       resizable: false, movable: true, backgroundColor: '#00000000', webPreferences: windowPreferences('pet-preload.cjs') });
-    guideWindow = new BrowserWindow({ width: 400, height: 300, title: '微光指引教学指引', show: false, transparent: true, frame: false,
+    guideWindow = new BrowserWindow({ width: 400, height: 300, title: '微光指引教学指引', icon: PRODUCT_ICON_PATH, show: false, transparent: true, frame: false,
       hasShadow: false, alwaysOnTop: true, skipTaskbar: true, focusable: false, resizable: false, backgroundColor: '#00000000', webPreferences: windowPreferences('guide-preload.cjs') });
-    captionWindow = new BrowserWindow({ width: 700, height: 116, title: '微光指引大字字幕', show: false, transparent: true, frame: false,
+    captionWindow = new BrowserWindow({ width: 700, height: 116, title: '微光指引大字字幕', icon: PRODUCT_ICON_PATH, show: false, transparent: true, frame: false,
       hasShadow: false, alwaysOnTop: true, skipTaskbar: true, focusable: false, resizable: false, backgroundColor: '#00000000', webPreferences: windowPreferences('caption-preload.cjs') });
     for (const window of [petWindow, guideWindow, captionWindow]) { secureWindow(window); window.setAlwaysOnTop(true, 'floating'); }
     syncPetProtection(runtime.snapshot().observation);

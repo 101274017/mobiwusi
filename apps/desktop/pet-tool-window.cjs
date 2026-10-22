@@ -1,3 +1,5 @@
+const { PRODUCT_ICON_PATH } = require('./brand.cjs');
+
 function createPetToolWindow({ BrowserWindow, getIndexPath, preloadPath, onLifecycle = () => {}, onClosed = () => {} }) {
   let toolWindow;
   let loading;
@@ -6,7 +8,7 @@ function createPetToolWindow({ BrowserWindow, getIndexPath, preloadPath, onLifec
   function ensureWindow() {
     if (loading) return loading;
     if (toolWindow && !toolWindow.isDestroyed()) return Promise.resolve(toolWindow);
-    const window = new BrowserWindow({ width: 1080, height: 860, minWidth: 420, minHeight: 640, title: '微光指引桌宠 · 工具小屋', backgroundColor: '#FFF8EF', show: false,
+    const window = new BrowserWindow({ width: 1080, height: 860, minWidth: 420, minHeight: 640, title: '微光指引桌宠 · 工具小屋', icon: PRODUCT_ICON_PATH, backgroundColor: '#FFF8EF', show: false,
       webPreferences: { preload: preloadPath, contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true } });
     toolWindow = window;
     window.on('page-title-updated', event => event.preventDefault());

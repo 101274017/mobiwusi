@@ -35,6 +35,7 @@ import android.widget.TextView
 import kotlin.math.max
 import kotlin.math.min
 import java.nio.ByteBuffer
+import org.nuanban.assistant.R
 
 class NativeCaptureService : Service() {
     companion object {
@@ -181,7 +182,7 @@ class NativeCaptureService : Service() {
         val control = if (petTicket != null) PetControlActivity::class.java else NativeCaptureControlActivity::class.java
         val open = PendingIntent.getActivity(this, 2, Intent(this, control), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val description = if (petTicket != null) "持续本地观察；仅当次同意时按需分析脱敏画面；风险/未知立即停止。" else "采集帧只在内存中隔离释放，最多 30 秒；风险/未知立即停止。"
-        return Notification.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.ic_menu_view).setContentTitle("微光指引 · 本地隔离协助").setContentText(description).setContentIntent(open).setOngoing(true).addAction(Notification.Action.Builder(null, "立即停止", stop).build()).build()
+        return Notification.Builder(this, CHANNEL).setSmallIcon(R.drawable.ic_stat_nuanban).setContentTitle("微光指引 · 本地隔离协助").setContentText(description).setContentIntent(open).setOngoing(true).addAction(Notification.Action.Builder(null, "立即停止", stop).build()).build()
     }
 
     private fun quarantine(source: ImageReader, candidate: CaptureTicket) {

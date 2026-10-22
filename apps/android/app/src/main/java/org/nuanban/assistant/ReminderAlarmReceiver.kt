@@ -107,7 +107,7 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
         val openPendingIntent = PendingIntent.getActivity(context, instanceId.hashCode(), openIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(context, ReminderNotificationScheduler.CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.ic_stat_nuanban)
                 .setContentTitle("微光指引复习提醒")
                 .setContentText("打开微光指引，继续刚才确认的复习事项。")
                 .setContentIntent(openPendingIntent)
@@ -115,7 +115,7 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
                 .build()
         } else {
             Notification.Builder(context)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.ic_stat_nuanban)
                 .setContentTitle("微光指引复习提醒")
                 .setContentText("打开微光指引，继续刚才确认的复习事项。")
                 .setContentIntent(openPendingIntent)

@@ -16,6 +16,9 @@ test.describe('第一次进入微光指引', () => {
     await expect(page).toHaveURL(/#\/welcome$/);
     await expect(page).toHaveTitle('微光指引 · 陪你慢慢学会');
     await expect(page.locator('.welcome-brand strong')).toHaveText('微光指引');
+    const mark = page.locator('.welcome-mark');
+    await expect(mark).toHaveAttribute('src', /brand-mark.*\.svg/);
+    await expect.poll(() => mark.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     await expect(page.locator('body')).not.toContainText(/暖伴|NUANBAN/);
     await expect(page.getByRole('heading', { name: /先坐一会儿/ })).toBeVisible();
     await page.getByRole('button', { name: '游客模式，直接进入' }).click();

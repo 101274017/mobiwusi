@@ -22,6 +22,7 @@ const { PET_AVATAR_CSP } = require('./xingyun-avatar.cjs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const fs = require('node:fs');
+const { PRODUCT_ICON_PATH } = require('./brand.cjs');
 const indexPath = path.join(__dirname, 'ui', 'index.html');
 const developmentIndex = path.join(__dirname, '..', 'web', 'dist', 'index.html');
 const managementIndex = () => !app.isPackaged && fs.existsSync(developmentIndex) ? developmentIndex : indexPath;
@@ -110,7 +111,7 @@ function registerBridge() {
 }
 async function createWindow() {
   const startPage = managementIndex();
-  mainWindow = new BrowserWindow({ width:1360,height:920,minWidth:420,minHeight:640,title:'微光指引 · 管理中心',backgroundColor:'#FFF8EF',show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true} });
+  mainWindow = new BrowserWindow({ width:1360,height:920,minWidth:420,minHeight:640,title:'微光指引 · 管理中心',icon:PRODUCT_ICON_PATH,backgroundColor:'#FFF8EF',show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true} });
   managementVisibility.syncProtection(mainWindow);
   mainWindow.webContents.setWindowOpenHandler(() => ({action:'deny'}));
   mainWindow.webContents.on('will-navigate', event => event.preventDefault());

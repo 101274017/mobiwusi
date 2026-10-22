@@ -4,7 +4,9 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
-const { createPetToolWindow } = createRequire(import.meta.url)('../../apps/desktop/pet-tool-window.cjs');
+const require = createRequire(import.meta.url);
+const { PRODUCT_ICON_PATH } = require('../../apps/desktop/brand.cjs');
+const { createPetToolWindow } = require('../../apps/desktop/pet-tool-window.cjs');
 
 function deferred() {
   let resolve!: () => void;
@@ -42,7 +44,7 @@ describe('桌宠独立工具窗口，不复用或修改客户端主窗口', () =
     expect(current.windows).toHaveLength(0);
     await expect(current.tools.show('/pets/draw')).resolves.toBe(true);
     const window = current.windows[0]!;
-    expect(window.options).toMatchObject({ title: '微光指引桌宠 · 工具小屋', show: false, webPreferences: { preload: 'local-client/preload.cjs', contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true } });
+    expect(window.options).toMatchObject({ title: '微光指引桌宠 · 工具小屋', icon: PRODUCT_ICON_PATH, show: false, webPreferences: { preload: 'local-client/preload.cjs', contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true } });
     expect(window.loadFile).toHaveBeenCalledExactlyOnceWith('local-client/index.html');
     expect(window.setContentProtection).toHaveBeenCalledWith(true);
     expect(window.webContents.setWindowOpenHandler.mock.calls[0]![0]()).toEqual({ action: 'deny' });
