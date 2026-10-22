@@ -78,6 +78,7 @@ $summary = [ordered]@{
   apiPort         = $ApiPort
   ok              = $false
   error           = $null
+  recovery        = $null
   iisInstalled    = $false
   iisRestarted    = $false
   nodeVersion     = $null
@@ -86,6 +87,9 @@ $summary = [ordered]@{
   proxyNote       = $null
   checks          = [ordered]@{}
 }
+
+# Tracks whether the running service was torn down, so the catch block can restore it.
+$serviceTornDown = $false
 
 function Say([string]$message) { Write-Host "[nuanban-deploy] $message" }
 
@@ -137,6 +141,21 @@ function Get-HttpBody([string]$url) {
   } catch { return '' }
 }
 
+# Native tools such as appcmd/icacls write diagnostics to stderr. Under
+# $ErrorActionPreference = 'Stop' PowerShell turns those lines into terminating errors,
+# so run them in an isolated scope and report the exit code instead.
+function Invoke-Native([string]$exe, [string[]]$arguments) {
+  $previous = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    $output = & $exe @arguments 2>&1
+    $code = $LASTEXITCODE
+    return [pscustomobject]@{ exitCode = $code; output = ($output | Out-String).Trim() }
+  } finally {
+    $ErrorActionPreference = $previous
+  }
+}
+
 function Swap-Directory([string]$source, [string]$target, [string]$previous) {
   if (Test-Path -LiteralPath $previous) { Remove-Item -LiteralPath $previous -Recurse -Force }
   if (-not (Test-Path -LiteralPath $target)) {
@@ -145,16 +164,19 @@ function Swap-Directory([string]$source, [string]$target, [string]$previous) {
   }
   $serviceStopped = $false
   try {
-    Move-Item -LiteralPath $target -Destination $previous -Force
-  } catch {
-    Say "move of $target failed, stopping W3SVC for the swap"
-    try { Stop-Service -Name W3SVC -Force -ErrorAction Stop; $serviceStopped = $true } catch { }
-    Start-Sleep -Seconds 2
-    Move-Item -LiteralPath $target -Destination $previous -Force
-  }
-  Move-Item -LiteralPath $source -Destination $target -Force
-  if ($serviceStopped) {
-    try { Start-Service -Name W3SVC -ErrorAction Stop; Say 'W3SVC restarted after swap' } catch { }
+    try {
+      Move-Item -LiteralPath $target -Destination $previous -Force
+    } catch {
+      Say "move of $target failed, stopping W3SVC for the swap"
+      try { Stop-Service -Name W3SVC -Force -ErrorAction Stop; $serviceStopped = $true } catch { }
+      Start-Sleep -Seconds 2
+      Move-Item -LiteralPath $target -Destination $previous -Force
+    }
+    Move-Item -LiteralPath $source -Destination $target -Force
+  } finally {
+    if ($serviceStopped) {
+      try { Start-Service -Name W3SVC -ErrorAction Stop; Say 'W3SVC restarted after swap' } catch { }
+    }
   }
 }
 
@@ -184,6 +206,36 @@ try {
     $summary['payloadBuiltAt'] = $manifest.builtAt
     Say "payload commit $($manifest.gitCommit) built $($manifest.builtAt)"
   }
+
+  # ---------------------------------------------------------------- teardown
+  # The running supervisor holds C:\nuanban\app as its working directory, which blocks the
+  # directory swap below on Windows. Stop the task and every supervisor instance first.
+  $startScript = Join-Path $Root 'scripts\start-server.ps1'
+  $existingTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+  if ($existingTask) {
+    try { Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue } catch { }
+    try { Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction Stop } catch {
+      Say "could not unregister previous task: $($_.Exception.Message)"
+    }
+  }
+  $serviceTornDown = $true
+  try {
+    Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
+      Where-Object { $_.CommandLine -and $_.CommandLine.Contains($startScript) } |
+      ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+  } catch { }
+  try {
+    Get-CimInstance Win32_Process -Filter "Name='node.exe'" -ErrorAction SilentlyContinue |
+      Where-Object { $_.CommandLine -and $_.CommandLine.Contains('src/main.ts') } |
+      ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+  } catch { }
+  try {
+    Get-NetTCPConnection -LocalPort $ApiPort -State Listen -ErrorAction SilentlyContinue | ForEach-Object {
+      Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
+    }
+  } catch { }
+  Start-Sleep -Seconds 2
+  Say 'previous service instance stopped'
 
   # ---------------------------------------------------------------- web swap
   $web = Join-Path $Root 'web'
@@ -242,13 +294,14 @@ try {
   } catch {
     Say "app pool runtime set skipped: $($_.Exception.Message)"
   }
-  & $appcmd set config "$siteName" /section:defaultDocument /enabled:true '/+files.[value=index.html]' | Out-Null
-  & $appcmd set config "$siteName" /section:directoryBrowse /enabled:false | Out-Null
+  # defaultDocument / directoryBrowse come from web.config, so no extra appcmd calls are needed.
   Say "site '$siteName' -> $web on port $HttpPort"
 
   # grant read access to the site tree
-  & icacls.exe $web /grant 'IIS_IUSRS:(OI)(CI)(RX)' /T /Q | Out-Null
-  & icacls.exe (Join-Path $Root 'data') /grant 'SYSTEM:(OI)(CI)F' /T /Q | Out-Null
+  $aclWeb = Invoke-Native 'icacls.exe' @($web, '/grant', 'IIS_IUSRS:(OI)(CI)(RX)', '/T', '/Q')
+  if ($aclWeb.exitCode -ne 0) { Say "icacls note: $($aclWeb.output)" }
+  $aclData = Invoke-Native 'icacls.exe' @((Join-Path $Root 'data'), '/grant', 'SYSTEM:(OI)(CI)F', '/T', '/Q')
+  if ($aclData.exitCode -ne 0) { Say "icacls note: $($aclData.output)" }
 
   # ---------------------------------------------------------------- firewall
   $fwName = "Nuanban HTTP $HttpPort"
@@ -291,12 +344,7 @@ try {
   # ---------------------------------------------------------------- api service
   $startScript = Join-Path $scriptsDir 'start-server.ps1'
   if (-not (Test-Path -LiteralPath $startScript)) { throw "missing start script: $startScript" }
-  try {
-    Get-NetTCPConnection -LocalPort $ApiPort -State Listen -ErrorAction SilentlyContinue | ForEach-Object {
-      Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
-    }
-  } catch { }
-  & schtasks.exe /Delete /TN $taskName /F 2>$null | Out-Null
+
   $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$startScript`""
   $trigger = New-ScheduledTaskTrigger -AtStartup
   $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
@@ -313,7 +361,20 @@ try {
     Start-Sleep -Seconds 2
   }
   $summary['checks']['apiLoopbackHealthz'] = (Get-HttpStatus -url "http://127.0.0.1:$ApiPort/healthz")
-  if (-not $apiUp) { Say 'WARNING: API did not answer /healthz within 60s' }
+  $summary['checks']['apiListenerCount'] = @(Get-NetTCPConnection -LocalPort $ApiPort -State Listen -ErrorAction SilentlyContinue).Count
+  $summary['checks']['nodeProcessCount'] = @(Get-Process node -ErrorAction SilentlyContinue).Count
+  if (-not $apiUp) {
+    Say 'WARNING: API did not answer /healthz within 60s'
+    $serverLog = Join-Path $logs 'server.log'
+    if (Test-Path -LiteralPath $serverLog) {
+      $summary['serverLogTail'] = (Get-Content -LiteralPath $serverLog -Tail 15) -join ' | '
+      Say "server.log tail: $($summary['serverLogTail'])"
+    }
+    try {
+      $taskInfo = Get-ScheduledTaskInfo -TaskName $taskName -ErrorAction Stop
+      $summary['taskLastResult'] = $taskInfo.LastTaskResult
+    } catch { }
+  }
 
   # ---------------------------------------------------------------- reverse proxy
   if (-not $SkipProxy) {
@@ -345,7 +406,8 @@ try {
       } else { $hasArr = $false }
     }
     if ($hasRewrite -and $hasArr) {
-      & $appcmd set config -section:system.webServer/proxy /enabled:'True' /preserveHostHeader:'True' /commit:apphost | Out-Null
+      $proxyConfig = Invoke-Native $appcmd @('set', 'config', '-section:system.webServer/proxy', '/enabled:True', '/preserveHostHeader:True', '/commit:apphost')
+      if ($proxyConfig.exitCode -ne 0) { Say "proxy enable note: $($proxyConfig.output)" }
       Copy-Item -LiteralPath (Join-Path $payloadConfig 'web.config.proxy') -Destination (Join-Path $web 'web.config') -Force
       $summary['proxyEnabled'] = $true
       Say 'same-origin proxy enabled for /healthz and /v1/*'
@@ -375,6 +437,9 @@ try {
   if ($required -contains 0 -or $required -contains 404) {
     throw "site verification failed: $($summary['checks'] | ConvertTo-Json -Compress)"
   }
+  if (-not $apiUp) {
+    throw "API /healthz did not answer on 127.0.0.1:$ApiPort; check $logs\server.log and the scheduled task result"
+  }
   $summary['ok'] = $true
   Say 'deploy verified'
 }
@@ -383,6 +448,48 @@ catch {
   $summary['error'] = ($_.Exception.Message)
   Say "DEPLOY FAILED: $($_.Exception.Message)"
   Say $_.ScriptStackTrace
+
+  # Best effort: never leave the site down or without its service after a half-finished swap.
+  try {
+    $recoverWeb = Join-Path $Root 'web'
+    $recoverWebPrev = Join-Path $Root 'web.prev'
+    if (-not (Test-Path -LiteralPath $recoverWeb) -and (Test-Path -LiteralPath $recoverWebPrev)) {
+      Move-Item -LiteralPath $recoverWebPrev -Destination $recoverWeb -Force
+      Say 'restored web from web.prev'
+    }
+    $recoverApp = Join-Path $Root 'app'
+    $recoverAppPrev = Join-Path $Root 'app.prev'
+    if (-not (Test-Path -LiteralPath $recoverApp) -and (Test-Path -LiteralPath $recoverAppPrev)) {
+      Move-Item -LiteralPath $recoverAppPrev -Destination $recoverApp -Force
+      Say 'restored app from app.prev'
+    }
+  } catch { Say "rollback note: $($_.Exception.Message)" }
+
+  if ($serviceTornDown) {
+    try {
+      $recoverScript = Join-Path $Root 'scripts\start-server.ps1'
+      if ((Test-Path -LiteralPath $recoverScript) -and (Test-Path -LiteralPath (Join-Path $Root 'app\apps\server'))) {
+        $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$recoverScript`""
+        $trigger = New-ScheduledTaskTrigger -AtStartup
+        $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable `
+          -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew
+        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null
+        Start-ScheduledTask -TaskName $taskName
+        $summary['recovery'] = 'service task re-registered and started'
+        Say 'recovery: service task re-registered and started'
+      }
+    } catch { Say "service recovery note: $($_.Exception.Message)" }
+  }
+
+  try {
+    $svc = Get-Service -Name W3SVC -ErrorAction SilentlyContinue
+    if ($svc -and $svc.Status -ne 'Running') {
+      Start-Service -Name W3SVC -ErrorAction Stop
+      $summary['recovery'] = ($summary['recovery'] + '; W3SVC started').Trim('; ')
+      Say 'recovery: W3SVC started'
+    }
+  } catch { Say "W3SVC recovery note: $($_.Exception.Message)" }
 }
 finally {
   $resultPath = Join-Path $logs 'deploy-result.json'

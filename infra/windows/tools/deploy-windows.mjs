@@ -1,4 +1,4 @@
-// Push the 微光指引 (nuanban) Windows payload to an Aliyun ECS instance and run the
+﻿// Push the 寰厜鎸囧紩 (nuanban) Windows payload to an Aliyun ECS instance and run the
 // on-host deployment script through Cloud Assistant.
 //
 // Usage:
@@ -99,6 +99,17 @@ function publicHttpGet(url, timeoutMs = 15_000) {
   });
 }
 
+function decodeCommandOutput(output) {
+  if (!output) return '';
+  const trimmed = output.trim();
+  if (!/^[A-Za-z0-9+/=\r\n]+$/.test(trimmed)) return output;
+  try {
+    const decoded = Buffer.from(trimmed, 'base64').toString('utf8');
+    return decoded.includes('\u0000') ? output : decoded;
+  } catch {
+    return output;
+  }
+}
 async function pollSendFileResults(client, instanceId, names, timeoutMs = 300_000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
@@ -165,7 +176,7 @@ async function main() {
   const portOpen = (groupId, port) =>
     client.describeSecurityGroupAttribute(groupId).then((rules) =>
       (rules.Permissions?.Permission ?? []).some((rule) => {
-        if (rule.IpProtocol !== 'tcp') return false;
+        if (String(rule.IpProtocol).toLowerCase() !== 'tcp') return false;
         const [from, to] = String(rule.PortRange ?? '').split('/').map((v) => Number.parseInt(v, 10));
         return from <= port && port <= (Number.isNaN(to) ? from : to);
       })
@@ -273,7 +284,7 @@ exit $LASTEXITCODE
     if (status && !['Pending', 'Running', 'Stopped'].includes(status)) break;
     await sleep(10_000);
   }
-  const output = invocation?.Output ?? '';
+  const output = decodeCommandOutput(invocation?.Output ?? '');
   console.log('\n----- deploy output -----');
   console.log(output);
   console.log('----- end deploy output -----\n');

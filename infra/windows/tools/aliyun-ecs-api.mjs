@@ -1,4 +1,4 @@
-// Minimal Aliyun ECS OpenAPI (RPC style, SignatureVersion 1.0) client used by the Windows
+﻿// Minimal Aliyun ECS OpenAPI (RPC style, SignatureVersion 1.0) client used by the Windows
 // deployment tooling under infra/windows/tools.
 //
 // Credentials are read from the environment (ALIYUN_ACCESS_KEY_ID / ALIYUN_ACCESS_KEY_SECRET)
@@ -28,7 +28,8 @@ export function loadCredentials({ akFile } = {}) {
   }
   const file = akFile ?? process.env.ALIYUN_AK_FILE ?? path.resolve('.cache/aliyun-ak.json');
   if (fs.existsSync(file)) {
-    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const raw = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
+    const parsed = JSON.parse(raw);
     const accessKeyId = parsed.accessKeyId ?? parsed.AccessKeyId ?? parsed.AccessKeyID;
     const accessKeySecret =
       parsed.accessKeySecret ?? parsed.AccessKeySecret ?? parsed.AccessKeySecretValue;
@@ -128,24 +129,24 @@ export function createClient({ credentials, regionId = 'cn-beijing', endpoint } 
   }
 
   async function describeInstance(instanceId) {
-    const res = await call('DescribeInstances', { InstanceIds: JSON.stringify([instanceId]) });
+    const res = await call('DescribeInstances', { 'InstanceIds.1': instanceId });
     const instance = res.Instances?.Instance?.[0];
     if (!instance) throw new Error(`instance not found: ${instanceId}`);
     return instance;
   }
 
   async function cloudAssistantStatus(instanceId) {
-    const res = await call('DescribeCloudAssistantStatus', {
-      InstanceId: JSON.stringify([instanceId]),
-    });
-    const entry = res.InstanceCloudAssistantStatus?.InstanceCloudAssistantStatus?.[0];
+    const res = await call('DescribeCloudAssistantStatus', { 'InstanceId.1': instanceId });
+    const entry =
+      res.InstanceCloudAssistantStatusSet?.InstanceCloudAssistantStatus?.[0] ??
+      res.InstanceCloudAssistantStatus?.InstanceCloudAssistantStatus?.[0];
     if (!entry) throw new Error('cloud assistant status unavailable for instance');
     return entry;
   }
 
   async function sendFile({ instanceId, name, contentBase64, targetDir, timeout = 120, overwrite = true }) {
     return call('SendFile', {
-      InstanceId: JSON.stringify([instanceId]),
+      'InstanceId.1': instanceId,
       Name: name,
       Content: contentBase64,
       ContentType: 'Base64',
@@ -165,7 +166,7 @@ export function createClient({ credentials, regionId = 'cn-beijing', endpoint } 
   async function runCommand({ instanceId, script, timeout = 1800, name = 'nuanban-deploy' }) {
     const contentBase64 = Buffer.from(script, 'utf8').toString('base64');
     return call('RunCommand', {
-      InstanceId: JSON.stringify([instanceId]),
+      'InstanceId.1': instanceId,
       Type: 'RunPowerShellScript',
       ContentEncoding: 'Base64',
       CommandContent: contentBase64,
@@ -176,7 +177,11 @@ export function createClient({ credentials, regionId = 'cn-beijing', endpoint } 
 
   async function describeInvocationResults(invokeId) {
     const res = await call('DescribeInvocationResults', { InvokeId: invokeId });
-    return res.InvocationResults?.InvocationResult ?? [];
+    return (
+      res.Invocation?.InvocationResults?.InvocationResult ??
+      res.InvocationResults?.InvocationResult ??
+      []
+    );
   }
 
   async function describeSecurityGroupAttribute(securityGroupId) {
