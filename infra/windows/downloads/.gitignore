@@ -1,0 +1,11 @@
+# 本目录只提交说明文档。Windows 客户端分发产物（zip/exe/msi 等）体积大且不应入库，
+# 由 apps/desktop/out/ 生成后只在构建机或下载服务器上保存。
+*.zip
+*.exe
+*.msi
+*.msix
+*.appx
+*.7z
+*.nupkg
+Setup.*
+RELEASES

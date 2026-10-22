@@ -255,6 +255,22 @@ try {
   Copy-Item -LiteralPath $payloadScripts -Destination $scriptsDir -Recurse -Force
   Say "service scripts installed at $scriptsDir"
 
+  # Provider secrets live outside the payload, readable only by SYSTEM/Administrators.
+  $configDir = Join-Path $Root 'config'
+  if (-not (Test-Path -LiteralPath $configDir)) { New-Item -ItemType Directory -Path $configDir -Force | Out-Null }
+  $aclInherit = Invoke-Native 'icacls.exe' @($configDir, '/inheritance:r')
+  $aclSystem = Invoke-Native 'icacls.exe' @($configDir, '/grant', 'SYSTEM:(OI)(CI)F')
+  $aclAdmins = Invoke-Native 'icacls.exe' @($configDir, '/grant', 'Administrators:(OI)(CI)F')
+  if ($aclAdmins.exitCode -ne 0) { Say "config dir ACL note: $($aclAdmins.output)" }
+  $providerFile = Join-Path $configDir 'vision-provider.json'
+  if (Test-Path -LiteralPath $providerFile) {
+    $summary['visionProvider'] = 'configured'
+    Say 'vision provider config present (values not read by the deploy script)'
+  } else {
+    $summary['visionProvider'] = 'absent'
+    Say 'vision provider config absent; guidance route stays unavailable (503)'
+  }
+
   # ---------------------------------------------------------------- IIS role
   $appcmd = Join-Path $env:SystemRoot 'System32\inetsrv\appcmd.exe'
   $iisInstalled = Test-Path -LiteralPath $appcmd

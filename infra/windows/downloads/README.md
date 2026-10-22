@@ -1,0 +1,151 @@
+# 微光指引 · Windows 桌面客户端下载产物（未签名开发包）
+
+> 文档生成：2026-10-22 22:12（Asia/Shanghai）。构建命令 `pnpm desktop:package`，退出码 0。
+
+## ⚠️ 发布状态（先读）
+
+**本产物未签名、未做代码签名、未做真机验收、不是正式发布。**
+
+- 没有代码签名证书，未做 Authenticode / EV / OV 签名，未加时间戳；`Get-AuthenticodeSignature` 结果为 `NotSigned`。
+- 没有在其他 Windows 版本、真实显示器/多屏/DPI、真实账号、真实模型供应商或真实桌面上做过安装验收。
+- 本目录及本文只描述一次本机构建产物，不构成 D07/F19 发布签收，也不能用于对外正式分发或宣称功能已验收。
+- 产物只用于内部试用/联调，分发前必须由负责人重新确认范围与风险。
+
+## 1. 产物清单（绝对路径）
+
+| 产物 | 绝对路径 | 大小 | SHA256 |
+| --- | --- | --- | --- |
+| 便携 zip（推荐分发物） | `C:\Users\33864\Desktop\nuanban\apps\desktop\out\dist\NuanbanDemo-0.1.0-win32-x64-portable-20261022.zip` | 182,082,667 字节（173.648 MiB） | `42c5609e88cd6905bd4161622f39e6df3cb15314e3abdf595e9a8c09c34b4fb0` |
+| 可执行目录 | `C:\Users\33864\Desktop\nuanban\apps\desktop\out\NuanbanDemo-win32-x64\` | 78 个文件 / 418,924,042 字节（399.517 MiB） | 见下方目录清单 |
+| 主程序 | `...\out\NuanbanDemo-win32-x64\nuanban.exe` | 245,621,248 字节（234.243 MiB） | `c7af6cbe5ec98eecc72c512fac6b7bdb92fc9ed559e0458772dadb24ae611753` |
+| 应用归档 | `...\out\NuanbanDemo-win32-x64\resources\app.asar` | 34,169,465 字节（32.587 MiB） | `3696c3bdf9f31cccc87d3088523981284b60c77e328f252e30497aef665bed7d` |
+| 校验和清单 | `...\out\dist\SHA256SUMS.txt` | 620 字节 | 内含以上三个 SHA256 |
+| 目录全量文件清单 | `...\out\dist\NuanbanDemo-win32-x64-files.sha256` | 6,669 字节（78 行） | 清单文件自身 SHA256：`cb1de5812268829965731f008da9207118393edaf6aae9ce517c25b6eabdb067` |
+
+- zip 内顶层目录为 `NuanbanDemo-win32-x64/`，条目名使用正斜杠（符合 ZIP 规范），可直接解压到任意位置。
+- **没有安装包**：`apps/desktop/out/make/squirrel.windows/x64/` 为空，无 `Setup.exe`。原因见第 7 节。
+- **未上传到任何服务器，也未部署**：以上路径只存在于本构建机。
+
+## 2. 构建信息
+
+| 项 | 值 |
+| --- | --- |
+| 执行命令 | `pnpm desktop:package`（根目录，`scripts/desktop-package.ps1`） |
+| 退出码 | 0（成功） |
+| 构建时间 | 2026-10-22 22:07:16 开始，官方命令 22:08:10 完成（D03 报告 `generatedAt=2026-10-22T14:08:10.557Z`）；最终目录 mtime 2026-10-22 22:09:57–22:09:58（见下方说明） |
+| 构建机 | Windows 11 家庭版 中文版，10.0.26200，64 位；Windows PowerShell 5.1.26100.9711 |
+| Node / pnpm | Node v24.21.0 / pnpm 9.12.0 |
+| Electron | 44.7.2（`resources/version` = `44.7.2`，`electron.exe`/`nuanban.exe` PE ProductVersion 一致） |
+| 打包工具 | electron-forge 8.0.1、@electron-forge/maker-squirrel 8.0.1、electron-winstaller 5.4.4、@electron/asar 4.3.1 |
+| Electron 来源 | 本机离线缓存 `.cache/electron/electron-v44.7.2-win32-x64.zip`（174,965,874 字节），打包阶段未下载 Electron |
+| 产品版本 | 0.1.0（`apps/desktop/package.json`）；exe FileVersion/ProductVersion = 0.1.0 |
+| 源码状态 | git HEAD `1f178aa92592648b418a4d6518450c5439f5d342`（分支 `main`），**工作区 dirty**（含未提交改动），产物不能仅凭该 commit 重建 |
+| 产品/文件名 | 显示名“微光指引”；打包名 `NuanbanDemo`，可执行文件 `nuanban.exe` |
+
+说明：官方命令失败后的可选 `electron-forge make` 尝试各重跑了一次 `electron-forge package`，因此最终目录时间戳晚于 22:08:10；`resources/app.asar` SHA256 与 22:08:10 的 D03 报告完全一致（`3696c3bd…bed7d`），内容未变。
+
+## 3. 未签名与 Windows SmartScreen 预期
+
+- 本产物**没有任何签名**，不是“已签名但证书不受信任”，而是完全没有 Authenticode 签名。
+- 用户首次运行 `nuanban.exe` 时的预期行为：
+  - 可能出现 SmartScreen 提示 **“Windows 已保护你的电脑 / Windows protected your PC”**，发布者显示“未知发布者”；需要选择“更多信息 → 仍要运行”才能继续（这是 Windows 对未签名程序的默认提示，不是本包特有缺陷）。
+  - 可能弹出 **UAC“未知发布者”** 提示，因为 exe 未签名。
+  - Windows Defender/杀毒软件可能对 245 MB 未签名 Electron 可执行文件做首次扫描，导致启动偏慢或临时拦截。
+- 运行前先核对 SHA256（见第 6 节），确认文件未被篡改；哈希不一致时**不得运行**。
+- **禁止**为了运行本包而安装根证书、关闭 SmartScreen/Defender 或修改任何系统安全设置。若所在组织策略不允许运行未签名程序，请勿分发或运行本包。
+- 未签名意味着无法证明发布者身份、无法防篡改，也**不是正式发布**依据；对外分发需要负责人先完成签名（OV/EV + 时间戳）与真机验收。
+
+## 4. 安装 / 运行（便携版）
+
+本产物是**便携目录 + zip**，不是安装器，不写注册表、不装服务、不需要管理员权限。
+
+1. 校验 zip：在 PowerShell 中执行
+   `(Get-FileHash 'C:\Users\33864\Desktop\nuanban\apps\desktop\out\dist\NuanbanDemo-0.1.0-win32-x64-portable-20261022.zip' -Algorithm SHA256).Hash`
+   应为 `42C5609E88CD6905BD4161622F39E6DF3CB15314E3ABDF595E9A8C09C34B4FB0`。
+2. 解压 zip 到本地固定目录（不要在压缩包内直接运行，也不要在 Program Files 等受保护目录内运行）：
+   例如 `C:\Users\<用户名>\Apps\NuanbanDemo-0.1.0\`，解压后应存在 `NuanbanDemo-win32-x64\nuanban.exe`。
+3. 双击 `NuanbanDemo-win32-x64\nuanban.exe` 启动。启动后默认是独立悬浮桌宠，管理窗口按需打开；不会自动抓屏、不会自动开麦、不会自动连接业务后端或模型供应商。
+4. 首次运行会在 `%APPDATA%\@nuanban\desktop` 建立本机数据目录（Electron 默认 userData，路径来自包内 `package.json` name `@nuanban/desktop`），其中可能包含本机学习档案、提醒、加密后的配置等本地数据；不会上传。
+5. 组件完整性可离线核对：`resources\version` 内容为 `44.7.2`，`resources\app.asar` 与 `app.asar.unpacked` 存在，后者含 5 个 PowerShell 脚本（含 `wake\windows-local-wake.ps1` 等），缺失会导致相关功能不可用而不是“静默成功”。
+
+## 5. 卸载
+
+1. 在客户端/桌宠中正常退出（含托盘退出），确认进程 `nuanban.exe` 已结束。
+2. 直接删除解压出来的整个 `NuanbanDemo-win32-x64` 目录即可；没有安装器、“程序和功能”卸载项、服务、计划任务或注册表项需要清理。
+3. 可选：删除 `%APPDATA%\@nuanban\desktop` 以清除本机数据。**注意**：这会删除本机学习档案、提醒、加密配置/凭证引用等，删除前自行备份；不删则数据保留。
+4. 不要删除 `%APPDATA%\electron` 等可能被其他 Electron 程序共用的目录。
+
+## 6. 冒烟检查结果（离线；未启动 GUI、未采集、未开麦、未联网）
+
+| 检查 | 结果 |
+| --- | --- |
+| `node scripts/check-d03-candidate.mjs` | `success=true`、`status=matched`、`extraPackagedFiles=[]`、退出码 0；`apps/web/dist` 与包内 `ui/` 全部文件逐字节一致，归档 SHA256 `3696c3bd…bed7d` |
+| ASAR 完整性 | `resources/app.asar` 193 个条目 / 169 个文件全部成功提取并计算哈希，0 失败；19 个目录条目；`app.asar.unpacked` 含 5 个 `.ps1` 与 `read-provider-secret.ps1` |
+| Electron/版本 | `resources/version` = `44.7.2`；exe FileVersion/ProductVersion = `0.1.0`；`Get-AuthenticodeSignature` = `NotSigned` |
+| zip 完整性 | 7-Zip `t` 测试 `Everything is Ok`；78 个文件 / 7 个目录，解压后 418,924,042 字节；zip 内 `nuanban.exe`、`resources/app.asar` 的 SHA256 与目录中的文件一致 |
+| 目录文件清单 | 78 个文件全部记录在 `NuanbanDemo-win32-x64-files.sha256`，清单文件 SHA256 `cb1de581…b067` |
+
+明确**没有做**（因此不能当作验收依据）：未启动可见 GUI 窗口（避免干扰使用中的桌面）、未启用屏幕采集/麦克风/本地唤醒、未连接任何真实模型供应商或业务后端、未点击任何系统授权、未安装到另一台真机、未测试多屏/混合 DPI/远程桌面/无障碍、未测试安装器（不存在）、未做长时间运行与崩溃恢复。
+
+## 7. 已知问题与需要负责人决策的事项
+
+1. **没有安装包（Squirrel Setup.exe 失败）**：两次执行
+   `pnpm --filter @nuanban/desktop exec electron-forge make` 均在 “Making a squirrel distributable for win32/x64” 阶段失败，错误为
+   `Fatal error: Unable to commit changes`（来自 electron-winstaller 5.4.4 自带的 `rcedit.exe`，在给打包副本设置图标时失败）；`out/make/squirrel.windows/x64/` 为空。
+   官方 `pnpm desktop:package` 本身只做 `electron-forge package`，按 `apps/desktop/README.md` 的说明不创建正式安装器，因此本次交付便携版。
+   如需 Setup.exe：需要改打包配置（如 maker 选项/跳过图标更新）或升级/替换 electron-winstaller 后重新验证，属于打包配置修改，需负责人批准后再做。
+2. **签名证书缺失**：本机无代码签名证书，未尝试签名、未安装任何证书。正式对外分发前需由负责人提供证书并签名+时间戳。
+3. **体积**：zip 173.65 MiB，解压后 399.52 MiB（Electron 运行时约 245 MB 的 `nuanban.exe` 占主要部分）；首次下载、解压和 SmartScreen/杀软扫描都会偏慢，服务器带宽/对象存储上传需要预留。
+4. **exe 元数据仍是 Electron 默认值**：`CompanyName=GitHub, Inc.`、`FileDescription/ProductName=NuanbanDemo`，未改为“微光指引”；对外分发可能造成发布者困惑并加重 SmartScreen 不信任提示，属于正式发布前应修复项。
+5. **源码工作区 dirty**：产物包含未提交改动，不能由 HEAD `1f178aa` 单独重建；需要可复现构建时应先固定提交。
+6. **未做真机验收**：没有任何机器安装/运行验收记录；本文件只证明产物结构与字节完整性。
+7. **无自动更新**：未配置自动更新通道，升级需手动替换便携目录或后续安装器方案。
+
+## 8. 服务端边界（只提供下载和 API，不运行客户端）
+
+- 服务端（`C:\nuanban` 的 IIS 静态站点 + 本机 Node API，见 `infra/windows/README.md`）**只提供静态文件下载和 API**，**不在服务器上运行、安装或代理 Windows 客户端**：不运行 Electron、不启动 `nuanban.exe`、不执行客户端的采集/语音/模型功能。
+- 客户端始终在用户自己的 Windows 电脑上运行；API 与静态站点是两回事，客户端是否可用不因部署了 Web/API 而改变。
+- 建议分发方式（本次未执行，需负责人确认后操作）：把 zip 复制到服务器下载目录（例如 `C:\nuanban\downloads\`，或 IIS 站点的 `/downloads/` 虚拟目录），只读提供 HTTP 下载，并把本文件的 SHA256 一并展示；不要放在可执行代码目录，也不要让 IIS 执行该目录中的 `.exe`。
+- **不要把任何分发产物提交到 git**：`apps/desktop/out/` 已在根 `.gitignore` 中忽略；本目录新增 `.gitignore` 仅用于防止 `infra/windows/downloads/` 中未来放入的二进制被误提交。
+- 下载校验以本文件第 1 节 SHA256 为准；服务器/CDN 上的文件若哈希不一致，不得分发。
+
+## 9. 复现与校验命令（构建机）
+
+```powershell
+cd C:\Users\33864\Desktop\nuanban
+
+# 1) 官方打包（含 web/avatar 构建；需要已安装 Electron 44.7.2 与 .cache/electron 缓存）
+pnpm desktop:package
+
+# 2) 包内 UI 与当前 web 构建逐字节核对
+node scripts/check-d03-candidate.mjs
+
+# 3) 重新生成便携 zip（本机使用 electron-winstaller 自带的 7z-x64.exe；
+#    不同压缩工具/级别会得到不同 SHA256，正式分发的哈希以第 1 节为准）
+$sevenZip = (Resolve-Path 'node_modules/.pnpm/electron-winstaller@5.4.4/node_modules/electron-winstaller/vendor/7z-x64.exe').Path
+Push-Location apps\desktop\out
+& $sevenZip a -tzip -mx=5 'dist\NuanbanDemo-0.1.0-win32-x64-portable-20261022.zip' 'NuanbanDemo-win32-x64'
+Pop-Location
+
+# 4) 校验
+(Get-FileHash 'apps\desktop\out\dist\NuanbanDemo-0.1.0-win32-x64-portable-20261022.zip' -Algorithm SHA256).Hash
+node scripts/check-d03-candidate.mjs
+```
+
+> 本文件记录的是 2026-10-22 这一次构建的产物；重新构建后路径/大小/哈希都会变化，需要重新生成 `SHA256SUMS.txt` 与本说明。若产物内容或版本变化，本文件的“未签名、未真机验收、不是正式发布”结论必须重新评估。
+
+## 10. Android 构建产物（同批次，debug 包）
+
+> 构建记录来自同一次 2026-10-22 构建批次，细节见构建机 `.cache/android-build-report.json`。**debug 签名、未做 release 签名、未做真机验收**，与第 1 节的“未签名/未验收”边界一致。
+
+| 产物 | 绝对路径 | 大小 | SHA256 | 变体 |
+| --- | --- | --- | --- | --- |
+| 普通客户端 `:app` | `apps\android\app\build\outputs\apk\debug\app-debug.apk` | 5,734,485 字节（5.47 MiB） | `BBBA3458908DCD0004CC87FAB73158D6BF8D273C1347A572DB9AE626726C38D9` | debug，包名 `org.nuanban.assistant` |
+| 独立桌宠宿主 `:standalone` | `apps\android\standalone\build\outputs\apk\debug\standalone-debug.apk` | 88,034,866 字节（83.96 MiB） | `9B226EF7B4908228C3CE70B05268A883178950133CF218CCA056FA63C65E912E` | debug，包名 `org.nuanban.assistant.standalone` |
+
+- 构建命令：`pnpm android:build -Offline`（`:app:assembleDebug`，50s）；`apps/android/gradlew.bat -p apps/android :standalone:assembleDebug --no-daemon --offline`（23s）。两条命令退出码均为 0，依赖全部命中本机 Gradle 缓存。
+- 两者均通过 `apksigner verify`（v2 scheme）与 `zipalign -c 4`；签名证书为构建机 `~/.android/debug.keystore` 的 Android Debug 证书，不能用于正式分发。
+- APK 内 `assets/ui/index.html` 与同批 `apps/web/dist/index.html` SHA256 一致（共享 UI 同步成功）。
+- **真机验收条件不具备**：无真机/模拟器连接，未安装、未抓屏、未录音、未调用云服务；通知、精确闹钟、悬浮窗、MediaProjection 前台服务、OCR/后台提醒均未验证。构建成功不等于真机可用。
+- 距可发布仍缺：release 签名与 release 构建（无 signingConfigs/minify/AAB）、版本号仍为 demo/validation、商店政策与隐私合规、standalone 83.96 MiB 体积优化。
+- 与桌面端相同：**不要把 APK 提交到 git**（`build/` 已被忽略），本次未上传到服务器。

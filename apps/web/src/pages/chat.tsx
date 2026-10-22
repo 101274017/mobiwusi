@@ -4,6 +4,7 @@ import { ArrowRight, ArrowUpRight, ImagePlus, Mic, Monitor, RotateCcw, Send, Squ
 import { ServiceFailure, readConversation, type ImageQuestionStatus } from '@nuanban/application';
 import { detectTextRisk } from '@nuanban/domain';
 import { services, imageQuestionService } from '../composition';
+import { createWebId } from '../random-id';
 import { announce, useApp } from '../store';
 import { Badge, Modal, PageTitle, Pet, useSpeech } from '../components';
 import { ScreenObservationPanel } from '../screen-observation';
@@ -87,14 +88,14 @@ export function ChatPage() {
     controller.current = abort;
     setFailure(null);
     setInput('');
-    const answerId = crypto.randomUUID();
+    const answerId = createWebId();
     const risk = detectTextRisk(question);
     if (risk === 'private' || risk === 'transaction') {
       const warning = risk === 'transaction'
         ? '这涉及支付、转账或验证码，先停下来。微光指引不会指导这类操作，请用熟悉的电话号码与家人确认。'
         : '这里可能涉及密码或私人信息，先不要发送。请离开敏感页面后重新提问。';
       setMessages(previous => [...previous,
-        { id: crypto.randomUUID(), role: 'user', text: '涉及敏感内容的问题（已在本机拦截，未发送）', state: 'completed' },
+        { id: createWebId(), role: 'user', text: '涉及敏感内容的问题（已在本机拦截，未发送）', state: 'completed' },
         { id: answerId, role: 'assistant', text: warning, state: 'completed' },
       ]);
       setCaption(warning);
@@ -106,7 +107,7 @@ export function ChatPage() {
     activeDraft.current = draft;
     setCaption(attachment ? '正在检查图片接口与本机安全状态…' : '微光指引正在整理讲解…');
     setMessages(previous => [...previous,
-      { id: crypto.randomUUID(), role: 'user', text: question + (attachment ? '\n[已附 1 张图片]' : ''), state: 'completed' },
+      { id: createWebId(), role: 'user', text: question + (attachment ? '\n[已附 1 张图片]' : ''), state: 'completed' },
       { id: answerId, role: 'assistant', text: '', state: 'streaming', source: attachment ? 'image' : undefined },
     ]);
     try {

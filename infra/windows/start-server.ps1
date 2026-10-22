@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 .SYNOPSIS
   Supervise the 寰厜鎸囧紩 (nuanban) API on 127.0.0.1:3000 for the NuanbanServer scheduled task.
@@ -68,6 +68,33 @@ $env:PORT = [string]$ApiPort
 $env:NUANBAN_SERVER_STORAGE = 'sqlite'
 $env:NUANBAN_SERVER_DB_PATH = Join-Path $Root 'data\server.sqlite'
 $env:NUANBAN_SERVER_ENV = 'production'
+
+# Optional server-side vision provider. The file is written by
+# infra/windows/tools/configure-vision-provider.mjs and locked to SYSTEM/Administrators.
+# Keys stay in the service process environment; they are never logged or exposed over HTTP.
+$providerFile = Join-Path $Root 'config\vision-provider.json'
+if (Test-Path -LiteralPath $providerFile) {
+  try {
+    $provider = Get-Content -LiteralPath $providerFile -Raw | ConvertFrom-Json
+    if ($provider.baseUrl -and $provider.model -and $provider.apiKey) {
+      # Text conversation (browser/server) reads NUANBAN_AI_*; the guidance route reads NUANBAN_VISION_*.
+      $env:NUANBAN_AI_BASE_URL = [string]$provider.baseUrl
+      $env:NUANBAN_AI_MODEL = [string]$provider.model
+      $env:NUANBAN_AI_API_KEY = [string]$provider.apiKey
+      $env:NUANBAN_VISION_BASE_URL = [string]$provider.baseUrl
+      $env:NUANBAN_VISION_MODEL = if ($provider.visionModel) { [string]$provider.visionModel } else { [string]$provider.model }
+      $env:NUANBAN_VISION_API_KEY = [string]$provider.apiKey
+      $env:NUANBAN_TEXT_MODEL = [string]$provider.model
+      Write-Log "vision provider loaded: base=$($provider.baseUrl) textModel=$($provider.model) visionModel=$($env:NUANBAN_VISION_MODEL) key=***"
+    } else {
+      Write-Log 'vision provider config incomplete (baseUrl/model/apiKey required); provider stays disabled'
+    }
+  } catch {
+    Write-Log "vision provider config unreadable; provider stays disabled: $($_.Exception.Message)"
+  }
+} else {
+  Write-Log 'no vision provider config; text conversation and guidance routes report unavailable (503)'
+}
 
 Write-Log "supervisor start: node $(& $nodeExe -v 2>$null), dir=$serverDir, bind=127.0.0.1:$ApiPort, db=$($env:NUANBAN_SERVER_DB_PATH)"
 

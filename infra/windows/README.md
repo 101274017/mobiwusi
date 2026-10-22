@@ -140,6 +140,28 @@ Start-ScheduledTask -TaskName NuanbanServer
 - 日志 `server.log` 为 UTF-8 追加，Node 的 stdout/stderr 都合并进去；`logger` 侧不做轮转，只在启动时把超过 20 MB 的旧日志改名为 `server.log.1`。
 - 首次部署需要 ECS 出网（Node MSI、可选代理 MSI）；离线主机可用 `-SkipNodeInstall` 并把 MSI 预先放到 `C:\nuanban\staging`。
 
+## 服务端真实模型网关（可选，默认关闭）
+
+服务端有两条能力需要供应商：浏览器/服务端文本对话（读 `NUANBAN_AI_BASE_URL`、`NUANBAN_AI_MODEL`、`NUANBAN_AI_API_KEY`）和单帧指引（读 `NUANBAN_VISION_*`）。未配置时两条路由都返回 503，不回落固定答案或模拟对话。
+
+配置方式（密钥只落服务器，不进仓库/前端/产物）：
+
+```powershell
+# 首选项：从环境变量读取密钥，避免 shell 历史
+$env:NUANBAN_VISION_API_KEY='<key>'
+node infra/windows/tools/configure-vision-provider.mjs `
+  --instance i-2zedkag2x1e9e610v8jh `
+  --base-url https://<openai-compatible-gateway>/v1 `
+  --model <text-model> --vision-model <vision-model>
+```
+
+工具行为：把 `{baseUrl, model, visionModel, apiKey}` 经云助手 `SendFile` 写到 `C:\nuanban\config\vision-provider.json`，用 `icacls` 锁成 `SYSTEM`/`Administrators` 可读，然后重启守护任务，由 [start-server.ps1](start-server.ps1) 在启动时读入并映射为 `NUANBAN_AI_*` 与 `NUANBAN_VISION_*` 环境变量。日志只记录 base/model，不记录密钥。
+
+- 约束：`--base-url` 必须 HTTPS；服务端自己还会拒绝 URL 内凭证、query、fragment、私网/回环主机与 IP 字面量（见 `apps/server/src/standalone-guidance.ts`）。
+- 轮换：重跑上面的命令即可（会覆盖并重启）。清除：加 `--clear`，服务重启后路由回到 503。
+- 说明：`NUANBAN_AI_*` 对应的工作区对话实现尚未提交（见仓库当前未提交改动）；已部署的提交版后端只使用 `NUANBAN_VISION_*` 的单帧指引路由。
+- 计费与合规：真实供应商会产生费用并接收脱敏后的文本/单帧图像，属于所有者自担的外部条件，不能写成已验收供应。
+
 ## 实际部署记录（2026-10-22，Asia/Shanghai）
 
 本节记录**本次真实执行过的一次部署**及其实测结果，不是发布签收。
