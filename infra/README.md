@@ -4,4 +4,6 @@
 
 PostgreSQL 不暴露公网，TLS/API/任务进程同版本，TURN 独立端口与预算。当前没有真实服务，故不提供假可用的生产 Compose。
 
+Windows 试验托管脚手架见 [windows/README.md](windows/README.md)：在那台 Windows Server ECS 上用 IIS 托管 `apps/web/dist`、以计划任务常驻 Node API、按需用 ARR 做同源代理。它是所有者自用的试验环境，不代表正式发布、生产数据或 F19 部署签收。
+
 正式发布须完成供应与监护评审、数据迁移/备份恢复、密钥轮换、签名、回滚演练及 C/D/F 关口。未接入能力必须保留发送门默认关闭，禁止为了演示传原始帧。
