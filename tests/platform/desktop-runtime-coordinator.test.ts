@@ -281,7 +281,7 @@ describe('屏幕分析结果的可见反馈', () => {
     expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, label: '显示' }));
   });
 
-  it('回复等待新帧时保留授权共享，不因敏感文字停止且不安装过期指引', async () => {
+  it('回复等待新帧时保留授权共享，不因敏感文字停止，并在新安全帧核验后绘制箭头', async () => {
     const setup = fixture();
     await setup.start();
     const response = deferred<AnalysisResult>();
@@ -295,9 +295,11 @@ describe('屏幕分析结果的可见反馈', () => {
     response.resolve(stepResponse(input));
     await setup.runtime.whenIdle();
     expect(setup.runtime.snapshot().observation).toMatchObject({ state: 'observing', captureActive: true, reason: 'authorized_sharing' });
-    expect(setup.onTarget.mock.calls.some(([target]) => target?.visible)).toBe(false);
-    expect(input.signal.aborted).toBe(true);
-    expect(setup.analyze).toHaveBeenCalledTimes(2);
+    expect(setup.onTarget.mock.calls.some(([target]) => target?.visible)).toBe(true);
+    expect(input.signal.aborted).toBe(false);
+    // 新安全帧到达后本地按标签+4px 重新核验目标，不再第二次上云。
+    expect(setup.analyze).toHaveBeenCalledTimes(1);
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
   });
 
   it('指引窗口拒绝显示时明确告知，而不是宣称已有箭头', async () => {
@@ -1454,13 +1456,25 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
         } else {
           expect(setup.runtime.snapshot().observation.state).toBe('privacy_paused');
         }
-        expect(pending.request.canSend()).toBe(false);
-        expect(pending.request.signal.aborted).toBe(true);
+        if (condition === 'sensitive') {
+          // 授权连续共享下，新增的敏感文字不会取消已在途的脱敏画面分析；上传帧本身已脱敏。
+          expect(pending.request.canSend()).toBe(true);
+          expect(pending.request.signal.aborted).toBe(false);
+        } else {
+          expect(pending.request.canSend()).toBe(false);
+          expect(pending.request.signal.aborted).toBe(true);
+        }
       } finally { pending.complete(); }
       await setup.runtime.whenIdle();
-      expect(setup.runtime.snapshot().task.state).not.toBe('completed');
-      expect(setup.records).toEqual([]);
-      expect(setup.suggestReview).not.toHaveBeenCalled();
+      if (condition === 'sensitive') {
+        // 本地已出现上一步没有的“字体大小”证据，脱敏画面分析可以正常完成并记录。
+        expect(setup.runtime.snapshot().task.state).toBe('completed');
+        expect(setup.records).toHaveLength(1);
+      } else {
+        expect(setup.runtime.snapshot().task.state).not.toBe('completed');
+        expect(setup.records).toEqual([]);
+        expect(setup.suggestReview).not.toHaveBeenCalled();
+      }
     },
   );
 
@@ -1760,5 +1774,53 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     expect(setup.suggestReview).not.toHaveBeenCalled();
     await setup.runtime.finishTeaching();
     expect(setup.records.map(record => [record.sourceGuideId, record.result])).toEqual([[firstGuideId, 'completed'], [secondGuideId, 'unfinished']]);
+  });
+});
+
+describe('连续共享下的画面抖动不打断指引', () => {
+  it('无关文字抖动不中止在途模型请求，返回后按新帧核验并绘制箭头', async () => {
+    const setup = fixture({ intervalMs: 15 });
+    await setup.start();
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+    const input = setup.analyze.mock.calls[0][0];
+    const detects = setup.source.detect.mock.calls.length;
+    // 真实屏幕上的时钟、光标、正文与 OCR 抖动：不属于可识别控件，不能改变安全帧身份。
+    setup.controls.labels.push('今天天气不错');
+    await vi.waitFor(() => expect(setup.source.detect.mock.calls.length).toBeGreaterThan(detects + 2));
+    expect(setup.analyze).toHaveBeenCalledOnce();
+    expect(input.signal.aborted).toBe(false);
+    response.resolve(stepResponse(input));
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+    expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, label: '显示' }));
+  });
+
+  it('箭头显示后无关文字抖动不隐藏箭头，也不重复上云', async () => {
+    const setup = fixture({ intervalMs: 15 });
+    await beginTeaching(setup);
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+    const analyzeCalls = setup.analyze.mock.calls.length;
+    const detects = setup.source.detect.mock.calls.length;
+    setup.controls.labels.push('今天天气不错');
+    await vi.waitFor(() => expect(setup.source.detect.mock.calls.length).toBeGreaterThan(detects + 2));
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledTimes(analyzeCalls);
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+    expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, label: '显示' }));
+  });
+
+  it('目标从新帧消失时隐藏箭头但不自动重新上云', async () => {
+    const setup = fixture({ intervalMs: 15 });
+    await beginTeaching(setup);
+    const analyzeCalls = setup.analyze.mock.calls.length;
+    setup.controls.labels = ['今天天气不错', '返回'];
+    await vi.waitFor(() => expect(setup.runtime.snapshot().task.targetState).toBe('stale'));
+    await setup.runtime.whenIdle();
+    expect(setup.analyze).toHaveBeenCalledTimes(analyzeCalls);
+    expect(setup.onTarget).toHaveBeenLastCalledWith(null);
+    expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
   });
 });

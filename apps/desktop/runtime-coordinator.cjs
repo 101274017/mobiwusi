@@ -413,6 +413,16 @@ function createDesktopRuntime(options) {
     return matches.length === 1 ? matches[0] : null;
   }
 
+  function relocatedElement(original, originalFrame, currentFrame) {
+    // Retention of an already verified arrow tolerates unrelated text drift: same capture scope plus
+    // the same label within 4 px is enough to keep pointing at the same control. Install-time
+    // verification keeps using the strict signature-based currentElement().
+    if (!sameFrameScope(originalFrame, currentFrame)) return null;
+    const matches = currentFrame.elements.filter(element => normalizeLabel(element.label) === normalizeLabel(original.label)
+      && Math.abs(element.rect.x - original.rect.x) <= 4 && Math.abs(element.rect.y - original.rect.y) <= 4);
+    return matches.length === 1 ? matches[0] : null;
+  }
+
   function currentShellElement(step, frame) {
     const original = step?.element;
     if (!original || !['taskbar', 'desktop'].includes(original.surface)
@@ -672,16 +682,22 @@ function createDesktopRuntime(options) {
           return;
         }
         const recoveredStaleFrame = staleFrameRetries > 0;
+        const scopeChanged = Boolean(old && !sameFrameScope(old, admitted));
         const changed = Boolean(old && !sameFrameContext(old, admitted));
+        const progressed = Boolean(previousStep && verifiedTransition(previousStep, admitted));
         const retainedTarget = ((reason === 'page_changed' && state.task.state === 'awaiting_action')
           || (reason === 'verification' && state.task.state === 'verifying'))
-          && previousStep && !verifiedTransition(previousStep, admitted)
-          ? currentShellElement(previousStep, admitted) : null;
+          && previousStep && !progressed
+          ? (currentShellElement(previousStep, admitted)
+            ?? (reason === 'page_changed' ? relocatedElement(previousStep.element, previousStep.frame, admitted) : null))
+          : null;
         latestFrame = admitted;
         gateOpen = true;
         const sharingUpdated = state.observation.reason !== 'authorized_sharing';
         state.observation.reason = 'authorized_sharing';
-        if (changed && !retainedTarget) {
+        // A frame that changed its capture scope, contains restricted text, or no longer offers any
+        // recognizable control cannot verify an in-flight answer. Benign text drift does not.
+        if (!retainedTarget && (scopeChanged || admitted.elements.length === 0)) {
           clearTarget();
           invalidateAnalysis();
         }
@@ -708,16 +724,20 @@ function createDesktopRuntime(options) {
           const element = currentElement(previousStep.element, previousStep.frame, admitted);
           if (element) showStepTarget(admitted, element);
           publish();
-        } else if (reason !== 'page_changed' || changed) queueAnalysis(admitted, reason);
-        else if (previousStep && state.task.state === 'awaiting_action') {
-          const element = currentElement(previousStep.element, previousStep.frame, admitted);
-          const targetState = state.task.targetState;
-          if (element) showStepTarget(admitted, element);
-          if (targetState !== state.task.targetState || recoveredStaleFrame) {
-            if (state.task.targetState === 'visible') state.analysis = { state: 'ready', message: '新的本地安全画面已核对；请核对箭头并亲手操作。' };
+        } else if (reason === 'page_changed' && previousStep && state.task.state === 'awaiting_action') {
+          if (progressed) {
+            // The expected post-action controls appeared: ask the model to confirm and continue.
+            queueAnalysis(admitted, reason);
+            return;
+          }
+          clearTarget();
+          if (state.task.targetState !== 'stale' || state.analysis.state !== 'ready') {
+            state.task.targetState = 'stale';
+            state.analysis = { state: 'ready', message: '新画面里暂时找不到刚才的位置；箭头已隐藏。目标被遮挡或正在滚动时可稍后再试，也可以亲手操作后点“我点好了”。' };
             publish();
           }
-        } else if (recoveredStaleFrame) publish();
+        } else if (reason !== 'page_changed' || changed) queueAnalysis(admitted, reason);
+        else if (recoveredStaleFrame) publish();
         return;
       } catch (error) {
         if (sameGeneration(generation) && !controller.signal.aborted) await closeObservation(captureFailureReason(error?.code), true);

@@ -170,7 +170,10 @@ function evaluateFrame(frame, detection, options, selected) {
   if (requiresRedaction && sanitizedHash === frame.frameHash) { sanitizedPng.fill(0); return deny('unredacted_frame'); }
   if (now - frame.capturedAt > (options.maxAgeMs ?? 5000)) { sanitizedPng.fill(0); return deny('stale_frame'); }
   const elements = allowedWords.map((word, index) => ({ id: `element_${frame.frameHash.slice(0, 12)}_${index}`, label: word.text.trim(), rect: { ...word.rect }, ...(word.surface ? { surface: word.surface } : {}) }));
-  const contextWords = scene === 'controls_only' ? allowedWords : detection.words;
+  // Authorized continuous sharing must not treat unrelated text drift (clock, cursor, OCR jitter,
+  // body text) as a new screen; the stable identity of a frame is the set of recognizable controls
+  // that arrows are allowed to point at. Controls-only frames already used this rule.
+  const contextWords = scene === 'controls_only' || authorizedSharing ? allowedWords : detection.words;
   const signature = digest(JSON.stringify(contextWords.map(word => [normalizeLabel(word.text), Math.round(word.rect.x / 4), Math.round(word.rect.y / 4), Math.round(word.rect.width / 4), Math.round(word.rect.height / 4), ...(word.surface ? [word.surface] : [])])));
   const admitted = {
     decision: 'allow', risk: 'safe', reason: authorizedSharing ? 'authorized_sharing' : scene === 'controls_only' ? 'locally_projected_controls' : 'locally_checked', policyVersion, frameId: frame.frameId ?? frame.frameHash,

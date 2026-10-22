@@ -56,6 +56,8 @@ function parseArgs(argv) {
       case '--instance': args.instanceId = next(); break;
       case '--region': args.region = next(); break;
       case '--port': args.port = Number.parseInt(next(), 10); break;
+      case '--desktop-zip': args.desktopZip = next(); break;
+      case '--desktop-remote': args.desktopRemote = next(); break;
       case '--skip-desktop': args.skipDesktop = true; break;
       case '--skip-android': args.skipAndroid = true; break;
       case '--keep-files': args.keepFiles = true; break;
@@ -65,7 +67,6 @@ function parseArgs(argv) {
   if (!args.instanceId) throw new Error('--instance is required');
   return args;
 }
-
 function log(message) {
   const stamp = new Date().toISOString().slice(11, 19);
   console.log(`[${stamp}] ${message}`);
@@ -152,6 +153,9 @@ async function main() {
   const publicIp = instance.PublicIpAddress?.IpAddress?.[0];
   if (!publicIp) throw new Error('instance has no public IP');
   log(`instance ${args.instanceId} public ${publicIp}, status ${instance.Status}`);
+
+  if (args.desktopZip) artifacts.desktopZip.local = path.resolve(args.desktopZip);
+  if (args.desktopRemote) artifacts.desktopZip.remote = args.desktopRemote;
 
   const selected = [];
   if (!args.skipDesktop) selected.push(['desktop', artifacts.desktopZip]);
