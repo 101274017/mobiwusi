@@ -1,5 +1,7 @@
 # D05 预备检查记录
 
+> 现行产品说明（2026-10-22）：本项目显示名称为**微光指引**，功能与平台边界见[当前产品状态](../../implementation/product-current-state.md)。本页任务元数据、原始 WBS 引文、哈希、生成日期与验收值保留为批次快照；文档同步不表示重跑或签收，不能据旧卡片推定当前功能尚未开发。
+
 检查时间：2026-10-17T11:53:38.674+08:00（Asia/Shanghai）  
 任务状态：`blocked / preparatory_not_accepted`  
 性质：现有 Windows 本地/合成预检与限制交接登记；不是 Windows 真机验收、真实捕获验证、人工签收、独立复核、发布批准或负责人 Go/No-Go。
@@ -61,4 +63,3 @@
 - 已核对计划原始行 `#L332` 与 SHA-256 `076ad15d16eb32e38629366cdad248bbc1021055e1dc0bf4ef598a7bc0bddb52`，结果：`passed`。
 - 已逐一确认任务卡列出的 8 个 evidence 路径在本地存在；本轮未新增、未改写 evidence，结果：`passed`。
 - 已核对 M-01～M-11 均为 `blocked`、M-12 为 `not-run`，并保留真实捕获、独立复核和人工签收缺失边界，结果：`passed`。
-

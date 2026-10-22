@@ -1,5 +1,7 @@
 # E07 任务卡生成与前置检查
 
+> 现行产品说明（2026-10-22）：本项目显示名称为**微光指引**，功能与平台边界见[当前产品状态](../../implementation/product-current-state.md)。本页任务元数据、原始 WBS 引文、哈希、生成日期与验收值保留为批次快照；文档同步不表示重跑或签收，不能据旧卡片推定当前功能尚未开发。
+
 生成时间：2026-10-17T23:40:07+08:00（Asia/Shanghai）  
 正式状态：`blocked / preparatory_not_accepted`；`execution_started=false`  
 开发状态：`implemented`；开发已开始：`true`；自动验证：`not_run`。

@@ -1,5 +1,7 @@
 # E/F 执行任务索引（V1.2 双状态）
 
+> 现行产品说明（2026-10-22）：本项目显示名称为**微光指引**，功能与平台边界见[当前产品状态](../../implementation/product-current-state.md)。本页任务元数据、原始 WBS 引文、哈希、生成日期与验收值保留为批次快照；文档同步不表示重跑或签收，不能据旧卡片推定当前功能尚未开发。
+
 生成时间：2026-10-17T23:40:07+08:00（Asia/Shanghai）  
 计划来源：`暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md`；原计划 E/F WBS 行逐字保存在各自任务卡。  
 生成时正式关口：D=`blocked` / `preparatory_not_accepted`；`goNoGoEligible=false`、`eAfterDEligible=false`、`eStarted=false`、`fStarted=false`。

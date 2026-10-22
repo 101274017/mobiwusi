@@ -1,0 +1,236 @@
+# 微光指引 · Markdown 文档索引
+
+更新日期：2026-10-22（Asia/Shanghai）。本次盘点仓库内 211 份既有 Markdown 文档，并新增现行产品状态页与本索引，合计 213 份。现行文档更新名称与功能说明，历史基线和协作约定保留原文并在本索引说明；不包含依赖、构建产物、日志、缓存或仓库外旧附件。磁盘上已有的旧产品名文件路径暂不迁移，现行文档显示文字采用新品牌。
+
+## 先读这些
+
+- [现行产品与功能状态](implementation/product-current-state.md)：名称、功能地图、平台差异和真实验收边界。
+- [项目入口](../README.md)：开发运行和主要文档入口。
+- [品牌与 Logo 资源](../design/brand/README.md)：鹿角光标、各平台图标及兼容文件名；品牌标志不替换桌宠角色。
+- [Windows 桌宠说明](../apps/desktop/README.md)、[Android 说明](../apps/android/README.md)、[服务端说明](../apps/server/README.md)。
+- [单帧图片指引](implementation/single-frame-guidance.md)、[原生公共图标定位](implementation/desktop-native-target-guidance.md)、[2026-10-21 全路径记录](implementation/cursor-guidance-fullpath-2026-10-21.md)。
+- [续作断点](execution/RUN.md)：双门禁及原批次快照的解释。
+
+## 文档与事实的区别
+
+需求是目标，实现说明是当前源码范围，测试报告是特定时间/设备/夹具的证据，正式验收仍需独立判断。生成任务卡只加现行说明，不改 YAML、WBS 原文、SHA-256、生成日期或验收状态。`implementation/history/` 和较早 V1.2 计划保留原任务、证据、YAML、哈希、日期等历史事实，并附加现行导航说明；其中旧名称和限制属于历史版本，不作为现行功能清单。`AGENTS.md` 的协作规则保留，不增加或改变代理权限。
+
+本轮文档变更会改变相关文件的内容指纹；未重跑的旧自动报告不得据此声称仍是当前源码验收。重新生成任务卡时须以实际检查器输出为准，并保留到本现状入口的导航，不手改历史通过值。
+
+## 全量文档
+
+| 文档（链接指向真实兼容路径） | 性质/处理口径 |
+| --- | --- |
+| [AGENTS.md](../AGENTS.md) | 协作约定（保留原文） |
+| [CLAUDE.md](../CLAUDE.md) | 产品/实现/验证说明 |
+| [README.md](../README.md) | 产品/实现/验证说明 |
+| [apps/android/README.md](../apps/android/README.md) | 模块及平台说明 |
+| [apps/android/native-lab/README.md](../apps/android/native-lab/README.md) | 模块及平台说明 |
+| [apps/android/standalone-runtime.md](../apps/android/standalone-runtime.md) | 模块及平台说明 |
+| [apps/desktop/README.md](../apps/desktop/README.md) | 模块及平台说明 |
+| [apps/desktop/native-lab/README-c07-c08-sqlite.md](../apps/desktop/native-lab/README-c07-c08-sqlite.md) | 模块及平台说明 |
+| [apps/desktop/native-lab/README.md](../apps/desktop/native-lab/README.md) | 模块及平台说明 |
+| [apps/desktop/observation/README.md](../apps/desktop/observation/README.md) | 模块及平台说明 |
+| [apps/desktop/wake/README.md](../apps/desktop/wake/README.md) | 模块及平台说明 |
+| [apps/server/README.md](../apps/server/README.md) | 模块及平台说明 |
+| [apps/server/src/modules/README.md](../apps/server/src/modules/README.md) | 模块及平台说明 |
+| [design/brand/README.md](../design/brand/README.md) | 品牌、Logo 与平台图标说明 |
+| [docs/README.md](README.md) | 当前文档总索引 |
+| [docs/execution/E-development-override.md](execution/E-development-override.md) | 产品/实现/验证说明 |
+| [docs/execution/E-launch-batches.md](execution/E-launch-batches.md) | 产品/实现/验证说明 |
+| [docs/execution/F-development-override.md](execution/F-development-override.md) | 产品/实现/验证说明 |
+| [docs/execution/RUN.md](execution/RUN.md) | 产品/实现/验证说明 |
+| [docs/execution/checks/D01-prep.md](execution/checks/D01-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/D02-prep.md](execution/checks/D02-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/D03-prep.md](execution/checks/D03-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/D04-prep.md](execution/checks/D04-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/D05-prep.md](execution/checks/D05-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/D06-prep.md](execution/checks/D06-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/D07-prep.md](execution/checks/D07-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/D08-prep.md](execution/checks/D08-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E01-prep.md](execution/checks/E01-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E02-prep.md](execution/checks/E02-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E03-prep.md](execution/checks/E03-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E04-prep.md](execution/checks/E04-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E05-prep.md](execution/checks/E05-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E06-prep.md](execution/checks/E06-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E07-prep.md](execution/checks/E07-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E08-prep.md](execution/checks/E08-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E09-prep.md](execution/checks/E09-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E10-prep.md](execution/checks/E10-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E11-prep.md](execution/checks/E11-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E12-prep.md](execution/checks/E12-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E13-prep.md](execution/checks/E13-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E14-prep.md](execution/checks/E14-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E15-prep.md](execution/checks/E15-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E16-prep.md](execution/checks/E16-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E17-prep.md](execution/checks/E17-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E18-prep.md](execution/checks/E18-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E19-prep.md](execution/checks/E19-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E20-prep.md](execution/checks/E20-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E21-prep.md](execution/checks/E21-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E22-prep.md](execution/checks/E22-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E23-prep.md](execution/checks/E23-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E24-prep.md](execution/checks/E24-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E25-prep.md](execution/checks/E25-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/E26-prep.md](execution/checks/E26-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F01-prep.md](execution/checks/F01-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F02-prep.md](execution/checks/F02-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F03-prep.md](execution/checks/F03-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F04-prep.md](execution/checks/F04-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F05-prep.md](execution/checks/F05-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F06-prep.md](execution/checks/F06-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F07-prep.md](execution/checks/F07-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F08-prep.md](execution/checks/F08-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F09-prep.md](execution/checks/F09-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F10-prep.md](execution/checks/F10-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F11-prep.md](execution/checks/F11-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F12-prep.md](execution/checks/F12-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F13-prep.md](execution/checks/F13-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F14-prep.md](execution/checks/F14-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F15-prep.md](execution/checks/F15-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F16-prep.md](execution/checks/F16-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F17-prep.md](execution/checks/F17-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F18-prep.md](execution/checks/F18-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F19-prep.md](execution/checks/F19-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F20-prep.md](execution/checks/F20-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F21-prep.md](execution/checks/F21-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F22-prep.md](execution/checks/F22-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F23-prep.md](execution/checks/F23-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/checks/F24-prep.md](execution/checks/F24-prep.md) | 检查记录（证据快照保留） |
+| [docs/execution/tasks/D01.md](execution/tasks/D01.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/D02.md](execution/tasks/D02.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/D03.md](execution/tasks/D03.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/D04.md](execution/tasks/D04.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/D05.md](execution/tasks/D05.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/D06.md](execution/tasks/D06.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/D07.md](execution/tasks/D07.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/D08.md](execution/tasks/D08.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E01.md](execution/tasks/E01.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E02.md](execution/tasks/E02.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E03.md](execution/tasks/E03.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E04.md](execution/tasks/E04.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E05.md](execution/tasks/E05.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E06.md](execution/tasks/E06.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E07.md](execution/tasks/E07.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E08.md](execution/tasks/E08.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E09.md](execution/tasks/E09.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E10.md](execution/tasks/E10.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E11.md](execution/tasks/E11.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E12.md](execution/tasks/E12.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E13.md](execution/tasks/E13.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E14.md](execution/tasks/E14.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E15.md](execution/tasks/E15.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E16.md](execution/tasks/E16.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E17.md](execution/tasks/E17.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E18.md](execution/tasks/E18.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E19.md](execution/tasks/E19.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E20.md](execution/tasks/E20.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E21.md](execution/tasks/E21.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E22.md](execution/tasks/E22.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E23.md](execution/tasks/E23.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E24.md](execution/tasks/E24.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E25.md](execution/tasks/E25.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/E26.md](execution/tasks/E26.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/EF-index.md](execution/tasks/EF-index.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F01.md](execution/tasks/F01.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F02.md](execution/tasks/F02.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F03.md](execution/tasks/F03.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F04.md](execution/tasks/F04.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F05.md](execution/tasks/F05.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F06.md](execution/tasks/F06.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F07.md](execution/tasks/F07.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F08.md](execution/tasks/F08.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F09.md](execution/tasks/F09.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F10.md](execution/tasks/F10.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F11.md](execution/tasks/F11.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F12.md](execution/tasks/F12.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F13.md](execution/tasks/F13.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F14.md](execution/tasks/F14.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F15.md](execution/tasks/F15.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F16.md](execution/tasks/F16.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F17.md](execution/tasks/F17.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F18.md](execution/tasks/F18.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F19.md](execution/tasks/F19.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F20.md](execution/tasks/F20.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F21.md](execution/tasks/F21.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F22.md](execution/tasks/F22.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F23.md](execution/tasks/F23.md) | 任务卡（元数据/验收快照保留） |
+| [docs/execution/tasks/F24.md](execution/tasks/F24.md) | 任务卡（元数据/验收快照保留） |
+| [docs/implementation/acceptance.md](implementation/acceptance.md) | 产品/实现/验证说明 |
+| [docs/implementation/baseline.md](implementation/baseline.md) | 产品/实现/验证说明 |
+| [docs/implementation/c07-c08-android-policy.md](implementation/c07-c08-android-policy.md) | 产品/实现/验证说明 |
+| [docs/implementation/c07-c08-android-room.md](implementation/c07-c08-android-room.md) | 产品/实现/验证说明 |
+| [docs/implementation/c07-c08-desktop-store.md](implementation/c07-c08-desktop-store.md) | 产品/实现/验证说明 |
+| [docs/implementation/c07-c08-dispatch.md](implementation/c07-c08-dispatch.md) | 产品/实现/验证说明 |
+| [docs/implementation/c07-c08-runtime.md](implementation/c07-c08-runtime.md) | 产品/实现/验证说明 |
+| [docs/implementation/c09-c10-lifecycle.md](implementation/c09-c10-lifecycle.md) | 产品/实现/验证说明 |
+| [docs/implementation/c11-3d-spec.md](implementation/c11-3d-spec.md) | 产品/实现/验证说明 |
+| [docs/implementation/c12-supplier-sandbox.md](implementation/c12-supplier-sandbox.md) | 产品/实现/验证说明 |
+| [docs/implementation/c14-backend-handoff.md](implementation/c14-backend-handoff.md) | 产品/实现/验证说明 |
+| [docs/implementation/c14-independent-review-template.md](implementation/c14-independent-review-template.md) | 产品/实现/验证说明 |
+| [docs/implementation/c15-nv-evidence-protocol.md](implementation/c15-nv-evidence-protocol.md) | 产品/实现/验证说明 |
+| [docs/implementation/c16-decision-ledger.md](implementation/c16-decision-ledger.md) | 产品/实现/验证说明 |
+| [docs/implementation/c17-assembly.md](implementation/c17-assembly.md) | 产品/实现/验证说明 |
+| [docs/implementation/current-iteration.md](implementation/current-iteration.md) | 产品/实现/验证说明 |
+| [docs/implementation/cursor-guidance-fullpath-2026-10-21.md](implementation/cursor-guidance-fullpath-2026-10-21.md) | 产品/实现/验证说明 |
+| [docs/implementation/d-gate-readiness.md](implementation/d-gate-readiness.md) | 产品/实现/验证说明 |
+| [docs/implementation/d01-external-evidence-intake.md](implementation/d01-external-evidence-intake.md) | 产品/实现/验证说明 |
+| [docs/implementation/d01-frontend-native-review.md](implementation/d01-frontend-native-review.md) | 产品/实现/验证说明 |
+| [docs/implementation/d02-contract-handoff.md](implementation/d02-contract-handoff.md) | 产品/实现/验证说明 |
+| [docs/implementation/d02-review-input-intake.md](implementation/d02-review-input-intake.md) | 产品/实现/验证说明 |
+| [docs/implementation/d03-frontend-candidate-package.md](implementation/d03-frontend-candidate-package.md) | 产品/实现/验证说明 |
+| [docs/implementation/d04-android-evidence-handoff.md](implementation/d04-android-evidence-handoff.md) | 产品/实现/验证说明 |
+| [docs/implementation/d05-windows-evidence-handoff.md](implementation/d05-windows-evidence-handoff.md) | 产品/实现/验证说明 |
+| [docs/implementation/d06-media-supplier-handoff.md](implementation/d06-media-supplier-handoff.md) | 产品/实现/验证说明 |
+| [docs/implementation/d07-gate-decision-record.md](implementation/d07-gate-decision-record.md) | 产品/实现/验证说明 |
+| [docs/implementation/d07-runtime-audit.md](implementation/d07-runtime-audit.md) | 产品/实现/验证说明 |
+| [docs/implementation/d08-accessibility-signoff.md](implementation/d08-accessibility-signoff.md) | 产品/实现/验证说明 |
+| [docs/implementation/d08-manual-review-intake.md](implementation/d08-manual-review-intake.md) | 产品/实现/验证说明 |
+| [docs/implementation/demo-scenarios.md](implementation/demo-scenarios.md) | 产品/实现/验证说明 |
+| [docs/implementation/desktop-native-target-guidance.md](implementation/desktop-native-target-guidance.md) | 产品/实现/验证说明 |
+| [docs/implementation/desktop-realtime-voice.md](implementation/desktop-realtime-voice.md) | 产品/实现/验证说明 |
+| [docs/implementation/external-capabilities.md](implementation/external-capabilities.md) | 产品/实现/验证说明 |
+| [docs/implementation/frontend-ui-integration.md](implementation/frontend-ui-integration.md) | 产品/实现/验证说明 |
+| [docs/implementation/history/plan-v1.1.md](implementation/history/plan-v1.1.md) | 历史基线（原任务/证据事实保留，附现行导航） |
+| [docs/implementation/history/tasks/D01-v1.1.md](implementation/history/tasks/D01-v1.1.md) | 历史基线（原任务/证据事实保留，附现行导航） |
+| [docs/implementation/history/tasks/D02-v1.1.md](implementation/history/tasks/D02-v1.1.md) | 历史基线（原任务/证据事实保留，附现行导航） |
+| [docs/implementation/history/tasks/D03-v1.1.md](implementation/history/tasks/D03-v1.1.md) | 历史基线（原任务/证据事实保留，附现行导航） |
+| [docs/implementation/history/tasks/D04-v1.1.md](implementation/history/tasks/D04-v1.1.md) | 历史基线（原任务/证据事实保留，附现行导航） |
+| [docs/implementation/history/tasks/D05-v1.1.md](implementation/history/tasks/D05-v1.1.md) | 历史基线（原任务/证据事实保留，附现行导航） |
+| [docs/implementation/history/tasks/D06-v1.1.md](implementation/history/tasks/D06-v1.1.md) | 历史基线（原任务/证据事实保留，附现行导航） |
+| [docs/implementation/history/tasks/D07-v1.1.md](implementation/history/tasks/D07-v1.1.md) | 历史基线（原任务/证据事实保留，附现行导航） |
+| [docs/implementation/history/tasks/D08-v1.1.md](implementation/history/tasks/D08-v1.1.md) | 历史基线（原任务/证据事实保留，附现行导航） |
+| [docs/implementation/image-question-interface.md](implementation/image-question-interface.md) | 产品/实现/验证说明 |
+| [docs/implementation/lili-desktop.md](implementation/lili-desktop.md) | 产品/实现/验证说明 |
+| [docs/implementation/local-3d-pet.md](implementation/local-3d-pet.md) | 产品/实现/验证说明 |
+| [docs/implementation/local-original-pet.md](implementation/local-original-pet.md) | 产品/实现/验证说明 |
+| [docs/implementation/lumi-companion.md](implementation/lumi-companion.md) | 产品/实现/验证说明 |
+| [docs/implementation/pet-anysearch.md](implementation/pet-anysearch.md) | 产品/实现/验证说明 |
+| [docs/implementation/product-current-state.md](implementation/product-current-state.md) | 当前名称、功能地图与验收边界 |
+| [docs/implementation/real-ai-provider.md](implementation/real-ai-provider.md) | 产品/实现/验证说明 |
+| [docs/implementation/single-frame-guidance.md](implementation/single-frame-guidance.md) | 产品/实现/验证说明 |
+| [docs/implementation/standalone-guidance-provider.md](implementation/standalone-guidance-provider.md) | 产品/实现/验证说明 |
+| [docs/implementation/standalone-pet-migration.md](implementation/standalone-pet-migration.md) | 产品/实现/验证说明 |
+| [docs/implementation/status.md](implementation/status.md) | 产品/实现/验证说明 |
+| [docs/implementation/verification.md](implementation/verification.md) | 产品/实现/验证说明 |
+| [docs/implementation/wbs.md](implementation/wbs.md) | 产品/实现/验证说明 |
+| [docs/implementation/xingyun-avatar-1008-diagnostic.md](implementation/xingyun-avatar-1008-diagnostic.md) | 产品/实现/验证说明 |
+| [docs/implementation/xingyun-avatar-integration.md](implementation/xingyun-avatar-integration.md) | 产品/实现/验证说明 |
+| [V1.2 历史实施计划（旧文件名保留）](<暖伴AI公益助手-项目实施计划-Codex高效续作版(1).md>) | 历史基线（原任务/证据事实保留，附现行导航） |
+| [infra/README.md](../infra/README.md) | 模块及平台说明 |
+| [packages/asset-service/README.md](../packages/asset-service/README.md) | 模块及平台说明 |
+| [packages/contracts/README.md](../packages/contracts/README.md) | 模块及平台说明 |
+| [packages/guidance-engine/README.md](../packages/guidance-engine/README.md) | 模块及平台说明 |
+| [packages/local-data/README.md](../packages/local-data/README.md) | 模块及平台说明 |
+| [packages/media-relay/README.md](../packages/media-relay/README.md) | 模块及平台说明 |
+| [packages/media-session/README.md](../packages/media-session/README.md) | 模块及平台说明 |
+| [packages/pet-engine/README.md](../packages/pet-engine/README.md) | 模块及平台说明 |
+| [packages/platform-ports/README.md](../packages/platform-ports/README.md) | 模块及平台说明 |
+| [packages/privacy/README.md](../packages/privacy/README.md) | 模块及平台说明 |
+| [packages/provider-sandbox/README.md](../packages/provider-sandbox/README.md) | 模块及平台说明 |
+| [packages/reminder-engine/README.md](../packages/reminder-engine/README.md) | 模块及平台说明 |
+| [packages/sync-engine/README.md](../packages/sync-engine/README.md) | 模块及平台说明 |
+| [微光指引AI公益助手-产品需求文档-独立桌宠版.md](../暖伴AI公益助手-产品需求文档-独立桌宠版.md) | 现行需求/技术/实施目标 |
+| [微光指引AI公益助手-技术与实施方案-独立桌宠版.md](../暖伴AI公益助手-技术与实施方案-独立桌宠版.md) | 现行需求/技术/实施目标 |
+| [微光指引AI公益助手-项目实施计划-独立桌宠四机并发版.md](../暖伴AI公益助手-项目实施计划-独立桌宠四机并发版.md) | 现行需求/技术/实施目标 |

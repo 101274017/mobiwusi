@@ -1,4 +1,6 @@
-# Windows 本地观察适配
+# 微光指引 · Windows 本地观察适配
+
+> 文档同步：2026-10-22。产品显示名称为**微光指引**；[当前功能与平台边界](../../../docs/implementation/product-current-state.md)统一说明现行入口、已实现范围和待验证能力。本文已有测试数字与生成日期仍只对应原批次，不因文档更新自动视为重新验收。
 
 `windows-observation-source.cjs` 导出 `createWindowsObservationSource({ desktopCapturer, screen, nativeImage, BrowserWindow, ipcMain, session, canCapture, onCaptureInvalidated?, detectorOptions? })`。注入 Electron 主进程 API；构造不列举来源、不采集、不启动 helper、不创建窗口、不操作外部应用。无需关闭 Electron sandbox。缺少受控捕获端口时，capture 明确报 `controlled_capture_unavailable`，不会回退到缩略图抓屏；list/probe 仍可使用。
 

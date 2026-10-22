@@ -1,5 +1,11 @@
 # 独立桌宠改版：差异与实现追溯
 
+> 文档同步：2026-10-22。产品显示名称为**微光指引**；[当前功能与平台边界](product-current-state.md)统一说明现行入口、已实现范围和待验证能力。本文已有测试数字与生成日期仍只对应原批次，不因文档更新自动视为重新验收。
+
+## 后续功能补充（截至 2026-10-22）
+
+原迁移记录之后，产品显示名统一为微光指引；桌宠各功能使用独立页面/工具窗，保留客户端自己的导航和草稿。连续观察以外新增了[单帧图片指引](single-frame-guidance.md)：本人截取并检查脱敏预览，另行确认后才调用模型，再以本地新帧复核并展示短时位置，不自动核验下一步。所有路径只指引、不代替操作。下方原批次验证不能扩写为完整真实桌面验收。
+
 更新日期：2026-10-18，Asia/Shanghai。本文记录本轮代码改造，不修改或替代需求、正式验收及 D07 发布批准。
 
 ## 核对范围
@@ -32,7 +38,7 @@
 | CORE-01 独立悬浮 | `apps/desktop/main.cjs`、`standalone-host.cjs`、`pet.*`、`guide.*`、`caption.*` | 默认桌宠入口；管理懒加载；受信 IPC；指引与字幕穿透；桌宠自身内容保护 |
 | CORE-02 本地持续观察 | `runtime-coordinator.cjs`、`observation/windows-observation-source.cjs` | 单选定来源、定时本地检测；教学结束不自动停止观察；停止先失效再等真实清理 |
 | CORE-03 按需脱敏上云 | `observation-policy.cjs`、`analysis-client.cjs`、`apps/server/src/standalone-guidance.ts`、`http.ts` | 同帧哈希/来源/代次/时效/脱敏完整性检查；单飞与有界待处理；鉴权真实服务，无配置 503，无 Mock 回退 |
-| CORE-04 用户操作 | `standalone-host.cjs`、`guide.js` | 仅打开暖伴自己的管理窗口；不启动目标第三方应用、不代点、不注入键盘或鼠标 |
+| CORE-04 用户操作 | `standalone-host.cjs`、`guide.js` | 仅打开微光指引自己的管理窗口；不启动目标第三方应用、不代点、不注入键盘或鼠标 |
 | CORE-05 通用理解 | 本地策略及 standalone guidance 端口 | 端口不以应用名称或 Top20 白名单限制；本地安全分类仍保守且有限，不能宣称所有软件已支持 |
 | CORE-06/07 核验与不确定 | `runtime-coordinator.cjs`、`analysis-client.cjs` | 下一步、完成须本地新鲜证据；候选只能绑定当前本地控件，明确不确定；不接模型任意坐标 |
 | CORE-08 隐私 | `observation-policy.cjs`、本地检测器与 coordinator | 原帧不出云；本地 OCR/人脸完整性、来源/几何变化及未知风险均拒绝；不后台抓屏等待风险消失 |
@@ -61,7 +67,7 @@
 
 在桌宠中直接提问、查看学习笔记，或右键查看功能。观察需本人选择来源及用途；云端分析同意与语音同意各自独立。不要把 Windows 系统权限失败当作产品授权已完成。停止观察入口同时停止本地语音；结束本次教学不等于停止观察。
 
-桌宠服务连接由 `NUANBAN_DESKTOP_API_BASE_URL` 和 `NUANBAN_DESKTOP_API_TOKEN` 配置；token 是暖伴服务的有效设备会话凭证，不是供应密钥。供应只在服务端配置 `NUANBAN_VISION_BASE_URL`、`NUANBAN_VISION_API_KEY`、`NUANBAN_VISION_MODEL`。详情见 `standalone-guidance-provider.md`。不得把供应密钥放入桌宠 Renderer 或管理前端。
+桌宠服务连接由 `NUANBAN_DESKTOP_API_BASE_URL` 和 `NUANBAN_DESKTOP_API_TOKEN` 配置；token 是微光指引服务的有效设备会话凭证，不是供应密钥。供应只在服务端配置 `NUANBAN_VISION_BASE_URL`、`NUANBAN_VISION_API_KEY`、`NUANBAN_VISION_MODEL`。详情见 `standalone-guidance-provider.md`。不得把供应密钥放入桌宠 Renderer 或管理前端。
 
 ## 验证分层
 
@@ -91,7 +97,7 @@
 
 1. 本人系统授权后的真实外部屏幕、第三方应用操作及最终成功闭环；多屏、混合 DPI、遮挡、系统权限撤销与设备性能。
 2. 本机中文离线识别引擎、真实麦克风及后台运行条件；本轮不替用户启麦或安装系统语言包。
-3. 真实供应配置、暖伴账号会话、成本/时延与视觉输出质量；不得用测试替身冒充真实模型。
+3. 真实供应配置、微光指引账号会话、成本/时延与视觉输出质量；不得用测试替身冒充真实模型。
 4. 更广软件与未知页面的本地安全分类；当前保守规则会主动拒绝很多未验证页面，属于明确覆盖限制，不是已实现任意软件安全识别。
 5. Android 真机上的模型初始化、检测时延/漏检、真实捕获、云断连、窗口坐标与穿透；本地适配器已有代码和编译证据，但缺就绪检测器或授权仍拒绝出口。
 6. 真实系统提醒、亲情音视频、跨设备学习记忆、试点、签名发布和独立复核。

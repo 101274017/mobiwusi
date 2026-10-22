@@ -1,10 +1,16 @@
 # CLAUDE.md
 
+> 文档同步：2026-10-22。产品显示名称为**微光指引**；[当前功能与平台边界](docs/implementation/product-current-state.md)统一说明现行入口、已实现范围和待验证能力。本文已有测试数字与生成日期仍只对应原批次，不因文档更新自动视为重新验收。
+
+## Current product documentation
+
+The user-visible name is 微光指引. Read [current product and feature status](docs/implementation/product-current-state.md) before using older task cards as evidence of current capabilities. Windows has separate continuous-observation and previewed single-frame guidance flows; neither permits automatic third-party input. Product renaming does not migrate package IDs, stored data, IPC channels, launch filenames, or the existing local wake vocabulary. Do not infer Android device readiness, successful WeChat guidance, cloud-account support, or release approval from a successful build or synthetic test.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project
 
-暖伴 (nuanban) is an AI public-welfare assistant. The repo is a pnpm monorepo (`apps/*`, `packages/*`) with a shared React frontend, a TypeScript backend, and Android and Windows (Electron) hosts. Node >= 24 and pnpm 9.12.0 are required (see `package.json`). Docs, UI strings and many comments are in Chinese.
+微光指引 (nuanban) is an AI public-welfare assistant. The repo is a pnpm monorepo (`apps/*`, `packages/*`) with a shared React frontend, a TypeScript backend, and Android and Windows (Electron) hosts. Node >= 24 and pnpm 9.12.0 are required (see `package.json`). Docs, UI strings and many comments are in Chinese.
 
 The app is not production ready. The frontend defaults to a real empty local workspace without runtime mocks. Desktop text, image and read-only guidance use an explicitly configured OpenAI-compatible provider; provider credentials remain encrypted outside the repo and are decrypted only in the main process. Starting the backend does not grant real auth. Real devices, complete supplier integration, user consent, pilots and signed release are not accepted. Keep high-risk capabilities closed. Do not fake external evidence. See `docs/implementation/real-ai-provider.md`.
 

@@ -1,4 +1,6 @@
-# Windows 本地离线唤醒
+# 微光指引 · Windows 本地离线唤醒
+
+> 文档同步：2026-10-22。产品显示名称为**微光指引**；[当前功能与平台边界](../../../docs/implementation/product-current-state.md)统一说明现行入口、已实现范围和待验证能力。本文已有测试数字与生成日期仍只对应原批次，不因文档更新自动视为重新验收。
 
 `windows-local-wake.cjs` 导出 `createWindowsLocalWake`，只使用本机 Windows PowerShell 5.1、System.Speech 与已安装的 zh-CN SpeechRecognitionEngine。没有云端常听替代、不安装语言包、不更改 Windows 隐私设置。构造默认 disabled，不启动 helper、不打开麦克风、不恢复上一次授权。
 

@@ -1,5 +1,7 @@
 # 默认花环水獭桌宠与星云 SDK 接入
 
+> 文档同步：2026-10-22。产品显示名称为**微光指引**；[当前功能与平台边界](product-current-state.md)统一说明现行入口、已实现范围和待验证能力。本文已有测试数字与生成日期仍只对应原批次，不因文档更新自动视为重新验收。
+
 ## 默认形象
 
 独立桌宠的产品默认形象改为用户 2026-10-19 新截图中戴花环、穿叶裙的角色，产品内命名为“花环水獭”，标识为 `xingyun-floral-otter`，定义在 `apps/desktop/default-pet.json`。对应星云工作台应用 188337。只调整桌宠形象与功能页，不改变客户端页面布局。
@@ -31,7 +33,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/configure-xingyun-av
 pnpm desktop:avatar:build
 ```
 
-凭证以 Windows DPAPI CurrentUser 加密保存到 `%LOCALAPPDATA%/Nuanban/xingyun-avatar.json`，不存入仓库或前端。更换配置后，在保存工作后重启暖伴生效；不会自动重启正在使用的进程。公开分发前，应独立确定应用权限、额度及角色素材使用授权，不应把开发者长期 App Secret 打包给其他用户。
+凭证以 Windows DPAPI CurrentUser 加密保存到 `%LOCALAPPDATA%/Nuanban/xingyun-avatar.json`，不存入仓库或前端。更换配置后，在保存工作后重启微光指引生效；不会自动重启正在使用的进程。公开分发前，应独立确定应用权限、额度及角色素材使用授权，不应把开发者长期 App Secret 打包给其他用户。
 
 ## 安全与生命周期
 

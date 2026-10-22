@@ -1,4 +1,6 @@
-# Platform ports and lifecycle cleanup
+# 微光指引 · Platform ports and lifecycle cleanup
+
+> 文档同步：2026-10-22。产品显示名称为**微光指引**；[当前功能与平台边界](../../docs/implementation/product-current-state.md)统一说明现行入口、已实现范围和待验证能力。本文已有测试数字与生成日期仍只对应原批次，不因文档更新自动视为重新验收。
 
 `ReminderRuntime` 将待办生命周期转换为稳定的共享排程请求。浏览器端只返回 `page_only`；Windows 宿主只有在显式暴露 `reminderStore` 时才接收本地 SQLite 排程、取消和到期派发请求；Android 正常 app 已通过受限活动消息桥接收 Room/AlarmManager 排程、取消和到期请求，但通知权限、精确闹钟和系统投递未验证时仍返回 `unsupported`。
 

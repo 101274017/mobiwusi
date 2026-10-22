@@ -1,4 +1,6 @@
-# Asset service
+# 微光指引 · Asset service
+
+> 文档同步：2026-10-22。产品显示名称为**微光指引**；[当前功能与平台边界](../../docs/implementation/product-current-state.md)统一说明现行入口、已实现范围和待验证能力。本文已有测试数字与生成日期仍只对应原批次，不因文档更新自动视为重新验收。
 
 This package implements the E06/E09 asset boundary without a server, network client, provider credential, or claim of real generated quality. `PetGenerationPort` and the signing/verification ports are injected; the in-memory stores are test fixtures.
 
