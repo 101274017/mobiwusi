@@ -319,6 +319,19 @@ try {
   $aclData = Invoke-Native 'icacls.exe' @((Join-Path $Root 'data'), '/grant', 'SYSTEM:(OI)(CI)F', '/T', '/Q')
   if ($aclData.exitCode -ne 0) { Say "icacls note: $($aclData.output)" }
 
+  # IIS kernel-mode output caching keys the default document request ("/") by URL and can keep
+  # serving the previous index.html after a swap. Disable the kernel cache for this site and
+  # recycle IIS once per deploy so a new release is visible immediately.
+  $cacheConfig = Invoke-Native $appcmd @('set', 'config', $siteName, '-section:system.webServer/caching', '/enabled:true', '/enableKernelCache:false')
+  if ($cacheConfig.exitCode -ne 0) { Say "caching config note: $($cacheConfig.output)" }
+  $reset = Invoke-Native 'iisreset.exe' @('/noforce')
+  if ($reset.exitCode -ne 0) { Say "iisreset note: $($reset.output)" }
+  Start-Sleep -Seconds 3
+  try {
+    if ((Get-Service -Name W3SVC -ErrorAction SilentlyContinue).Status -ne 'Running') { Start-Service -Name W3SVC -ErrorAction Stop }
+  } catch { Say "W3SVC restart after iisreset note: $($_.Exception.Message)" }
+  Say 'IIS recycled and kernel cache disabled for the site'
+
   # ---------------------------------------------------------------- firewall
   $fwName = "Nuanban HTTP $HttpPort"
   if (-not (Get-NetFirewallRule -DisplayName $fwName -ErrorAction SilentlyContinue)) {

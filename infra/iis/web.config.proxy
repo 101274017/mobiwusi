@@ -34,6 +34,8 @@
         <add value="index.html" />
       </files>
     </defaultDocument>
+    <!-- Keep the kernel output cache off: it otherwise serves the stale "/" default document. -->
+    <caching enabled="true" enableKernelCache="false" />
     <rewrite>
       <rules>
         <rule name="NuanbanApiSameOrigin" stopProcessing="true">

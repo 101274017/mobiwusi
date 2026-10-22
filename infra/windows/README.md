@@ -137,6 +137,7 @@ Start-ScheduledTask -TaskName NuanbanServer
 - ARR/URL Rewrite 的 MSI 来自 `download.microsoft.com`；若 ECS 出网受限，代理会跳过，需手工安装后重跑部署脚本。
 - Node.js LTS MSI 优先从 `cdn.npmmirror.com` 下载（国内可达性更好），失败后退到 `nodejs.org`。
 - 计划任务不是 Windows 服务：`start-server.ps1` 自带守护循环与互斥量，能在 Node 进程崩溃时拉起；但任务本身被停掉时不会自愈，需要重新 `Start-ScheduledTask`。
+- **IIS kernel-mode 输出缓存**：IIS 默认开启内核缓存，会按 URL 记住 `/`（默认文档）的响应，导致换版后仍返回旧 `index.html`（实测：新文件已就位但 `/` 返回 599 字节旧页，`/index.html` 正常）。部署脚本现在会在站点级关闭 `enableKernelCache` 并在每次部署后 `iisreset /noforce`；`infra/iis/web.config*` 也显式写了 `<caching enabled="true" enableKernelCache="false" />`。若手工换文件，记得回收 IIS 或关掉内核缓存。
 - 日志 `server.log` 为 UTF-8 追加，Node 的 stdout/stderr 都合并进去；`logger` 侧不做轮转，只在启动时把超过 20 MB 的旧日志改名为 `server.log.1`。
 - 首次部署需要 ECS 出网（Node MSI、可选代理 MSI）；离线主机可用 `-SkipNodeInstall` 并把 MSI 预先放到 `C:\nuanban\staging`。
 
@@ -194,5 +195,7 @@ node infra/windows/tools/configure-vision-provider.mjs `
 其他实测：杀掉 API 进程后守护循环约 3 秒拉起（单进程、单监听）；一次目录交换失败的真实事故中，部署脚本的失败自恢复把 `web.prev`/`app.prev` 还原并重启 W3SVC，站点恢复 200；部署后磁盘剩余 24.7 GB。
 
 **本次没有做、也不代表**：域名与 HTTPS、备份/恢复演练、真实账号与供应商、性能与并发压测、签名安装包、D07 Go 或 F19 签收。公网前端仍按 `VITE_API_MODE=local` 构建，浏览器端不启用真实模型、屏幕采集或麦克风（fail closed）。
+
+**部署批次备注（2026-10-22 22:29）**：该批次按所有者要求，把工作区中另一条会话的未提交改动（网页端对话接后端、browser companion、ID fallback 等）一并构建上线，同时包含本次 `createWebId` 修复、服务端供应商配置通道与 IIS 内核缓存修复。由于工作区 dirty，产物**不能仅凭 manifest 里的 commit `3280ad7` 重建**；正式留档前应先提交这些改动再重新部署。实测：`/` 返回新构建（618 字节），待办创建成功且无 `crypto.randomUUID` 报错，`/v1/requests/<id>/events` 未认证返回 401（新路由已生效），`/internal/*` 仍不代理。浏览器对话在 `local` 模式下仍显示“当前没有桌面模型接口”，因为 `RemoteConversation` 只在 `VITE_API_MODE=real` 且配置了访问令牌时启用，而把设备令牌打进公开 JS 不符合安全边界。
 
 **遗留清理项**：安全组 3389 仍对 `0.0.0.0/0` 开放，建议改为固定出口 IP；本次使用的临时 RAM AccessKey（用户 `zhaosheng`）应在确认不再部署后禁用或删除。
