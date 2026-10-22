@@ -105,7 +105,7 @@
 
 - 服务端（`C:\nuanban` 的 IIS 静态站点 + 本机 Node API，见 `infra/windows/README.md`）**只提供静态文件下载和 API**，**不在服务器上运行、安装或代理 Windows 客户端**：不运行 Electron、不启动 `nuanban.exe`、不执行客户端的采集/语音/模型功能。
 - 客户端始终在用户自己的 Windows 电脑上运行；API 与静态站点是两回事，客户端是否可用不因部署了 Web/API 而改变。
-- 建议分发方式（本次未执行，需负责人确认后操作）：把 zip 复制到服务器下载目录（例如 `C:\nuanban\downloads\`，或 IIS 站点的 `/downloads/` 虚拟目录），只读提供 HTTP 下载，并把本文件的 SHA256 一并展示；不要放在可执行代码目录，也不要让 IIS 执行该目录中的 `.exe`。
+- 建议分发方式（本次**已执行**）：产物已通过一次性上传通道发布到试验服务器 `http://59.110.19.225/downloads/`（详见 `infra/windows/README.md` 的「下载分发」一节）。服务器只做只读静态下载，不运行客户端、不执行 `.exe`/`.apk`；分发哈希以上表与下载页为准，哈希不一致的副本不得分发。
 - **不要把任何分发产物提交到 git**：`apps/desktop/out/` 已在根 `.gitignore` 中忽略；本目录新增 `.gitignore` 仅用于防止 `infra/windows/downloads/` 中未来放入的二进制被误提交。
 - 下载校验以本文件第 1 节 SHA256 为准；服务器/CDN 上的文件若哈希不一致，不得分发。
 

@@ -165,6 +165,33 @@ node infra/windows/tools/configure-vision-provider.mjs `
 
 **当前线上状态（2026-10-22 22:39，Asia/Shanghai）**：已配置真实供应商 `https://api.openai-next.com/v1`，文本与视觉模型均为 `gpt-4o-mini`；密钥只存在于服务器 `C:\nuanban\config\vision-provider.json`（`SYSTEM`/`Administrators` 可读），服务日志只记录 base 与 model。实测：ECS 本机 `GET /models` 与 `POST /chat/completions` 均返回 200（服务器出网访问该网关正常）；`/v1/standalone/guidance/analyze`、`/v1/conversations` 无令牌均返回 401。**浏览器端仍无法自建会话**：公网 HTTP 表面只有 `device-challenges`/`device-exchange`/`refresh`，没有账号或设备引导路由，网页在 `VITE_API_MODE=local` 下继续按设计报“没有桌面模型接口”。要让网页 AI 可用，需要新增受控的会话引导（邀请码 + 速率限制 + 本地保存令牌/刷新）并重新构建前端，属于产品代码改动，未包含在本次部署。
 
+## 下载分发（`/downloads`，无需 OSS）
+
+大文件（桌面包 173.6 MiB、Android 包 88 MiB）不通过云助手分块传输，而是临时开一条**只在部署机侧经过 IIS 反代、接收端只监听 127.0.0.1 且带随机令牌**的上传通道：
+
+```powershell
+node infra/windows/tools/push-downloads.mjs --instance i-2zedkag2x1e9e610v8jh
+```
+
+流程与安全属性（[push-downloads.mjs](tools/push-downloads.mjs)、[upload-receiver.mjs](tools/upload-receiver.mjs)）：
+
+1. `SendFile` 下发 150 行左右的接收进程、随机令牌与临时 `web.config`（只给 `/_upload/*` 加一条反代规则，并提高该次请求的体积上限与代理超时）；
+2. 本机把产物流式 POST 到 `http://<公网IP>/_upload/<name>`，带令牌头；接收端校验文件名、流式落盘并返回大小与 SHA256；
+3. 服务器端重新计算 SHA256 并与本机比对，不一致立即失败；
+4. 无论成败都恢复原 `web.config`、停掉接收进程、`iisreset`、删除令牌文件；成功时把文件移入 `C:\nuanban\web\downloads\` 并生成下载页；
+5. 之后只通过只读静态目录对外提供下载，`.zip`/`.apk` MIME 已在 `infra/iis/web.config*` 中补齐。
+
+本次已发布（2026-10-22）：
+
+| 产物 | URL | 大小（字节） | SHA256 |
+| --- | --- | --- | --- |
+| Windows 桌面便携包（未签名） | `http://59.110.19.225/downloads/NuanbanDemo-0.1.0-win32-x64-portable-20261022.zip` | 182,082,667 | `42c5609e88cd6905bd4161622f39e6df3cb15314e3abdf595e9a8c09c34b4fb0` |
+| Android 普通客户端（debug） | `http://59.110.19.225/downloads/nuanban-android-app-debug.apk` | 5,734,485 | `bbba3458908dcd0004cc87fab73158d6bf8d273c1347a572db9ae626726c38d9` |
+| Android 独立桌宠（debug） | `http://59.110.19.225/downloads/nuanban-android-standalone-debug.apk` | 88,034,866 | `9b226ef7b4908228c3ce70b05268a883178950133cf218cca056fa63c65e912e` |
+| 下载页 | `http://59.110.19.225/downloads/` | — | 页面内联同样哈希 |
+
+注意：产物**未签名、未做真机/安装验收**；Windows 会有 SmartScreen 警告；不要把下载目录当可执行目录（IIS 只做静态读取）。上传通道是一次性的，成功/失败都会自动关闭，不要把它当成长期上传入口。
+
 ## 实际部署记录（2026-10-22，Asia/Shanghai）
 
 本节记录**本次真实执行过的一次部署**及其实测结果，不是发布签收。
