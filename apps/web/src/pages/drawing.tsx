@@ -7,6 +7,7 @@ import { announce } from '../store';
 import { Modal, PageTitle } from '../components';
 import { drawingHeight, drawingWidth, paintDrawing, renderDrawingArtwork } from '../drawing-artwork';
 import { localArtworkBridge, type DrawingArtwork, type LocalArtwork } from '../local-artwork';
+import { showBrowserCompanion } from '../browser-companion';
 import './drawing.css';
 
 const colors = [['#A64B2A', '暖棕'], ['#6C8172', '草绿'], ['#D5A134', '金黄'], ['#4C7493', '天空蓝'], ['#2D2521', '深棕']];
@@ -136,7 +137,13 @@ export function DrawingPage() {
   function apply() {
     setPreviewError('');
     void perform(async () => {
-      if (!bridge || !preview) throw new Error('请在 Windows 客户端中预览并使用原画桌宠。');
+      if (!preview) throw new Error('请先打开原画预览。');
+      if (!bridge) {
+        showBrowserCompanion({ kind: 'drawing', label: '你的原画', imageUrl: preview.dataUrl });
+        setPreview(null);
+        announce('你的原画已显示在当前页面；系统悬浮桌宠仍需使用 Windows 客户端。');
+        return;
+      }
       const artwork = await bridge.apply(preview);
       if (artwork.kind !== 'drawing') throw new Error('桌宠未确认替换成功，原画稿仍保留。');
       setCurrentArtwork(artwork);
@@ -175,7 +182,7 @@ export function DrawingPage() {
         <button className="button secondary" disabled={!ready || busy} onClick={save}><Save size={20} />保存本机草稿</button>
         <button className="button primary" disabled={!ready || busy || !saved || !hasInk} onClick={showPreview}><Eye size={20} />预览原画桌宠</button>
       </div>
-      {!bridge && <p className="drawing-local-notice">当前是浏览器页面，可保存和预览原画；应用到独立悬浮窗口需要在 Windows 客户端完成。</p>}
+      {!bridge && <p className="drawing-local-notice">手机浏览器可保存、预览并在当前页面显示原画；替换独立悬浮窗口请使用 Windows 客户端。</p>}
       {artworkError && <p className="drawing-local-notice" role="alert">{artworkError}</p>}
       {currentArtwork?.kind === 'drawing' && <div className="drawing-applied"><img src={currentArtwork.dataUrl} alt="当前悬浮桌宠原画" /><div><strong>正在陪伴你的是这张原画</strong><p>已保存在本机，重启桌宠后仍会使用。清画布不会替换已应用的形象。</p></div><button className="button secondary" disabled={busy} onClick={restore}><RotateCcw size={18} />恢复内置桌宠</button></div>}
       <div className="drawing-optional" aria-label="生成服务状态"><p>以下功能与直接使用原画无关，不是必经步骤。</p>
@@ -184,10 +191,10 @@ export function DrawingPage() {
     </section>
     <Modal open={preview !== null} onOpenChange={open => { if (!open && !busy) setPreview(null); }} title="原画桌宠预览" description="保留你的原始笔画，仅裁去四周空白并保留透明背景。不会上传、改画或调用 AI。">
       {preview && <div className="drawing-artwork-preview"><img src={preview.dataUrl} alt="你的原画桌宠预览，透明背景" /></div>}
-      <p className="drawing-preview-note">确认后，独立悬浮窗口会直接使用这张画。拖动、右键菜单和提问入口保持不变；这不是 AI 生成的骨骼动画。</p>
+      <p className="drawing-preview-note">电脑客户端确认后会替换独立悬浮窗口；手机浏览器确认后会在当前页面显示这张原画。两种方式都不会调用 AI 或修改原始笔画。</p>
       {previewError && <p className="inline-error" role="alert">{previewError}</p>}
-      {!bridge && <p className="drawing-local-notice">浏览器不能替换系统桌宠，请在 Windows 客户端中使用此功能。</p>}
-      <div className="modal-actions"><button className="button secondary" disabled={busy} onClick={() => setPreview(null)}>继续修改</button><button className="button primary" disabled={busy || !bridge} onClick={apply}>{busy ? '正在应用…' : '直接设为桌宠'}</button></div>
+      {!bridge && <p className="drawing-local-notice">当前页面不会替换系统桌宠；确认后会显示网页陪伴。</p>}
+      <div className="modal-actions"><button className="button secondary" disabled={busy} onClick={() => setPreview(null)}>继续修改</button><button className="button primary" disabled={busy} onClick={apply}>{busy ? '正在应用…' : bridge ? '直接设为桌宠' : '在本页显示原画'}</button></div>
     </Modal>
     <Modal open={clearConfirm} onOpenChange={setClearConfirm} title="清空当前画布？" description="只清除当前编辑内容；已保存的本机草稿在你再次保存前保持不变。已应用的桌宠不会随画布清空。">
       <button className="button primary" onClick={() => { activeStroke.current = null; activePointer.current = null; setStrokes([]); setSaved(false); setClearConfirm(false); }}>确认清空画布</button>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowUpRight, PawPrint } from 'lucide-react';
 import { localObservationBridge } from './local-observation';
 import { announce, useApp } from './store';
+import { showBrowserCompanion } from './browser-companion';
 import './desktop-pet-button.css';
 
 export function DesktopPetButton({ onOpened }: { onOpened(): void }) {
@@ -11,7 +12,12 @@ export function DesktopPetButton({ onOpened }: { onOpened(): void }) {
     if (opening) return;
     const bridge = localObservationBridge();
     if (!bridge) {
-      useApp.setState({ error: '请在微光指引桌面客户端中打开桌宠，网页预览不支持悬浮桌宠。' });
+      const preferences = useApp.getState().snapshot?.preferences;
+      const kind = preferences?.pet ?? 'cat';
+      const labels = { cat: '小橘猫', rabbit: '小白兔', dog: '小暖狗', lili: '栗栗' } as const;
+      showBrowserCompanion({ kind, label: labels[kind] });
+      onOpened();
+      announce(`${labels[kind]}已显示在当前页面；系统悬浮桌宠仍需使用桌面客户端。`);
       return;
     }
     setOpening(true);

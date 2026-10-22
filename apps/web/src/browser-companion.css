@@ -1,0 +1,16 @@
+.browser-companion-layer { position: fixed; z-index: 80; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); width: min(300px, calc(100vw - 28px)); pointer-events: none; }
+.browser-companion-card { pointer-events: auto; overflow: hidden; border: 1px solid #d7c7ae; border-radius: 20px; background: #fffaf0f5; box-shadow: 0 16px 42px #49331f2e; backdrop-filter: blur(14px); animation: browser-companion-in .24s ease-out; }
+.browser-companion-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 8px 16px; color: #806b53; font-size: calc(11px * var(--font-scale, 1)); letter-spacing: .5px; }
+.browser-companion-close { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 0; border-radius: 10px; background: transparent; color: #806b53; }
+.browser-companion-close:hover { background: #efe4d2; }
+.browser-companion-body { display: flex; align-items: center; gap: 12px; padding: 4px 16px 8px; }
+.browser-companion-visual { display: grid; place-items: center; flex: 0 0 78px; width: 78px; height: 78px; border-radius: 18px; overflow: hidden; background: radial-gradient(ellipse at 50% 90%, #ced2ae88, transparent 68%), #f1efe1; }
+.browser-companion-visual .pet { width: 76px; height: 76px; }
+.browser-companion-visual img { width: 100%; height: 100%; object-fit: contain; }
+.browser-companion-copy { min-width: 0; }
+.browser-companion-copy strong { display: block; color: #5d4937; font-size: calc(15px * var(--font-scale, 1)); line-height: 1.55; }
+.browser-companion-copy p { margin-top: 3px; color: #897761; font-size: calc(11px * var(--font-scale, 1)); line-height: 1.6; }
+.browser-companion-boundary { margin: 0; padding: 8px 16px 11px; border-top: 1px solid #eadfce; color: #887761; font-size: calc(10px * var(--font-scale, 1)); line-height: 1.6; }
+@keyframes browser-companion-in { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .browser-companion-card { animation: none; } }
+@media (max-width: 440px) { .browser-companion-layer { right: 14px; bottom: max(14px, env(safe-area-inset-bottom)); width: min(286px, calc(100vw - 28px)); } }

@@ -76,9 +76,10 @@ test('恢复失败显示错误，不伪报桌宠已经打开', async ({ page }) 
   await expect(page.getByText('桌宠已显示在桌面。', { exact: true })).toHaveCount(0);
 });
 
-test('浏览器预览明确提示使用桌面客户端', async ({ page }) => {
+test('浏览器显示当前页面陪伴，并明确不替换系统桌宠', async ({ page }) => {
   const button = await openSidebar(page);
   await button.click();
-  await expect(page.getByRole('alert')).toContainText('请在微光指引桌面客户端中打开桌宠');
-  await expect(page.getByText('桌宠已显示在桌面。', { exact: true })).toHaveCount(0);
+  await expect(page.locator('[aria-label="网页陪伴：小橘猫"]')).toContainText('小橘猫在这里陪你');
+  await expect(page.getByRole('status')).toContainText('小橘猫已显示在当前页面');
+  await expect(page.locator('[aria-label="网页陪伴：小橘猫"]')).toContainText('不会替换系统桌宠');
 });

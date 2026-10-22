@@ -9,6 +9,7 @@ import './pet-settings.css';
 import { LocalModelPanel } from '../three-d/model-panel';
 import { CompanionCatalog } from './companions';
 import { localCompanionBridge, showLiliCompanion } from '../local-companion';
+import { showBrowserCompanion } from '../browser-companion';
 
 const pets = [{ id: 'cat', name: '小橘猫', color: '#D98347' }, { id: 'rabbit', name: '小白兔', color: '#D7C5AB' }, { id: 'dog', name: '小暖狗', color: '#C19165' }, { id: 'lili', name: '栗栗小鹿', color: '#A66B4B' }] as const;
 
@@ -35,6 +36,11 @@ export function PetsPage() {
     if (calling) return;
     setCalling(true); setCallStatus(''); setCallError('');
     try {
+      if (!canCall) {
+        showBrowserCompanion({ kind: 'lili', label: '栗栗' });
+        setCallStatus('栗栗已显示在当前页面；系统悬浮桌宠仍需使用桌面客户端。');
+        return;
+      }
       const resource = await showLiliCompanion();
       setCallStatus(`栗栗 ${resource.version} 已切换并显示在桌面。`);
     } catch (error) { setCallError(error instanceof Error ? error.message : '栗栗桌宠调用未完成，请重试。'); }
@@ -72,8 +78,8 @@ export function PetsPage() {
           <p>使用已有角色工程导出的透明 PNG 素材；这里是静态预览，桌面运行时播放真实动作，不是三维模型。</p>
           <div className="lili-resource-tags"><span>资源 ID：<code>lili</code></span><span>六种表情 · 六个动作</span></div>
           <p className="small-note">确认应用会在本机记住伙伴；调用会立即切换桌面角色，不会替你保存本页预览。栗栗的五官、围巾、配色和持灯侧保持统一，不使用下方通用微调。</p>
-          <button className="button secondary" disabled={!canCall || calling || busy} onClick={() => void callLili()}><Monitor size={18} />{calling ? '正在调用栗栗…' : '调用栗栗桌宠'}</button>
-          {!canCall && <p className="small-note">调用需要新版微光指引桌面客户端；若客户端已打开，请正常退出后重新启动。浏览器里仍可预览和保存选择。</p>}
+          <button className="button secondary" disabled={calling || busy} onClick={() => void callLili()}><Monitor size={18} />{calling ? '正在请栗栗陪伴…' : canCall ? '调用栗栗桌宠' : '在本页显示栗栗'}</button>
+          {!canCall && <p className="small-note">手机浏览器会在当前页面显示栗栗；替换系统悬浮桌宠请使用微光指引桌面客户端。</p>}
           <p className="lili-call-status" role="status">{callStatus}</p>
           {callError && <p className="inline-error" role="alert">{callError}</p>}
         </section>}

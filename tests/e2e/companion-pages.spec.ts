@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('伙伴收藏分别打开小鹿和小猫的独立页面，浏览不替换桌宠', async ({ page }) => {
+test('伙伴收藏分别打开小鹿和小猫的独立页面，手机浏览器可显示页面陪伴', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/#/pets');
@@ -10,7 +10,14 @@ test('伙伴收藏分别打开小鹿和小猫的独立页面，浏览不替换�
   await expect(page).toHaveURL(/#\/pets\/lili$/);
   await expect(page.getByRole('heading', { name: '小鹿栗栗', exact: true })).toBeVisible();
   await expect(page.getByRole('region', { name: '栗栗 Lili' })).toContainText('栗栗目前不是 3D 模型');
-  await expect(page.getByRole('button', { name: '请栗栗到桌面', exact: true })).toBeDisabled();
+  const liliButton = page.getByRole('button', { name: '在本页显示栗栗', exact: true });
+  await expect(liliButton).toBeEnabled();
+  await liliButton.click();
+  await page.getByRole('button', { name: '确认在本页显示栗栗', exact: true }).click();
+  await expect(page.locator('[aria-label="网页陪伴：栗栗"]')).toContainText('栗栗在这里陪你');
+  await expect(page.getByRole('status')).toContainText('栗栗已显示在当前页面');
+  await page.getByRole('button', { name: '关闭页面陪伴', exact: true }).click();
+  await expect(page.locator('[aria-label="网页陪伴：栗栗"]')).toHaveCount(0);
   await expect(page.getByRole('region', { name: '露米 Lumi' })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -19,7 +26,7 @@ test('伙伴收藏分别打开小鹿和小猫的独立页面，浏览不替换�
   await expect(page).toHaveURL(/#\/pets\/lumi$/);
   await expect(page.getByRole('region', { name: '露米 Lumi' })).toBeVisible();
   await expect(page.getByRole('region', { name: '栗栗 Lili' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: '设为桌面小伙伴', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '在本页显示露米', exact: true })).toBeEnabled();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('link', { name: '返回伙伴收藏' }).click();
   await expect(collection).toBeVisible();

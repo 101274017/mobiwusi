@@ -14,7 +14,7 @@ test('内置小猫可真实旋转与播放动作，纯预览不调用或上传',
   await page.goto('/#/pets/lumi');
   const card = page.getByRole('region', { name: '露米 Lumi' });
   await expect(card.getByRole('img', { name: /露米魔法小猫/ })).toBeVisible();
-  await expect(card.getByRole('button', { name: '设为桌面小伙伴' })).toBeDisabled();
+  await expect(card.getByRole('button', { name: '在本页显示露米' })).toBeEnabled();
   await card.getByRole('button', { name: '预览 3D 与动作' }).click();
   const canvas = card.locator('canvas');
   await expect(canvas).toBeVisible();
@@ -29,6 +29,11 @@ test('内置小猫可真实旋转与播放动作，纯预览不调用或上传',
   await card.getByRole('button', { name: '收起 3D 预览' }).click();
   await expect(canvas).toHaveCount(0);
   await expect(card.getByRole('img', { name: /露米魔法小猫/ })).toBeVisible();
+  await card.getByRole('button', { name: '在本页显示露米' }).click();
+  await page.getByRole('button', { name: '确认在本页显示露米', exact: true }).click();
+  await expect(page.locator('[aria-label="网页陪伴：露米"]')).toContainText('露米在这里陪你');
+  await page.getByRole('button', { name: '关闭页面陪伴', exact: true }).click();
+  await expect(page.locator('[aria-label="网页陪伴：露米"]')).toHaveCount(0);
   expect(errors).toEqual([]);
   expect(uploads).toEqual([]);
 });

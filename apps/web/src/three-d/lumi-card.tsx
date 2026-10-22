@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Box, Check, Monitor, RotateCcw, Sparkles } from 'lucide-react';
 import { Badge, Modal } from '../components';
 import { localModelBridge } from '../local-model';
+import { showBrowserCompanion } from '../browser-companion';
 import { loadLumiModel, lumiModel } from './builtin-models';
 import type { createModelView } from './viewer';
 import './lumi-card.css';
@@ -57,7 +58,13 @@ export function LumiCard() {
   }, [preview]);
 
   async function apply() {
-    if (!bridge?.applyBuiltin || busy) return;
+    if (busy) return;
+    if (!bridge?.applyBuiltin) {
+      showBrowserCompanion({ kind: 'lumi', label: '露米', imageUrl: lumiModel.posterUrl });
+      setConfirm(false);
+      setNotice('露米已显示在当前页面；系统悬浮桌宠仍需使用桌面客户端。');
+      return;
+    }
     setBusy(true); setError(''); setNotice('正在本机检查并唤醒小猫…');
     try {
       const model = await bridge.applyBuiltin('lumi');
@@ -84,16 +91,16 @@ export function LumiCard() {
       <fieldset className="lumi-action-picker"><legend>和露米打个招呼</legend><div>{lumiModel.actions.map(item => <button type="button" key={item.name} disabled={!ready} aria-pressed={action === item.name} onClick={() => view.current?.playAnimation(item.name)}>{item.label}</button>)}</div></fieldset>
       <div className="lumi-buttons">
         <button type="button" className="button secondary" disabled={busy} onClick={() => setPreview(previous => !previous)}>{preview ? <RotateCcw size={18} /> : <Box size={18} />}{preview ? '收起 3D 预览' : '预览 3D 与动作'}</button>
-        <button type="button" className="button primary" disabled={!bridge?.applyBuiltin || busy} onClick={() => active ? void apply() : setConfirm(true)}><Monitor size={18} />{busy ? '正在唤醒…' : active ? '再次召唤桌宠' : '设为桌面小伙伴'}</button>
+        <button type="button" className="button primary" disabled={busy} onClick={() => active ? void apply() : setConfirm(true)}><Monitor size={18} />{busy ? '正在唤醒…' : active ? '再次召唤桌宠' : bridge?.applyBuiltin ? '设为桌面小伙伴' : '在本页显示露米'}</button>
       </div>
       <p className="lumi-local-note"><Check size={15} aria-hidden="true" />只在本机保存，不上传模型。预览不会替换当前伙伴。</p>
-      {!bridge?.applyBuiltin && <p className="lumi-platform-note">可在这里预览；保存与调用请使用更新后的电脑客户端。</p>}
+      {!bridge?.applyBuiltin && <p className="lumi-platform-note">手机浏览器可在当前页面显示露米；保存为系统桌宠请使用更新后的电脑客户端。</p>}
       {notice && <p className="lumi-notice" role="status">{notice}</p>}
       {error && !confirm && <p className="inline-error" role="alert">{error}</p>}
     </div>
-    <Modal open={confirm} onOpenChange={open => { if (!busy) setConfirm(open); }} title="让露米来到桌面？" description="确认后将小猫模型保存在本机并设为独立桌宠。现有原画不会删除，星云或栗栗形象会暂停；可在下方切回原画 / 内置桌宠。">
+    <Modal open={confirm} onOpenChange={open => { if (!busy) setConfirm(open); }} title={bridge?.applyBuiltin ? '让露米来到桌面？' : '在当前页面显示露米？'} description={bridge?.applyBuiltin ? '确认后将小猫模型保存在本机并设为独立桌宠。现有原画不会删除，星云或栗栗形象会暂停；可在下方切回原画 / 内置桌宠。' : '手机浏览器不能替换系统桌宠；确认后会在当前页面显示露米，不会上传模型或启动屏幕、麦克风采集。'}>
       {error && <p className="inline-error" role="alert">{error}</p>}
-      <div className="modal-actions"><button type="button" className="button secondary" disabled={busy} onClick={() => setConfirm(false)}>先不更换</button><button type="button" className="button primary" disabled={busy} onClick={() => void apply()}>{busy ? '正在检查并保存…' : '确认保存并调用小猫'}</button></div>
+      <div className="modal-actions"><button type="button" className="button secondary" disabled={busy} onClick={() => setConfirm(false)}>先不更换</button><button type="button" className="button primary" disabled={busy} onClick={() => void apply()}>{busy ? '正在检查并保存…' : bridge?.applyBuiltin ? '确认保存并调用小猫' : '确认在本页显示露米'}</button></div>
     </Modal>
   </section>;
 }

@@ -35,13 +35,13 @@ async function installBridgeFixture(page: Page) {
   });
 }
 
-test('浏览器可保存和透明预览，不冒充已替换系统桌宠', async ({ page }) => {
+test('浏览器可保存、透明预览并显示页面原画，不冒充系统桌宠', async ({ page }) => {
   await page.goto('/#/pets/draw');
   await expect(page.getByRole('button', { name: '保存本机草稿' })).toBeEnabled();
   await expect(page.getByRole('button', { name: '预览原画桌宠' })).toBeDisabled();
   await drawStroke(page);
   await saveAndPreview(page);
-  await expect(page.getByRole('button', { name: '直接设为桌宠', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '在本页显示原画', exact: true })).toBeEnabled();
   const pixels = await page.getByAltText('你的原画桌宠预览，透明背景').evaluate(async element => {
     const image = element as HTMLImageElement;
     await image.decode();
@@ -57,6 +57,10 @@ test('浏览器可保存和透明预览，不冒充已替换系统桌宠', async
   expect(pixels.height).toBeLessThan(480);
   expect(pixels.cornerAlpha).toBe(0);
   expect(pixels.visible).toBe(true);
+  await page.getByRole('button', { name: '在本页显示原画', exact: true }).click();
+  await expect(page.locator('[aria-label="网页陪伴：你的原画"]')).toContainText('你的原画在这里陪你');
+  await expect(page.locator('[aria-label="网页陪伴：你的原画"]')).toContainText('不会替换系统桌宠');
+  await page.getByRole('button', { name: '关闭页面陪伴', exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.reload();
   await expect(page.getByRole('button', { name: '预览原画桌宠' })).toBeEnabled();

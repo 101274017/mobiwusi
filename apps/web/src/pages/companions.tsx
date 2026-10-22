@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { ArrowLeft, ArrowUpRight, Box, Leaf, Monitor, ShieldCheck, Sparkles } from 'lucide-react';
 import { Badge, Modal, PageTitle, Pet } from '../components';
 import { localCompanionBridge, showLiliCompanion } from '../local-companion';
+import { showBrowserCompanion } from '../browser-companion';
 import { lumiModel } from '../three-d/builtin-models';
 import { LumiCard } from '../three-d/lumi-card';
 import './companions.css';
@@ -46,11 +47,17 @@ function LiliCard() {
   const [error, setError] = useState('');
 
   async function summon() {
-    if (busy || !canCall) return;
+    if (busy) return;
     setBusy(true);
     setNotice('');
     setError('');
     try {
+      if (!canCall) {
+        showBrowserCompanion({ kind: 'lili', label: '栗栗' });
+        setConfirm(false);
+        setNotice('栗栗已显示在当前页面；系统悬浮桌宠仍需使用桌面客户端。');
+        return;
+      }
       const resource = await showLiliCompanion();
       setConfirm(false);
       setNotice(`栗栗 ${resource.version} 已切换并显示在桌面。`);
@@ -79,19 +86,19 @@ function LiliCard() {
         <div><dt>资源来源</dt><dd>已有角色工程导出的 PNG 图集</dd></div>
       </dl>
       <p className="companion-boundary">这里展示真实角色原画；动作在独立桌宠中播放。栗栗目前不是 3D 模型，不支持三维旋转或通用五官微调。</p>
-      <button className="button primary" type="button" disabled={!canCall || busy} onClick={() => { setError(''); setConfirm(true); }}>
-        <Monitor size={19} aria-hidden="true" />{busy ? '正在请栗栗到桌面…' : '请栗栗到桌面'}
+      <button className="button primary" type="button" disabled={busy} onClick={() => { setError(''); setConfirm(true); }}>
+        <Monitor size={19} aria-hidden="true" />{busy ? '正在请栗栗陪伴…' : canCall ? '请栗栗到桌面' : '在本页显示栗栗'}
       </button>
-      {!canCall && <p className="small-note">浏览器里可查看角色；切换桌宠需要在微光指引桌面客户端中完成。</p>}
+      {!canCall && <p className="small-note">手机浏览器会在当前页面显示栗栗；替换系统悬浮桌宠请使用微光指引桌面客户端。</p>}
       {notice && <p className="companion-notice" role="status">{notice}</p>}
       {error && !confirm && <p className="inline-error" role="alert">{error}</p>}
     </div>
-    <Modal open={confirm} onOpenChange={open => { if (!busy) setConfirm(open); }} title="确认将栗栗请到桌面？" description="确认后通过本机角色接口切换并显示栗栗，不会上传角色资源，也不会启动屏幕或麦克风采集。">
-      <p>仅浏览此页面不会替换桌宠。确认后，原桌宠会切换为栗栗。</p>
+    <Modal open={confirm} onOpenChange={open => { if (!busy) setConfirm(open); }} title={canCall ? '确认将栗栗请到桌面？' : '在当前页面显示栗栗？'} description={canCall ? '确认后通过本机角色接口切换并显示栗栗，不会上传角色资源，也不会启动屏幕或麦克风采集。' : '手机浏览器不能替换系统桌宠；确认后会在当前页面显示栗栗，不会上传角色资源，也不会启动屏幕或麦克风采集。'}>
+      <p>{canCall ? '仅浏览此页面不会替换桌宠。确认后，原桌宠会切换为栗栗。' : '确认后，栗栗会显示在当前页面右下角；关闭页面陪伴不会影响系统桌宠。'}</p>
       {error && <p className="inline-error" role="alert">{error}</p>}
       <div className="modal-actions">
         <button className="button secondary" type="button" disabled={busy} onClick={() => setConfirm(false)}>先不更换</button>
-        <button className="button primary" type="button" disabled={busy} onClick={() => void summon()}>{busy ? '正在切换…' : '确认切换并显示栗栗'}</button>
+        <button className="button primary" type="button" disabled={busy} onClick={() => void summon()}>{busy ? '正在显示…' : canCall ? '确认切换并显示栗栗' : '确认在本页显示栗栗'}</button>
       </div>
     </Modal>
   </section>;

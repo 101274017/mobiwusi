@@ -12,6 +12,7 @@ import { readEntry } from './entry';
 import './motion.css';
 import { WelcomePage } from './pages/welcome';
 import { DesktopPetButton } from './desktop-pet-button';
+import { BrowserCompanionOverlay } from './browser-companion';
 import { PetWorkspaceHeader, useDesktopWorkspace } from './pet-workspace';
 import { HomePage, GuidePage } from './pages/core';
 import { ChatPage } from './pages/chat';
@@ -101,6 +102,7 @@ export function App(){
   const stop=()=>{window.dispatchEvent(new Event('nuanban:stop'));void platform.stopAll().catch(()=>useApp.setState({error:'本页流程已停止，但原生停止未确认。请检查系统权限；不会自动恢复。'}));announce('已停止本页讲解和教学，不会自动恢复。');};
   return <div className={'app mode-'+preferences.mode+(preferences.reducedMotion?' reduce-motion':'')+(petTool?' pet-tool-workspace':'')} style={{'--font-scale':preferences.fontScale,'--caption-size':preferences.captionSize+'px'} as React.CSSProperties}>
     <Ambient/>
+    <BrowserCompanionOverlay/>
     {petTool&&<PetWorkspaceHeader/>}
     <a className="skip-link" href="#main-content" onClick={event => { event.preventDefault(); document.getElementById('main-content')?.focus(); }}>跳到主要内容</a>
     <aside className={'sidebar'+(menu?' is-open':'')}><Link className="brand" to="/" aria-label="微光指引首页"><BrandMark className="brand-mark"/><div><strong>微光指引</strong><small>陪你慢慢学会</small></div></Link><div className="sidebar-section-label">你的学习小天地</div><nav aria-label="主要导航">{navigation.map(item=><NavLink key={item.to} to={item.to} end={item.to==='/'} className={({isActive})=>'nav-item'+(isActive?' active':'')}><item.icon size={22}/><span>{item.label}</span></NavLink>)}<NavLink className="nav-item" to="/settings"><Settings size={22}/>设置与隐私</NavLink><DesktopPetButton onOpened={()=>setMenu(false)}/></nav><div className="sidebar-bottom"><div className="sidebar-foot"><span className="online-dot"/>本机资料 · 真实模型接口</div></div></aside>

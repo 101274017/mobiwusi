@@ -6,6 +6,8 @@
 
 产品显示名称为微光指引，普通管理包、独立桌宠包与原生隔离实验仍保留各自包 ID、存储和授权边界。Android 有原生桌宠、捕获及桥接源码，不据此承诺已具备 Windows 的所有语音、单帧 AI 或桌面图标定位能力；应逐项核对独立运行时和设备实测。Debug 编译、JVM 或浏览器通过都不等于真机授权、后台通知或跨应用浮层通过。
 
+共享 Web 管理页在手机浏览器或未装配 Windows 桌面桥的 WebView 中，桌宠入口会在当前页面显示“页面陪伴伙伴”。这不是 Android 系统悬浮窗，也不会替换系统桌宠、申请屏幕/麦克风权限或上传角色资源；需要系统级浮层时，使用独立 `:standalone` 原生包并按设备权限与真机记录验收。浏览器移动视口测试只证明页面交互，不证明 Android 原生桌宠能力。
+
 先在根目录执行 pnpm android:sync，把共享 UI 复制到 app/src/main/assets/ui。
 
 使用 Android Studio 打开本目录，配置 JDK 17 和 Android SDK 36。普通包明确构建 `gradlew.bat :app:assembleDebug`；独立桌宠必须显式构建 `gradlew.bat :standalone:assembleDebug`。不要以无模块前缀的 `assembleDebug` 区分权限边界。最低 Android 26 是待评审候选，不是已验证支持范围。
