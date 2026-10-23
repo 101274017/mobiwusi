@@ -2,6 +2,7 @@ const { randomUUID } = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const nodePath = require('node:path');
+const { matchesVisualControl } = require('./observation/visual-controls.cjs');
 
 const guidanceTraceFile = (() => {
   if (process.env.NUANBAN_GUIDANCE_TRACE === '0') return null;
@@ -439,6 +440,7 @@ function createDesktopRuntime(options) {
   function currentElement(original, originalFrame, currentFrame) {
     if (!sameFrameContext(originalFrame, currentFrame)) return null;
     const matches = currentFrame.elements.filter(element => normalizeLabel(element.label) === normalizeLabel(original.label)
+      && matchesVisualControl(original, element)
       && Math.abs(element.rect.x - original.rect.x) <= 4 && Math.abs(element.rect.y - original.rect.y) <= 4);
     return matches.length === 1 ? matches[0] : null;
   }
@@ -449,6 +451,7 @@ function createDesktopRuntime(options) {
     // verification keeps using the strict signature-based currentElement().
     if (!sameFrameScope(originalFrame, currentFrame)) return null;
     const matches = currentFrame.elements.filter(element => normalizeLabel(element.label) === normalizeLabel(original.label)
+      && matchesVisualControl(original, element)
       && Math.abs(element.rect.x - original.rect.x) <= 4 && Math.abs(element.rect.y - original.rect.y) <= 4);
     return matches.length === 1 ? matches[0] : null;
   }
@@ -624,16 +627,17 @@ function createDesktopRuntime(options) {
     state.task.state = 'awaiting_action';
     state.task.awaitingReply = false;
     state.task.instruction = result.instruction;
-    state.task.presentation = result.presentation;
-    state.task.explanation = result.presentation === 'uncertain_candidate' ? '这是当前画面中的候选位置，尚未确认；请先核对。' : '请亲手操作；微光指引不会自动点击或输入。';
-    state.captions.text = result.instruction;
+    state.task.presentation = element.surface === 'visual' ? 'uncertain_candidate' : result.presentation;
+    if (element.surface === 'visual' && result.presentation === 'confirmed') state.task.instruction = '请先核对箭头处的图标候选是否为要找的入口，确认后再由本人操作。';
+    state.task.explanation = state.task.presentation === 'uncertain_candidate' ? '这是当前画面中的候选位置，尚未确认；请先核对。' : '请亲手操作；微光指引不会自动点击或输入。';
+    state.captions.text = state.task.instruction;
     previousStep = job.previous && !progressed ? job.previous : {
       element: { ...element, rect: { ...element.rect } }, signature: current.signature, frame: current,
       baselineLabels: new Set(current.elements.map(item => normalizeLabel(item.label))), issuedAt: now(),
-      expectedLabels: expected, instruction: result.instruction,
+      expectedLabels: expected, instruction: state.task.instruction,
     };
     showStepTarget(current, element);
-    message(result.instruction, 'assistant');
+    message(state.task.instruction, 'assistant');
     return true;
   }
 

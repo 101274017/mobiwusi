@@ -66,6 +66,19 @@ describe('独立桌宠按需发送适配（合成HTTP单测，不是真实供应
     expect(String(init?.body)).not.toContain(env.NUANBAN_DESKTOP_API_TOKEN);
   });
 
+  it('发送无文字图标候选的中性标签，不发送内部外观指纹', async () => {
+    const fetchRequest = vi.fn<typeof fetch>(async () => Response.json({ kind: 'clarify', instruction: '请核对候选位置。' }));
+    const input = requestInput();
+    if (input.frame.decision !== 'allow') throw new Error('expected admitted frame');
+    input.question = '请帮我找微信朋友圈';
+    input.frame.elements.push({ id: 'visual-candidate', label: '未标注图标', surface: 'visual',
+      appearance: 'b'.repeat(64), rect: { x: 120, y: 140, width: 24, height: 24 } });
+    await createDesktopAnalysisClient({ env, fetch: fetchRequest }).analyze(input);
+    const payload = JSON.parse(String(fetchRequest.mock.calls[0][1]?.body));
+    expect(payload.elements).toContainEqual({ id: 'visual-candidate', label: '未标注图标', rect: { x: 120, y: 140, width: 24, height: 24 } });
+    expect(JSON.stringify(payload)).not.toContain('b'.repeat(64));
+  });
+
   it('保留原始目标并按顺序发送追问与回答，不把补充回答当成新问题', async () => {
     const fetchRequest = vi.fn<typeof fetch>(async () => Response.json({ kind: 'step', instruction: '请您亲手打开微信。' }));
     const client = createDesktopAnalysisClient({ env, fetch: fetchRequest });

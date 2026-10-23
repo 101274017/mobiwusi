@@ -1,5 +1,6 @@
 const { createWindowsHelperProcess } = require('./windows-helper-process.cjs');
 const { checkedShellControls } = require('./windows-shell-controls.cjs');
+const { extractVisualControls } = require('./visual-controls.cjs');
 const { ObservationError, limitsFor, pngDimensions, hashPng, checkGeometry, checkAborted } = require('./observation-common.cjs');
 
 const BLACK_PIXEL = Buffer.from([0, 0, 0, 255]);
@@ -98,6 +99,8 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
         checkAborted(signal);
         for (let row = rect.top; row < rect.bottom; row += 1) bitmap.fill(BLACK_PIXEL, (row * snapshot.width + rect.left) * 4, (row * snapshot.width + rect.right) * 4);
       }
+      const visualControls = extractVisualControls({ bitmap, width: snapshot.width, height: snapshot.height, signal,
+        exclusions: masks.map(rect => ({ x: rect.left, y: rect.top, width: rect.right - rect.left, height: rect.bottom - rect.top })) });
       const sanitized = nativeImage.createFromBitmap(bitmap, { width: snapshot.width, height: snapshot.height, scaleFactor: 1 });
       if (!sanitized || sanitized.isEmpty()) throw new ObservationError('redaction_encode_failed');
       sanitizedPng = sanitized.toPNG({ scaleFactor: 1 });
@@ -105,7 +108,7 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
       if (dimensions.width !== snapshot.width || dimensions.height !== snapshot.height) throw new ObservationError('redaction_dimensions_mismatch');
       checkAborted(signal);
       returned = true;
-      return sanitizedPng;
+      return { sanitizedPng, visualControls };
     } finally {
       bitmap?.fill(0);
       if (Buffer.isBuffer(originalBitmap)) originalBitmap.fill(0);
@@ -159,8 +162,8 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
         }
       }
       const faces = result.faces.map(face => positioned(checkedRect(face?.rect, snapshot.width, snapshot.height), snapshot.geometry));
-      const sanitizedPng = sanitize(snapshot, words, faces, textAngle, signal);
-      return { status: 'complete', sourceId: snapshot.sourceId, sourceIdentity: snapshot.sourceIdentity, frameHash: snapshot.frameHash, width: snapshot.width, height: snapshot.height, words, faces, shellControls, sanitizedPng, sanitizedFrameHash: hashPng(sanitizedPng), redaction: { text: true, faces: true }, ocrStatus: 'complete', faceStatus: 'complete' };
+      const { sanitizedPng, visualControls } = sanitize(snapshot, words, faces, textAngle, signal);
+      return { status: 'complete', sourceId: snapshot.sourceId, sourceIdentity: snapshot.sourceIdentity, frameHash: snapshot.frameHash, width: snapshot.width, height: snapshot.height, words, faces, shellControls, visualControls, sanitizedPng, sanitizedFrameHash: hashPng(sanitizedPng), redaction: { text: true, faces: true }, ocrStatus: 'complete', faceStatus: 'complete' };
     } catch (error) {
       return failFrom(error, snapshot ?? frame);
     } finally {

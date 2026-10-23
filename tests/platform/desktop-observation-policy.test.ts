@@ -36,6 +36,22 @@ describe('独立桌宠本地帧门控（合成单测，不是真实外部软件�
     expect(evaluateLocalFrame(frame, detection, { authorizedSharing: true })).toMatchObject({ decision: 'pause', reason: 'unredacted_frame' });
   });
 
+  it('已授权共享接纳无文字图标候选，但普通控件布局不向模型暴露真实图形', () => {
+    const frame = syntheticFrame();
+    const visualControls = [{ label: '未标注图标' as const, surface: 'visual' as const,
+      rect: { x: 180, y: 220, width: 24, height: 24 }, appearance: 'a'.repeat(64) }];
+    const detection = { ...syntheticDetection(frame, ['微信']), visualControls };
+    const shared = evaluateLocalFrame(frame, detection, { authorizedSharing: true });
+    expect(shared).toMatchObject({ decision: 'allow', scene: 'authorized_sharing', elements: [
+      { label: '微信' }, { label: '未标注图标', surface: 'visual', appearance: 'a'.repeat(64) },
+    ] });
+    const normal = evaluateLocalFrame(frame, detection);
+    expect(normal).toMatchObject({ decision: 'allow' });
+    if (normal.decision !== 'allow') throw new Error('expected safe controls-only frame');
+    expect(normal.elements.some(element => element.surface === 'visual')).toBe(false);
+    expect(normal.scene).not.toBe('authorized_sharing');
+  });
+
   it('已授权连续共享保留大图的完整脱敏像素与公共控件，不因云发送限制退为控件布局', () => {
     const png = syntheticPng(255, 1200, 1000, true);
     const frame = { ...syntheticFrame(), width: 1200, height: 1000, geometry: null, png, frameHash: createHash('sha256').update(png).digest('hex') };

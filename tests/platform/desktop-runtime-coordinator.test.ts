@@ -198,6 +198,25 @@ describe('屏幕分析结果的可见反馈', () => {
     expect(setup.records).toEqual([]);
   });
 
+  it('模型误将无文字图标标为已确认时，运行时仍强制显示为待核对候选', async () => {
+    const setup = fixture();
+    setup.source.detect.mockImplementation(async frame => ({ ...syntheticDetection(frame, setup.controls.labels), visualControls: [
+      { label: '未标注图标', surface: 'visual', rect: { x: 180, y: 100, width: 24, height: 24 }, appearance: 'c'.repeat(64) },
+    ] }));
+    setup.analyze.mockImplementationOnce(async input => {
+      const target = input.frame.elements.find(element => element.surface === 'visual');
+      if (!target) throw new Error('expected visual candidate');
+      return { ...responseIdentity(input), kind: 'step', instruction: '请打开朋友圈。', target_id: target.id,
+        presentation: 'confirmed', expected_labels: [] };
+    });
+    await setup.start();
+    await setup.runtime.ask('请帮我找到微信朋友圈');
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task).toMatchObject({ presentation: 'uncertain_candidate', explanation: expect.stringContaining('候选'),
+      instruction: '请先核对箭头处的图标候选是否为要找的入口，确认后再由本人操作。' });
+    expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, label: '未标注图标', presentation: 'uncertain_candidate' }));
+  });
+
   it('已有步骤转为澄清时撤销旧箭头与候选标记', async () => {
     const setup = fixture();
     await beginTeaching(setup);

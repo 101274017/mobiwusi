@@ -51,6 +51,7 @@ export type DetectionResult = {
   words: DetectionWord[];
   faces: DetectionFace[];
   shellControls?: ShellControl[];
+  visualControls?: import('./visual-controls.cjs').VisualControl[];
   sanitizedPng: Buffer;
   sanitizedFrameHash: string;
   redaction: { text: true; faces: true };

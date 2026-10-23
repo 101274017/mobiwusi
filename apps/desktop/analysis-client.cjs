@@ -1,6 +1,7 @@
 const { isAdmittedFrame, isRestrictedText } = require('./observation-policy.cjs');
 
 const forbiddenTextPattern = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/u;
+const { selectAnalysisElements } = require('./analysis-elements.cjs');
 
 function failure(code, message) {
   const error = new Error(message);
@@ -69,7 +70,7 @@ function createDesktopAnalysisClient(options = {}) {
         captured_at: new Date(input.frame.capturedAt).toISOString(),
         image: { mime: preparedImage?.mime ?? 'image/png', base64: analysisPng.toString('base64') },
         redaction_profile: input.frame.redactionProfile, local_safety: 'safe', question: input.question,
-        elements: input.frame.elements.map(element => ({ id: element.id, label: element.label, rect: { ...element.rect } })),
+        elements: selectAnalysisElements(input).map(element => ({ id: element.id, label: element.label, rect: { ...element.rect } })),
       };
       if (replies !== undefined) body.clarification_replies = replies.map(reply => ({ question: reply.prompt, answer: reply.answer }));
       if (input.previousStep) body.previous_step = { instruction: input.previousStep.instruction, expected_labels: input.previousStep.expectedLabels };

@@ -2,7 +2,7 @@ const { createHash } = require('node:crypto');
 const { createControlLayout } = require('./observation/control-layout.cjs');
 const { LIMITS } = require('./observation/observation-common.cjs');
 
-const policyVersion = 'windows-local-ocr-v9';
+const policyVersion = 'windows-local-ocr-v10';
 const admittedFrames = new WeakSet();
 const privatePattern = /密码|口令|验证码|动态码|私聊|聊天记录|私人聊天|发送给|身份证|银行卡|支付|付款|收款|转账|交易确认|安全密钥|访问令牌|password|passcode|one[ -]?time|verification code|private (?:chat|message)|credit card|bank account|payment|transfer money|bearer\s|api[ _-]?key|secret key/i;
 const personalPattern = /(?:\b1[3-9]\d{9}\b)|(?:\b\d{17}[\dXx]\b)|(?:[\w.+-]+@[\w.-]+\.[A-Za-z]{2,})|(?:\b(?:sk|pk)[-_][A-Za-z0-9]{16,})/;
@@ -130,6 +130,13 @@ function evaluateFrame(frame, detection, options, selected) {
   if (!selected && !authorizedSharing && detection.words.length === 0 && !shellControls.length) return deny('no_readable_text');
   if (detection.words.some(word => typeof word?.text !== 'string' || !word.text.length || word.text.length > 512 || !validRect(word.rect, frame.width, frame.height))
     || detection.faces.some(face => !validRect(face?.rect, frame.width, frame.height))) return deny('invalid_local_regions');
+  const visualControls = detection.visualControls ?? [];
+  if (!Array.isArray(visualControls) || visualControls.length > 48 || visualControls.some(control =>
+    control?.label !== '未标注图标' || control.surface !== 'visual' || !/^[a-f0-9]{64}$/.test(control.appearance ?? '')
+    || !validRect(control.rect, frame.width, frame.height)
+    || [...detection.words, ...detection.faces].some(region => control.rect.x < region.rect.x + region.rect.width
+      && region.rect.x < control.rect.x + control.rect.width && control.rect.y < region.rect.y + region.rect.height
+      && region.rect.y < control.rect.y + control.rect.height))) return deny('invalid_local_regions');
   const text = detection.words.map(word => word.text).join(' ');
   if (text.length > 20000) return deny('local_text_limit');
   if (!authorizedSharing && (isRestrictedText(text) || isRestrictedText(detection.words.map(word => word.text).join('')))) return deny('sensitive_screen', 'private');
@@ -170,11 +177,23 @@ function evaluateFrame(frame, detection, options, selected) {
   if (requiresRedaction && sanitizedHash === frame.frameHash) { sanitizedPng.fill(0); return deny('unredacted_frame'); }
   if (now - frame.capturedAt > (options.maxAgeMs ?? 5000)) { sanitizedPng.fill(0); return deny('stale_frame'); }
   const elements = allowedWords.map((word, index) => ({ id: `element_${frame.frameHash.slice(0, 12)}_${index}`, label: word.text.trim(), rect: { ...word.rect }, ...(word.surface ? { surface: word.surface } : {}) }));
+  if (selected || authorizedSharing) {
+    for (const control of visualControls) {
+      if (shellControls.some(shell => control.rect.x >= shell.rect.x && control.rect.y >= shell.rect.y
+        && control.rect.x + control.rect.width <= shell.rect.x + shell.rect.width
+        && control.rect.y + control.rect.height <= shell.rect.y + shell.rect.height)) continue;
+      elements.push({ id: `element_${frame.frameHash.slice(0, 12)}_${elements.length}`, label: control.label,
+        rect: { ...control.rect }, surface: control.surface, appearance: control.appearance });
+    }
+  }
   // Authorized continuous sharing must not treat unrelated text drift (clock, cursor, OCR jitter,
   // body text) as a new screen; the stable identity of a frame is the set of recognizable controls
   // that arrows are allowed to point at. Controls-only frames already used this rule.
   const contextWords = scene === 'controls_only' || authorizedSharing ? allowedWords : detection.words;
-  const signature = digest(JSON.stringify(contextWords.map(word => [normalizeLabel(word.text), Math.round(word.rect.x / 4), Math.round(word.rect.y / 4), Math.round(word.rect.width / 4), Math.round(word.rect.height / 4), ...(word.surface ? [word.surface] : [])])));
+  const signature = digest(JSON.stringify([
+    ...contextWords.map(word => [normalizeLabel(word.text), Math.round(word.rect.x / 4), Math.round(word.rect.y / 4), Math.round(word.rect.width / 4), Math.round(word.rect.height / 4), ...(word.surface ? [word.surface] : [])]),
+    ...elements.filter(element => element.surface === 'visual').map(element => ['visual', element.rect, element.appearance]),
+  ]));
   const admitted = {
     decision: 'allow', risk: 'safe', reason: authorizedSharing ? 'authorized_sharing' : scene === 'controls_only' ? 'locally_projected_controls' : 'locally_checked', policyVersion, frameId: frame.frameId ?? frame.frameHash,
     frameHash: frame.frameHash, sanitizedHash, capturedAt: frame.capturedAt, sourceId: frame.sourceId,

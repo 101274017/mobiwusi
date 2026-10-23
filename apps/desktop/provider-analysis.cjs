@@ -1,4 +1,5 @@
-const { isAdmittedFrame, isRestrictedText, normalizeLabel } = require('./observation-policy.cjs');
+const { isAdmittedFrame, isRestrictedText } = require('./observation-policy.cjs');
+const { selectAnalysisElements } = require('./analysis-elements.cjs');
 
 const forbiddenTextPattern = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/u;
 
@@ -31,6 +32,10 @@ function parseResult(text, input, elements) {
       || !['confirmed', 'uncertain_candidate'].includes(parsed.presentation)) throw failure('INVALID_ANALYSIS_RESPONSE');
     result.target_id = parsed.target_id;
     result.presentation = parsed.presentation;
+    if (elements.find(element => element.id === parsed.target_id).surface === 'visual') {
+      result.presentation = 'uncertain_candidate';
+      if (parsed.presentation === 'confirmed') result.instruction = '请先核对箭头处的图标候选是否为要找的入口，确认后再由本人操作。';
+    }
     result.expected_labels = checkedLabels(parsed.expected_labels);
     if (parsed.evidence_labels !== undefined) throw failure('INVALID_ANALYSIS_RESPONSE');
   } else {
@@ -64,19 +69,7 @@ function createProviderAnalysisClient({ provider, now = Date.now } = {}) {
         || forbiddenTextPattern.test(reply.prompt) || isRestrictedText(reply.prompt)
         || typeof reply.answer !== 'string' || !reply.answer.trim() || reply.answer.length > 500
         || forbiddenTextPattern.test(reply.answer) || isRestrictedText(reply.answer))) throw failure('OUTBOUND_CLOSED');
-      const question = normalizeLabel([input.question, ...replies.map(reply => reply.answer)].join(' '));
-      const relevantLabels = new Set(expectedLabels.map(normalizeLabel));
-      for (const aliases of [['微信', 'wechat', 'weixin'], ['朋友圈', 'moments'], ['发现', 'discover']]) {
-        if (aliases.some(label => question.includes(label) || relevantLabels.has(label))) {
-          for (const label of aliases) relevantLabels.add(label);
-        }
-      }
-      const preferred = input.frame.elements.filter(element => {
-        const label = normalizeLabel(element.label);
-        return label.length > 1 && (question.includes(label) || relevantLabels.has(label));
-      });
-      const selected = new Set(preferred);
-      const elements = [...preferred, ...input.frame.elements.filter(element => !selected.has(element))].slice(0, 64);
+      const elements = selectAnalysisElements(input);
       const context = JSON.stringify({
         reason: input.reason, width: input.frame.width, height: input.frame.height,
         view: input.frame.scene === 'controls_only' ? 'controls_only_layout' : 'redacted_screen',
@@ -91,6 +84,8 @@ function createProviderAnalysisClient({ provider, now = Date.now } = {}) {
         + '控件列表未包含某个入口，只能说明本地尚未识别，不能断言用户屏幕上没有。若目标缺失，先说明识别范围有限，并建议点击“重新识别当前画面”或核对观察范围，避免让用户反复描述清楚可见的图标。'
         + '若用户所问功能尚未出现，但对应软件入口已在elements中，先指引本人打开该软件；不要因内部功能暂不可见而否认已识别的软件入口，不得编造未出现的菜单或坐标。'
         + '元素surface为taskbar表示本机已核验的任务栏按钮，通常请本人单击打开；desktop表示桌面入口，通常请本人双击。不要把没有文字的已核验图标说成未识别。'
+        + 'surface为visual且label为“未标注图标”的元素是本地从脱敏图片提取的图形候选，不是已确认的按钮。请结合真实截图中的图形、所在软件和周围布局判断用途，不能只寻找功能名称文字；矩形使用上下文width/height的像素坐标，图片若缩放请按相对位置对应。'
+        + '例如寻找微信朋友圈时，应检查微信内实际可见的无文字导航图标；不得依赖固定的第几个按钮、手机界面记忆或虚构位置。能从画面判断时选择对应候选id，presentation必须为uncertain_candidate，说明可能用途并请本人核对。看不清或没有合适候选才澄清，不要因缺少“朋友圈”文字就要求反复重新识别。'
         + '需要用户操作时格式为{"kind":"step","instruction":"只讲一步，提醒本人操作","target_id":"从elements选择实际id","presentation":"confirmed或uncertain_candidate","expected_labels":["下一画面可核验的通用标签"]}。'
         + '看不清或目标缺失时格式为{"kind":"clarify","instruction":"请说明目标"}；不支持时kind为unsupported。'
         + '只有核验或页面变化且上一动作有真实完成证据时，才可输出{"kind":"completed","instruction":"说明核验依据","evidence_labels":["当前画面实际出现的通用标签"]}，本机仍会独立核验，不得猜测完成。不得附加其他字段。当前最小上下文：' + context;
