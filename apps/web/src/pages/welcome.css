@@ -136,13 +136,13 @@
   .scene-steam { opacity: .4; }
 }
 
-/* 入场：品牌 → 标题 → 说明 → 场景 → 证据 → 卡片 */
-.welcome-brand { animation: rise-in .7s cubic-bezier(.22, .61, .36, 1) backwards; }
-.welcome-intro h1 { animation: rise-in .7s cubic-bezier(.22, .61, .36, 1) .06s backwards; }
-.welcome-lead { animation: rise-in .7s cubic-bezier(.22, .61, .36, 1) .12s backwards; }
-.welcome-scene-wrap { animation: rise-in .7s cubic-bezier(.22, .61, .36, 1) .2s backwards; }
-.welcome-proof { animation: rise-in .7s cubic-bezier(.22, .61, .36, 1) .28s backwards; }
-.welcome-card { animation: rise-in .7s cubic-bezier(.22, .61, .36, 1) .36s backwards; }
+/* 入场：品牌 → 标题 → 说明 → 场景 → 证据 → 卡片（令牌在 design-tokens，keyframes 在 motion/base.css） */
+.welcome-brand { animation: mf-rise var(--motion-4) var(--motion-ease) backwards; }
+.welcome-intro h1 { animation: mf-rise var(--motion-4) var(--motion-ease) calc(var(--motion-stagger) * 1) backwards; }
+.welcome-lead { animation: mf-rise var(--motion-4) var(--motion-ease) calc(var(--motion-stagger) * 2) backwards; }
+.welcome-scene-wrap { animation: mf-rise var(--motion-4) var(--motion-ease) calc(var(--motion-stagger) * 3) backwards; }
+.welcome-proof { animation: mf-rise var(--motion-4) var(--motion-ease) calc(var(--motion-stagger) * 4) backwards; }
+.welcome-card { animation: mf-rise var(--motion-4) var(--motion-ease) calc(var(--motion-stagger) * 5) backwards; }
 
 @media (max-width: 1100px) {
   .welcome-main { grid-template-columns: minmax(0, 1fr) 380px; gap: 32px; }

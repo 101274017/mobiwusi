@@ -8,6 +8,7 @@ import { Pet, PageTitle, Badge, Modal } from '../components';
 import './pet-settings.css';
 import { LocalModelPanel } from '../three-d/model-panel';
 import { CompanionCatalog } from './companions';
+import { stagger } from '../motion/stagger';
 import { localCompanionBridge, showLiliCompanion } from '../local-companion';
 import { showBrowserCompanion } from '../browser-companion';
 
@@ -71,7 +72,7 @@ export function PetsPage() {
       </section>
       <section className="panel pet-editor-controls" aria-label="内置伙伴微调">
         <h2>让小伙伴，更像你喜欢的样子。</h2><p>选择与微调只改变本页预览，调用桌宠是单独操作。不上传画稿，不调用生成服务。</p>
-        <fieldset><legend>选择内置伙伴</legend><div className="pet-kind-options">{pets.map(pet => <button key={pet.id} className={'button ' + (draft.kind === pet.id ? 'primary' : 'secondary')} aria-pressed={draft.kind === pet.id} disabled={calling} onClick={() => selectPet(pet)}>{pet.name}</button>)}</div></fieldset>
+        <fieldset><legend>选择内置伙伴</legend><div className="pet-kind-options">{pets.map((pet, index) => <button key={pet.id} style={stagger(index)} className={'button ' + (draft.kind === pet.id ? 'primary' : 'secondary')} aria-pressed={draft.kind === pet.id} disabled={calling} onClick={() => selectPet(pet)}>{pet.name}</button>)}</div></fieldset>
         {isLili && <section className="lili-resource-card" aria-label="栗栗角色资源">
           <Badge tone="sage">本机二维角色 · 固定形象</Badge>
           <h3>栗栗小鹿 · 提一盏暖灯，陪在身旁。</h3>
