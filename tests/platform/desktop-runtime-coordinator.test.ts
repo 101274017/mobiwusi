@@ -1880,3 +1880,25 @@ describe('真实屏幕下的箭头显示窗口与单帧识别容错', () => {
     expect(setup.analyze).toHaveBeenCalledTimes(analyzeCalls);
   });
 });
+
+describe('模型返回期间真实屏幕控件变化仍能核验安装', () => {
+  it('可识别控件集合轻微变化后模型返回仍按新帧重定位目标并绘制箭头，不再误报画面已过期', async () => {
+    const setup = fixture({ intervalMs: 15 });
+    await setup.start();
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+    const input = setup.analyze.mock.calls[0][0];
+    // 真实屏幕：模型返回前多出一个可识别控件，旧实现会因签名不同判为"画面已过期"。
+    const detects = setup.source.detect.mock.calls.length;
+    setup.controls.labels = ['设置', '显示', '文本大小', '返回', '帮助'];
+    await vi.waitFor(() => expect(setup.source.detect.mock.calls.length).toBeGreaterThan(detects + 2));
+    expect(input.canSend()).toBe(false);
+    response.resolve(stepResponse(input));
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+    expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, label: '显示' }));
+    expect(setup.runtime.snapshot().analysis.state).toBe('ready');
+  });
+});

@@ -105,8 +105,9 @@ function createProviderAnalysisClient({ provider, now = Date.now } = {}) {
           RATE_LIMITED: 'ANALYSIS_RATE_LIMITED', TIMEOUT: 'ANALYSIS_TIMEOUT', STREAM_INTERRUPTED: 'ANALYSIS_RESPONSE_INCOMPLETE' };
         throw failure(Object.hasOwn(codes, error?.code) ? codes[error.code] : 'ANALYSIS_FAILED');
       }
-      if (!input.signal?.aborted && !input.canSend() && typeof input.confirmCurrentFrame === 'function') await input.confirmCurrentFrame();
-      if (input.signal?.aborted || !input.canSend() || !isAdmittedFrame(input.frame, input.frame.capturedAt)) throw failure('OUTBOUND_CLOSED');
+      const installOk = () => typeof input.canInstallCurrent === 'function' ? input.canInstallCurrent() : input.canSend();
+      if (!input.signal?.aborted && !installOk() && typeof input.confirmCurrentFrame === 'function') await input.confirmCurrentFrame();
+      if (input.signal?.aborted || !installOk() || !isAdmittedFrame(input.frame, input.frame.capturedAt)) throw failure('OUTBOUND_CLOSED');
       if (typeof reply?.text !== 'string' || reply.text.length > 24000) throw failure('INVALID_ANALYSIS_RESPONSE');
       return parseResult(reply.text, input, elements);
     },

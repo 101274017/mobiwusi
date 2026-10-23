@@ -507,6 +507,12 @@ function createDesktopRuntime(options) {
       && isAdmittedFrame(frame, frame.capturedAt, maxAgeMs);
   }
 
+  function installableOnLatest(job) {
+    const current = latestFrame;
+    return Boolean(current && gateOpen && cloudConsent && sameGeneration(job.observation, job.task)
+      && sameFrameScope(current, job.frame) && isAdmittedFrame(current, now(), maxAgeMs));
+  }
+
   function verifiedTransition(step, frame) {
     if (!step || frame.sourceId !== step.frame.sourceId || frame.displayId !== step.frame.displayId
       || frame.capturedAt <= Math.max(step.frame.capturedAt, step.issuedAt)
@@ -519,7 +525,7 @@ function createDesktopRuntime(options) {
 
   async function installAnalysis(result, job) {
     const current = latestFrame;
-    if (!current || !canUseFrame(job.frame, job.observation, job.task, true) || !isAdmittedFrame(current, now(), maxAgeMs)
+    if (!current || !installableOnLatest(job) || !isAdmittedFrame(current, now(), maxAgeMs)
       || job.previous !== previousStep) throw new Error('stale_analysis_frame');
     if (!result || typeof result.instruction !== 'string' || !result.instruction.trim()
       || result.instruction.length > 600 || isRestrictedText(result.instruction)) throw new Error('invalid_analysis');
@@ -528,6 +534,11 @@ function createDesktopRuntime(options) {
       && (result.observation_id === undefined || result.observation_id === job.observationId);
     if (!identity) throw new Error('stale_analysis');
     if (result.kind === 'completed') {
+      // Completion needs proven DIP geometry and display identity for both the analysed frame and
+      // the frame the completion is verified against; otherwise only a step explanation is allowed.
+      if (typeof job.frame.displayId !== 'string' || !job.frame.displayId.trim()
+        || typeof current.displayId !== 'string' || !current.displayId.trim()
+        || !hasVerifiedGeometry(job.frame) || !hasVerifiedGeometry(current)) throw new Error('completion_geometry_unverified');
       const labels = new Set(current.elements.map(element => normalizeLabel(element.label)));
       const evidence = checkedLabels(result.evidence_labels).map(normalizeLabel);
       if (!['verification', 'page_changed'].includes(job.reason) || !verifiedTransition(job.previous, current)
@@ -555,12 +566,12 @@ function createDesktopRuntime(options) {
       return true;
     }
     const proposed = job.frame.elements.find(element => element.id === result.target_id);
-    const element = proposed ? currentElement(proposed, job.frame, current) : null;
+    const element = proposed ? relocatedElement(proposed, job.frame, current) : null;
     if (!element || !['confirmed', 'uncertain_candidate'].includes(result.presentation)) throw new Error('target_not_in_current_frame');
     const expected = result.expected_labels === undefined ? [] : checkedLabels(result.expected_labels);
     const progressed = verifiedTransition(job.previous, current);
     if (job.previous && !progressed) {
-      const repeated = currentElement(job.previous.element, job.previous.frame, current);
+      const repeated = relocatedElement(job.previous.element, job.previous.frame, current);
       const sameExpectation = expected.length === job.previous.expectedLabels.length
         && expected.every(label => job.previous.expectedLabels.some(item => normalizeLabel(item) === normalizeLabel(label)));
       if (!repeated || repeated.id !== element.id || !sameExpectation) throw new Error('previous_step_not_verified');
@@ -621,18 +632,19 @@ function createDesktopRuntime(options) {
         const canSend = () => !controller.signal.aborted && sequence === analysisSequence && canUseFrame(job.frame, job.observation, job.task, true);
         const installFreshnessMs = 2500;
         const frameFreshEnough = () => Boolean(latestFrame && now() - latestFrame.capturedAt <= installFreshnessMs);
+        const readyToInstall = () => installableOnLatest(job) && frameFreshEnough();
         const confirmCurrentFrame = async () => {
           for (let attempt = 0; attempt < 3; attempt += 1) {
-            if (canSend() && frameFreshEnough()) return true;
+            if (readyToInstall()) return true;
             if (controller.signal.aborted || sequence !== analysisSequence || !gateOpen || !cloudConsent
-              || !sameGeneration(job.observation, job.task) || !sameFrameContext(latestFrame, job.frame)) return false;
+              || !sameGeneration(job.observation, job.task) || !sameFrameScope(latestFrame, job.frame)) return false;
             if (!captureJob) requestFrame('page_changed');
             if (!captureJob) return false;
             state.analysis = { state: 'analyzing', message: '分析已返回，正在等待当前本地画面完成安全核验；通过后才会显示指引。' };
             publish();
             await Promise.race([captureJob, cancellation]);
           }
-          const fresh = canSend() && frameFreshEnough();
+          const fresh = readyToInstall();
           traceGuidance('install_freshness', { fresh, ageMs: latestFrame ? now() - latestFrame.capturedAt : null });
           return fresh;
         };
@@ -643,6 +655,7 @@ function createDesktopRuntime(options) {
             taskGeneration: job.task, triggerId: job.triggerId,
             previousStep: job.previous ? { instruction: job.previous.instruction, expectedLabels: [...job.previous.expectedLabels] } : null,
             signal: controller.signal, canSend, confirmCurrentFrame,
+            canInstallCurrent: () => installableOnLatest(job),
           }).then(async result => {
             if (!await confirmCurrentFrame()) throw Object.assign(new Error('OUTBOUND_CLOSED'), { code: 'OUTBOUND_CLOSED' });
             return result;

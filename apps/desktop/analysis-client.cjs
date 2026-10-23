@@ -82,8 +82,9 @@ function createDesktopAnalysisClient(options = {}) {
           throw failure(response.status === 401 || response.status === 503 ? 'ANALYSIS_UNAVAILABLE' : 'ANALYSIS_FAILED', '教学分析服务暂不可用');
         }
         const parsed = await boundedJson(response);
-        if (!signal.aborted && !input.canSend() && typeof input.confirmCurrentFrame === 'function') await input.confirmCurrentFrame();
-        if (!input.canSend() || signal.aborted || !isAdmittedFrame(input.frame, input.frame.capturedAt)) throw failure('OUTBOUND_CLOSED', '分析结果所属会话已失效');
+        const installOk = () => typeof input.canInstallCurrent === 'function' ? input.canInstallCurrent() : input.canSend();
+        if (!signal.aborted && !installOk() && typeof input.confirmCurrentFrame === 'function') await input.confirmCurrentFrame();
+        if (!installOk() || signal.aborted || !isAdmittedFrame(input.frame, input.frame.capturedAt)) throw failure('OUTBOUND_CLOSED', '分析结果所属会话已失效');
         const result = parsed?.data ?? parsed;
         if (!result || typeof result !== 'object' || Array.isArray(result) || Object.keys(result).length > 18) throw failure('INVALID_ANALYSIS_RESPONSE', '分析结果结构无效');
         return result;
