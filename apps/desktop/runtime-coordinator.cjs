@@ -1,4 +1,25 @@
 const { randomUUID } = require('node:crypto');
+const fs = require('node:fs');
+const os = require('node:os');
+const nodePath = require('node:path');
+
+const guidanceTraceFile = (() => {
+  if (process.env.NUANBAN_GUIDANCE_TRACE === '0') return null;
+  const base = process.env.APPDATA || process.env.LOCALAPPDATA || os.tmpdir();
+  return nodePath.join(base, '@nuanban', 'desktop', 'guidance-trace.log');
+})();
+
+function traceGuidance(event, detail = {}) {
+  if (!guidanceTraceFile) return;
+  try {
+    fs.mkdirSync(nodePath.dirname(guidanceTraceFile), { recursive: true });
+    const stat = fs.statSync(guidanceTraceFile, { throwIfNoEntry: false });
+    if (stat && stat.size > 512 * 1024) fs.renameSync(guidanceTraceFile, guidanceTraceFile + '.1');
+  } catch {}
+  try {
+    fs.appendFileSync(guidanceTraceFile, JSON.stringify({ at: new Date().toISOString(), event, ...detail }) + '\n');
+  } catch {}
+}
 const { evaluateLocalFrame, isAdmittedFrame, isRestrictedText, normalizeLabel, safeSummary } = require('./observation-policy.cjs');
 const { captureFailureReason, captureFailureMessage, localDetectionFailureMessage } = require('./observation/observation-common.cjs');
 
@@ -78,6 +99,7 @@ function createDesktopRuntime(options) {
   let latestFrame = null;
   let analysisFrame = null;
   let previousStep = null;
+  let targetMisses = 0;
   let clarificationReplies = [];
   let sourceId = null;
   let observationRegion = null;
@@ -109,9 +131,11 @@ function createDesktopRuntime(options) {
     if (state.messages.length > 24) state.messages.splice(0, state.messages.length - 24);
   }
 
-  function clearTarget() {
+  function clearTarget(reason = 'unspecified') {
     clearTimeout(targetTimer);
     targetTimer = null;
+    targetMisses = 0;
+    if (state.task.targetState === 'visible') traceGuidance('arrow_hide', { reason });
     state.task.targetState = 'hidden';
     renderTarget(null);
   }
@@ -455,11 +479,13 @@ function createDesktopRuntime(options) {
       state.task.explanation = '指引窗口未能在当前屏幕显示，未显示箭头。请重新选择观察屏幕后再查找；不要按旧位置操作。';
       return false;
     }
+    targetMisses = 0;
+    traceGuidance('arrow_show', { expiresInMs: expiresAt - now(), labelLen: element.label.length });
     state.task.explanation = state.task.presentation === 'uncertain_candidate'
       ? '这是当前画面中的候选位置，尚未确认；请先核对。' : '请亲手操作；微光指引不会自动点击或输入。';
     state.task.targetState = 'visible';
     targetTimer = setTimeout(() => {
-      clearTarget();
+      clearTarget('expired');
       if (state.task.state === 'awaiting_action') state.task.targetState = 'stale';
       publish();
     }, expiresAt - now());
@@ -593,16 +619,22 @@ function createDesktopRuntime(options) {
         const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, analysisTimeoutMs);
         timeout.unref?.();
         const canSend = () => !controller.signal.aborted && sequence === analysisSequence && canUseFrame(job.frame, job.observation, job.task, true);
+        const installFreshnessMs = 2500;
+        const frameFreshEnough = () => Boolean(latestFrame && now() - latestFrame.capturedAt <= installFreshnessMs);
         const confirmCurrentFrame = async () => {
-          if (canSend()) return true;
-          if (controller.signal.aborted || sequence !== analysisSequence || !gateOpen || !cloudConsent
-            || !sameGeneration(job.observation, job.task) || !sameFrameContext(latestFrame, job.frame)) return false;
-          if (!captureJob) requestFrame('page_changed');
-          if (!captureJob) return false;
-          state.analysis = { state: 'analyzing', message: '分析已返回，正在等待当前本地画面完成安全核验；通过后才会显示指引。' };
-          publish();
-          await Promise.race([captureJob, cancellation]);
-          return canSend();
+          for (let attempt = 0; attempt < 3; attempt += 1) {
+            if (canSend() && frameFreshEnough()) return true;
+            if (controller.signal.aborted || sequence !== analysisSequence || !gateOpen || !cloudConsent
+              || !sameGeneration(job.observation, job.task) || !sameFrameContext(latestFrame, job.frame)) return false;
+            if (!captureJob) requestFrame('page_changed');
+            if (!captureJob) return false;
+            state.analysis = { state: 'analyzing', message: '分析已返回，正在等待当前本地画面完成安全核验；通过后才会显示指引。' };
+            publish();
+            await Promise.race([captureJob, cancellation]);
+          }
+          const fresh = canSend() && frameFreshEnough();
+          traceGuidance('install_freshness', { fresh, ageMs: latestFrame ? now() - latestFrame.capturedAt : null });
+          return fresh;
         };
         try {
           const result = await Promise.race([options.analyzer.analyze({
@@ -708,6 +740,7 @@ function createDesktopRuntime(options) {
         if (retainedTarget) {
           const targetState = state.task.targetState;
           state.task.state = 'awaiting_action';
+          targetMisses = 0;
           showStepTarget(admitted, retainedTarget);
           if (changed || reason === 'verification' || recoveredStaleFrame || targetState !== state.task.targetState) {
             state.analysis = { state: 'ready', message: reason === 'verification'
@@ -727,14 +760,21 @@ function createDesktopRuntime(options) {
         } else if (reason === 'page_changed' && previousStep && state.task.state === 'awaiting_action') {
           if (progressed) {
             // The expected post-action controls appeared: ask the model to confirm and continue.
+            targetMisses = 0;
             queueAnalysis(admitted, reason);
             return;
           }
-          clearTarget();
-          if (state.task.targetState !== 'stale' || state.analysis.state !== 'ready') {
-            state.task.targetState = 'stale';
-            state.analysis = { state: 'ready', message: '新画面里暂时找不到刚才的位置；箭头已隐藏。目标被遮挡或正在滚动时可稍后再试，也可以亲手操作后点“我点好了”。' };
-            publish();
+          targetMisses += 1;
+          traceGuidance('target_miss', { count: targetMisses, elements: admitted.elements.length, scopeChanged });
+          // Real OCR occasionally drops a label for a single polling frame. Keep the last verified
+          // arrow for one interval, then hide it if the next safety frame still cannot see the target.
+          if (targetMisses >= 2) {
+            clearTarget('relocate_miss');
+            if (state.task.targetState !== 'stale' || state.analysis.state !== 'ready') {
+              state.task.targetState = 'stale';
+              state.analysis = { state: 'ready', message: '新画面里暂时找不到刚才的位置；箭头已隐藏。目标被遮挡或正在滚动时可稍后再试，也可以亲手操作后点“我点好了”。' };
+              publish();
+            }
           }
         } else if (reason !== 'page_changed' || changed) queueAnalysis(admitted, reason);
         else if (recoveredStaleFrame) publish();

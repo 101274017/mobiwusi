@@ -376,7 +376,7 @@ describe('分析返回与本地检测重叠时的安全续接', () => {
     expect(setup.onTarget).toHaveBeenLastCalledWith(expect.objectContaining({ visible: true, label: '显示' }));
     expect(setup.analyze).toHaveBeenCalledOnce();
     expect(setup.sent).toHaveBeenCalledOnce();
-    expect(setup.source.capture).toHaveBeenCalledTimes(3);
+    expect(setup.source.capture.mock.calls.length).toBeGreaterThanOrEqual(3);
   });
 
   it.each(['sensitive', 'stale', 'context', 'timeout', 'stop'] as const)('等待中的回复不能绕过安全、时效、上下文或取消：%s', async condition => {
@@ -1822,5 +1822,61 @@ describe('连续共享下的画面抖动不打断指引', () => {
     expect(setup.analyze).toHaveBeenCalledTimes(analyzeCalls);
     expect(setup.onTarget).toHaveBeenLastCalledWith(null);
     expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
+  });
+});
+
+describe('箭头过期窗口诊断', () => {
+  it('慢响应返回后箭头仍获得接近五秒的显示窗口，而不是按旧帧计算不到一秒', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 1500 });
+    await setup.start();
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+    const input = setup.analyze.mock.calls[0][0];
+    await advanceObservation(setup, 4500);
+    response.resolve(stepResponse(input));
+    await setup.runtime.whenIdle();
+    const target = setup.onTarget.mock.calls.at(-1)?.[0];
+    expect(target).toBeTruthy();
+    const window = target.expiresAt - setup.controls.time;
+    console.log('[diagnose] arrow window ms =', window);
+    expect(window).toBeGreaterThanOrEqual(3000);
+  });
+});
+
+describe('真实屏幕下的箭头显示窗口与单帧识别容错', () => {
+  it('慢响应返回且最新帧过旧时先取新鲜帧，箭头保留至少约两秒半的显示窗口', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 60000 });
+    await setup.start();
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+    const input = setup.analyze.mock.calls[0][0];
+    // 轮询间隔很长时不产生新帧：模拟真实 OCR 较慢、最新帧已超过安装新鲜度阈值。
+    setup.controls.time += 4500;
+    response.resolve(stepResponse(input));
+    await setup.runtime.whenIdle();
+    const target = setup.onTarget.mock.calls.at(-1)?.[0];
+    expect(target).toBeTruthy();
+    expect(target.expiresAt - setup.controls.time).toBeGreaterThanOrEqual(2500);
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+  });
+
+  it('单帧识别丢失保留一个轮询间隔，连续两帧丢失才隐藏箭头且不重复上云', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 1500 });
+    await beginTeaching(setup);
+    expect(setup.runtime.snapshot().task.targetState).toBe('visible');
+    const analyzeCalls = setup.analyze.mock.calls.length;
+    setup.controls.labels = ['今天天气不错', '返回'];
+    await advanceObservation(setup, 1500);
+    expect(setup.runtime.snapshot().task.targetState).toBe('visible');
+    await advanceObservation(setup, 1500);
+    expect(setup.runtime.snapshot().task.targetState).toBe('stale');
+    expect(setup.analyze).toHaveBeenCalledTimes(analyzeCalls);
   });
 });
