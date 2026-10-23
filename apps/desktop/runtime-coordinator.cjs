@@ -467,8 +467,13 @@ function createDesktopRuntime(options) {
       state.task.explanation = '当前捕获范围的屏幕坐标未验证，暂不绘制位置指引。请重新选择观察屏幕后再查找。';
       return false;
     }
-    const expiresAt = Math.min(frame.capturedAt + maxAgeMs, now() + 5000);
-    if (expiresAt <= now()) {
+    // The image may already be a few seconds old when local OCR/UIA finishes, but the target was
+    // just re-verified against an admitted frame. The visible window is therefore measured from the
+    // verification time and renewed by the next admitted frame; if no fresh frame renews it for five
+    // seconds the timer below hides the arrow.
+    const verifiedAt = now();
+    const expiresAt = verifiedAt + 5000;
+    if (expiresAt <= verifiedAt) {
       clearTarget();
       state.task.targetState = 'stale';
       return false;
@@ -630,7 +635,9 @@ function createDesktopRuntime(options) {
         const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, analysisTimeoutMs);
         timeout.unref?.();
         const canSend = () => !controller.signal.aborted && sequence === analysisSequence && canUseFrame(job.frame, job.observation, job.task, true);
-        const installFreshnessMs = 2500;
+        // Real capture+detect cycles here take ~3.5s, so the threshold must stay below the five
+        // second safety limit rather than assuming a fast local pipeline.
+        const installFreshnessMs = Math.max(0, maxAgeMs - 500);
         const frameFreshEnough = () => Boolean(latestFrame && now() - latestFrame.capturedAt <= installFreshnessMs);
         const readyToInstall = () => installableOnLatest(job) && frameFreshEnough();
         const confirmCurrentFrame = async () => {
@@ -661,12 +668,14 @@ function createDesktopRuntime(options) {
             return result;
           }), cancellation]);
           if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && !controller.signal.aborted) {
+            traceGuidance('analysis_reply', { kind: result?.kind, installable: installableOnLatest(job) });
             const installed = await installAnalysis(result, job);
             if (installed && state.task.state === 'awaiting_action') state.analysis = { state: 'ready', message: state.task.targetState === 'visible'
               ? '请核对箭头与当前一步说明，再亲手操作。' : '本次分析已返回，但未显示箭头；请查看这一步的说明，不要按旧位置操作。' };
             publish();
           }
         } catch (error) {
+          traceGuidance('analysis_error', { code: error?.code ?? error?.message ?? 'unknown', timedOut });
           if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && (!controller.signal.aborted || timedOut)) {
             clearTarget();
             state.task.state = 'needs_help';
@@ -695,11 +704,13 @@ function createDesktopRuntime(options) {
       let frame;
       let detection;
       try {
+        const captureStartedAt = now();
         frame = await options.source.capture({ sourceId, signal: controller.signal, ...(observationRegion ? { region: { ...observationRegion } } : {}) });
         if (!sameGeneration(generation)) return;
         detection = await options.source.detect(frame, { signal: controller.signal });
         if (!sameGeneration(generation)) return;
         const admitted = evaluateLocalFrame(frame, detection, { now: now(), maxAgeMs, authorizedSharing: true });
+        traceGuidance('capture_cycle', { ms: now() - captureStartedAt, ageMs: now() - (frame?.capturedAt ?? now()), elements: admitted?.elements?.length ?? 0, decision: admitted?.decision });
         if (admitted.decision !== 'allow') {
           if (admitted.reason === 'stale_frame' && detection?.status === 'complete') {
             if (!sameGeneration(generation, task)) return;

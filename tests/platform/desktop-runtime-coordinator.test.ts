@@ -1902,3 +1902,25 @@ describe('模型返回期间真实屏幕控件变化仍能核验安装', () => {
     expect(setup.runtime.snapshot().analysis.state).toBe('ready');
   });
 });
+
+describe('慢采集链路下的安装与箭头窗口', () => {
+  it('约四秒的旧帧仍在安全窗口内时允许安装，箭头按核验时间获得接近五秒窗口', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 60000 });
+    await setup.start();
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+    const input = setup.analyze.mock.calls[0][0];
+    // 本机采集+OCR 一轮约 3.4~4.0 秒：安装时帧龄接近四秒，但仍未超过五秒安全上限。
+    setup.controls.time += 4000;
+    response.resolve(stepResponse(input));
+    await setup.runtime.whenIdle();
+    const target = setup.onTarget.mock.calls.at(-1)?.[0];
+    expect(target).toBeTruthy();
+    expect(target.expiresAt - setup.controls.time).toBeGreaterThanOrEqual(4000);
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+    expect(setup.runtime.snapshot().analysis.state).toBe('ready');
+  });
+});
