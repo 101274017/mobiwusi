@@ -706,11 +706,14 @@ function createDesktopRuntime(options) {
       try {
         const captureStartedAt = now();
         frame = await options.source.capture({ sourceId, signal: controller.signal, ...(observationRegion ? { region: { ...observationRegion } } : {}) });
+        const captureMs = now() - captureStartedAt;
         if (!sameGeneration(generation)) return;
+        const detectStartedAt = now();
         detection = await options.source.detect(frame, { signal: controller.signal });
+        const detectMs = now() - detectStartedAt;
         if (!sameGeneration(generation)) return;
         const admitted = evaluateLocalFrame(frame, detection, { now: now(), maxAgeMs, authorizedSharing: true });
-        traceGuidance('capture_cycle', { ms: now() - captureStartedAt, ageMs: now() - (frame?.capturedAt ?? now()), elements: admitted?.elements?.length ?? 0, decision: admitted?.decision });
+        traceGuidance('capture_cycle', { captureMs, detectMs, ageMs: now() - (frame?.capturedAt ?? now()), elements: admitted?.elements?.length ?? 0, decision: admitted?.decision });
         if (admitted.decision !== 'allow') {
           if (admitted.reason === 'stale_frame' && detection?.status === 'complete') {
             if (!sameGeneration(generation, task)) return;

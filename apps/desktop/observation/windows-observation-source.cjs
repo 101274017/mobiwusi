@@ -4,13 +4,15 @@ const { createWindowsLocalDetector } = require('./windows-local-detector.cjs');
 const { createControlledScreenCapture } = require('./controlled-screen-capture.cjs');
 const { validateObservationRegion, cropObservationPng } = require('./observation-region.cjs');
 
-function createWindowsObservationSource({ desktopCapturer, screen, nativeImage, BrowserWindow, ipcMain, session, canCapture = () => false, onCaptureInvalidated, now = Date.now, timeoutMs = 10_000, limits: limitOverrides, platform = process.platform, detectorOptions = {} } = {}) {
+function createWindowsObservationSource({ desktopCapturer, screen, nativeImage, BrowserWindow, ipcMain, session, canCapture = () => false, onCaptureInvalidated, now = Date.now, timeoutMs = 10_000, limits: limitOverrides, platform = process.platform, detectorOptions = {}, sourceRefreshMs: refreshOverride } = {}) {
   const limits = limitsFor(limitOverrides);
   let capturedFrames = new WeakSet();
   const detector = createWindowsLocalDetector({ ...detectorOptions, nativeImage, platform, limits: limitOverrides,
     canReadShellControls: frame => capturedFrames.delete(frame) && listed.has(frame.sourceId) && canCapture({ sourceId: frame.sourceId }) === true });
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 60_000) throw new ObservationError('invalid_timeout');
   let listed = new Map();
+  let sourceCache = { key: '', at: Number.NEGATIVE_INFINITY, sources: null };
+  const sourceRefreshMs = Number.isFinite(refreshOverride) && refreshOverride >= 0 ? refreshOverride : 6000;
   let active = null;
   let captureRegionKey;
   const controlled = createControlledScreenCapture({ BrowserWindow, ipcMain, session, canCapture, timeoutMs, now, limits: limitOverrides,
@@ -70,6 +72,15 @@ function createWindowsObservationSource({ desktopCapturer, screen, nativeImage, 
     return Object.freeze({ ...metadata, ...(unavailableReason ? { unavailableReason } : {}) });
   }
 
+  async function enumerateCached(signal, types) {
+    checkAborted(signal);
+    const key = types.join(',');
+    if (sourceCache.key === key && sourceCache.sources && now() - sourceCache.at < sourceRefreshMs) return sourceCache.sources;
+    const sources = await enumerate(signal, types);
+    sourceCache = { key, at: now(), sources };
+    return sources;
+  }
+
   async function enumerate(signal, types) {
     checkAborted(signal);
     let sources;
@@ -124,6 +135,7 @@ function createWindowsObservationSource({ desktopCapturer, screen, nativeImage, 
         await controlled.stop();
         controlled.reset();
         listed = new Map();
+        sourceCache = { key: '', at: Number.NEGATIVE_INFINITY, sources: null };
         capturedFrames = new WeakSet();
         captureRegionKey = undefined;
         const sources = await enumerate(operationSignal, ['screen', 'window']);
@@ -147,7 +159,7 @@ function createWindowsObservationSource({ desktopCapturer, screen, nativeImage, 
         if (captureRegionKey !== undefined && captureRegionKey !== regionKey) throw new ObservationError('capture_region_changed');
         captureRegionKey = regionKey;
         const types = [selected.type];
-        const before = await enumerate(operationSignal, types);
+        const before = await enumerateCached(operationSignal, types);
         const current = before.find(source => source.id === sourceId);
         if (!current) throw new ObservationError('source_lost');
         if (identity(metadataFor(current)) !== identity(selected)) throw new ObservationError('source_changed');
@@ -161,6 +173,8 @@ function createWindowsObservationSource({ desktopCapturer, screen, nativeImage, 
           const decoded = pngDimensions(png, limits);
           if (!matchesCaptureDimensions(dimensions, decoded.width, decoded.height, limits)) throw new ObservationError('capture_dimensions_unproven');
           let geometry = checkGeometry({ ...selected.geometry, pixelWidth: decoded.width, pixelHeight: decoded.height }, decoded.width, decoded.height);
+          // The post-capture enumeration stays real: it is the proof that the source did not
+          // disappear while pixels were being copied. Only the pre-capture enumeration is cached.
           const after = await enumerate(operationSignal, types);
           const last = after.find(source => source.id === sourceId);
           if (!last) throw new ObservationError('source_lost');

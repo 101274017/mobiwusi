@@ -4,7 +4,7 @@ const { ObservationError, limitsFor, pngDimensions, hashPng, checkGeometry, chec
 
 const BLACK_PIXEL = Buffer.from([0, 0, 0, 255]);
 
-function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBytes, platform, limits: limitOverrides, canReadShellControls = () => false } = {}) {
+function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBytes, platform, limits: limitOverrides, canReadShellControls = () => false, scaledPass = false } = {}) {
   const limits = limitsFor(limitOverrides);
   const helper = createWindowsHelperProcess({ spawn, timeoutMs, maxOutputBytes, platform });
   let busy = false;
@@ -123,7 +123,7 @@ function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBy
       if (typeof nativeImage?.createFromBuffer !== 'function' || typeof nativeImage?.createFromBitmap !== 'function') throw new ObservationError('native_image_unavailable');
       snapshot = snapshotFrame(frame, attachment);
       const shellGeometry = !attachment && snapshot.sourceId.startsWith('screen:') && snapshot.geometry && canReadShellControls(frame) === true ? snapshot.geometry : null;
-      const result = await helper.run({ protocol: 1, operation: 'detect', sourceId: snapshot.sourceId, sourceIdentity: snapshot.sourceIdentity, frameHash: snapshot.frameHash, width: snapshot.width, height: snapshot.height, pngBase64: snapshot.png.toString('base64'), ...(shellGeometry ? { shellGeometry } : {}) }, { signal });
+      const result = await helper.run({ protocol: 1, operation: 'detect', scaledPass: scaledPass === true, sourceId: snapshot.sourceId, sourceIdentity: snapshot.sourceIdentity, frameHash: snapshot.frameHash, width: snapshot.width, height: snapshot.height, pngBase64: snapshot.png.toString('base64'), ...(shellGeometry ? { shellGeometry } : {}) }, { signal });
       checkAborted(signal);
       if (!result || result.protocol !== 1 || !['complete', 'unavailable', 'failed'].includes(result.status)) throw new ObservationError('detector_output_invalid');
       if (result.status !== 'complete') return failure(result.status, typeof result.reason === 'string' && /^[a-zA-Z0-9_:.+-]{1,160}$/.test(result.reason) ? result.reason : 'detector_unavailable', snapshot);

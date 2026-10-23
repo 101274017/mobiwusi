@@ -1430,3 +1430,37 @@ describe('Windows helper 取消、限额与无队列生命周期', () => {
     expect(setup.spawn).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('性能：本地观察链路开销', () => {
+  it('前置来源枚举短 TTL 内复用，每帧最多一次真实枚举；过期后重新校验', async () => {
+    let timestamp = 1000;
+    const setup = sourceSetup({ now: () => timestamp });
+    await setup.source.listSources();
+    const afterList = setup.getSources.mock.calls.length;
+    await setup.source.capture({ sourceId: 'screen:1:0' });
+    const firstCaptureCalls = setup.getSources.mock.calls.length - afterList;
+    timestamp += 1000;
+    await setup.source.capture({ sourceId: 'screen:1:0' });
+    // 前置枚举命中缓存；抓屏后的真实枚举保留，用于证明来源没在拷贝期间消失。
+    const cachedCaptureCalls = setup.getSources.mock.calls.length - afterList - firstCaptureCalls;
+    expect(cachedCaptureCalls).toBeLessThan(firstCaptureCalls);
+    timestamp += 7000;
+    await setup.source.capture({ sourceId: 'screen:1:0' });
+    const refreshedCaptureCalls = setup.getSources.mock.calls.length - afterList - firstCaptureCalls - cachedCaptureCalls;
+    expect(refreshedCaptureCalls).toBeGreaterThan(cachedCaptureCalls);
+  });
+
+  it('检测请求默认不启用放大 OCR 遍，显式开启时才发送 scaledPass', async () => {
+    const setup = helperSetup();
+    const baseline = setup.detector();
+    const accelerated = setup.detector({ scaledPass: true });
+    try {
+      await baseline.detect(frame());
+      await accelerated.detect(frame());
+      expect((setup.children[0]!.request as Record<string, unknown>).scaledPass).toBe(false);
+      expect((setup.children[1]!.request as Record<string, unknown>).scaledPass).toBe(true);
+    } finally {
+      await Promise.all([baseline.stop(), accelerated.stop()]);
+    }
+  });
+});

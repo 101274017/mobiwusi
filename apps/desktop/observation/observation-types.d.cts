@@ -98,6 +98,8 @@ export interface ScreenApi {
 }
 export interface LocalDetectorOptions {
   canReadShellControls?: (frame: ObservationFrame) => boolean;
+  /** Opt-in second up-scaled OCR pass for very small text (default false: guidance latency first). */
+  scaledPass?: boolean;
   nativeImage?: NativeImageApi;
   spawn?: typeof spawn;
   timeoutMs?: number;
@@ -124,4 +126,6 @@ export interface WindowsObservationSourceOptions {
   platform?: string;
   limits?: ObservationLimits;
   detectorOptions?: Omit<LocalDetectorOptions, 'nativeImage' | 'platform' | 'limits'>;
+  /** Pre-capture source enumeration cache TTL in ms (default 6000); post-capture enumeration stays real. */
+  sourceRefreshMs?: number;
 }

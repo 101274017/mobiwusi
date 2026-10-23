@@ -110,7 +110,7 @@ try {
                 }
                 $ocrPasses = @()
                 $scale = [Math]::Min(2.0, [Math]::Min([Windows.Media.Ocr.OcrEngine]::MaxImageDimension / [double][Math]::Max($request.width, $request.height), [Math]::Sqrt(16777216.0 / ([double]$request.width * $request.height))))
-                if ($scale -ge 1.25) {
+                if ($scale -ge 1.25 -and $request.scaledPass -ne $false) {
                     $phase = 'ocr_scaled_detect'
                     $transform = New-Object Windows.Graphics.Imaging.BitmapTransform
                     $transform.ScaledWidth = [uint32][Math]::Floor($request.width * $scale)
