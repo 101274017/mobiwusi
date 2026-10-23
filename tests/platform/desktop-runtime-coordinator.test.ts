@@ -955,7 +955,7 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     await setup.runtime.ask('如何打开微信');
     await setup.runtime.whenIdle();
     const current = setup.runtime.snapshot();
-    expect(setup.source.capture).toHaveBeenCalledTimes(6);
+    expect(setup.source.capture).toHaveBeenCalledTimes(8);
     expect(setup.source.stop).not.toHaveBeenCalled();
     expect(current.observation).toMatchObject({ state: 'observing', captureActive: true, cloudConsent: true });
     expect(current.task).toMatchObject({ state: 'needs_help', explanation: expect.stringContaining('本地画面处理超时') });
@@ -965,7 +965,7 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     setup.source.detect.mockImplementation(async frame => syntheticDetection(frame, setup.controls.labels));
     await setup.runtime.ask('如何打开微信', current.observation.generation);
     await setup.runtime.whenIdle();
-    expect(setup.source.capture).toHaveBeenCalledTimes(7);
+    expect(setup.source.capture).toHaveBeenCalledTimes(9);
     expect(setup.analyze).toHaveBeenCalledOnce();
     expect(setup.runtime.snapshot().observation).toEqual({ ...current.observation, reason: 'authorized_sharing' });
     expect(setup.runtime.snapshot().task.state).toBe('awaiting_action');
@@ -983,14 +983,14 @@ describe('驻留运行核心（合成端口单测，不替代原生/供应验收
     });
     await setup.runtime.ask('帮我找到显示设置');
     await setup.runtime.whenIdle();
-    expect(setup.source.capture).toHaveBeenCalledTimes(4);
+    expect(setup.source.capture).toHaveBeenCalledTimes(5);
     expect(setup.runtime.snapshot().analysis.state).toBe('capture_error');
     setup.source.detect.mockImplementation(async frame => syntheticDetection(frame, setup.controls.labels));
     await advanceObservation(setup, 1500);
     setup.controls.labels.push('帮助');
     await advanceObservation(setup, 1500);
     await setup.runtime.whenIdle();
-    expect(setup.source.capture).toHaveBeenCalledTimes(6);
+    expect(setup.source.capture).toHaveBeenCalledTimes(7);
     expect(setup.analyze).not.toHaveBeenCalled();
     expect(setup.source.stop).not.toHaveBeenCalled();
     expect(setup.runtime.snapshot()).toMatchObject({ observation: { state: 'observing', captureActive: true }, task: { state: 'needs_help' }, analysis: { state: 'capture_error' } });
@@ -1936,5 +1936,44 @@ describe('分析图片超过本地发送上限时的缩放副本', () => {
     expect(input.image?.bytes.length).toBe(2048);
     expect(input.frame.sanitizedPng.length).not.toBe(2048);
     expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+  });
+});
+
+describe('全屏慢链路下的安装边界', () => {
+  it('帧龄接近五秒上限时仍按当前已准入画面安装，不再报画面已过期', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 60000 });
+    await setup.start();
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+    const input = setup.analyze.mock.calls[0][0];
+    const capturesBefore = setup.source.capture.mock.calls.length;
+    // 全屏实测：模型返回时最新已准入帧龄 4.3~4.7 秒，仍在五秒安全窗口内。
+    setup.controls.time += 4700;
+    response.resolve(stepResponse(input));
+    await setup.runtime.whenIdle();
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+    expect(setup.runtime.snapshot().analysis.state).toBe('ready');
+    expect(setup.source.capture.mock.calls.length).toBe(capturesBefore);
+  });
+
+  it('帧龄超过五秒上限时先重新采集再安装，不把过期画面当作当前画面', async () => {
+    vi.useFakeTimers();
+    const setup = fixture({ intervalMs: 60000 });
+    await setup.start();
+    const response = deferred<AnalysisResult>();
+    setup.analyze.mockImplementationOnce(() => response.promise);
+    await setup.runtime.ask('帮我找到显示设置');
+    await vi.waitFor(() => expect(setup.analyze).toHaveBeenCalledOnce());
+    const input = setup.analyze.mock.calls[0][0];
+    const capturesBefore = setup.source.capture.mock.calls.length;
+    setup.controls.time += 5600;
+    response.resolve(stepResponse(input));
+    await setup.runtime.whenIdle();
+    expect(setup.source.capture.mock.calls.length).toBeGreaterThan(capturesBefore);
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
+    expect(setup.runtime.snapshot().analysis.state).toBe('ready');
   });
 });

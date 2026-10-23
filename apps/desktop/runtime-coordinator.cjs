@@ -77,7 +77,7 @@ function createDesktopRuntime(options) {
   const now = options.now ?? Date.now;
   const intervalMs = options.intervalMs ?? 1500;
   const maxAgeMs = options.maxAgeMs ?? 5000;
-  const staleFrameRetryLimit = 2;
+  const staleFrameRetryLimit = 3;
   const analysisTimeoutMs = options.analysisTimeoutMs ?? 50000;
   if (!Number.isSafeInteger(analysisTimeoutMs) || analysisTimeoutMs < 1 || analysisTimeoutMs > 60000) throw new TypeError('屏幕分析超时配置无效');
   const notify = options.onState ?? (() => undefined);
@@ -673,14 +673,20 @@ function createDesktopRuntime(options) {
         const canSend = () => !controller.signal.aborted && sequence === analysisSequence && canUseFrame(job.frame, job.observation, job.task, true);
         // Real capture+detect cycles here take ~3.5s, so the threshold must stay below the five
         // second safety limit rather than assuming a fast local pipeline.
-        const installFreshnessMs = Math.max(0, maxAgeMs - 500);
-        const frameFreshEnough = () => Boolean(latestFrame && now() - latestFrame.capturedAt <= installFreshnessMs);
-        const readyToInstall = () => installableOnLatest(job) && frameFreshEnough();
+        // installableOnLatest already requires an admitted frame (<= maxAge) in the same capture
+        // scope; a second "extra fresh" margin made full-screen installs impossible because one
+        // capture+OCR cycle finishes near age 4.3-4.7s.
+        const readyToInstall = () => installableOnLatest(job);
         const confirmCurrentFrame = async () => {
-          for (let attempt = 0; attempt < 3; attempt += 1) {
+          for (let attempt = 0; attempt < 4; attempt += 1) {
             if (readyToInstall()) return true;
             if (controller.signal.aborted || sequence !== analysisSequence || !gateOpen || !cloudConsent
-              || !sameGeneration(job.observation, job.task) || !sameFrameScope(latestFrame, job.frame)) return false;
+              || !sameGeneration(job.observation, job.task) || !sameFrameScope(latestFrame, job.frame)) {
+              traceGuidance('install_blocked', { aborted: controller.signal.aborted, sequence, gateOpen, cloudConsent,
+                sameGeneration: sameGeneration(job.observation, job.task),
+                sameScope: Boolean(latestFrame && sameFrameScope(latestFrame, job.frame)) });
+              return false;
+            }
             if (!captureJob) requestFrame('page_changed');
             if (!captureJob) return false;
             state.analysis = { state: 'analyzing', message: '分析已返回，正在等待当前本地画面完成安全核验；通过后才会显示指引。' };
@@ -688,7 +694,18 @@ function createDesktopRuntime(options) {
             await Promise.race([captureJob, cancellation]);
           }
           const fresh = readyToInstall();
-          traceGuidance('install_freshness', { fresh, ageMs: latestFrame ? now() - latestFrame.capturedAt : null });
+          traceGuidance('install_freshness', {
+            fresh,
+            ageMs: latestFrame ? now() - latestFrame.capturedAt : null,
+            admitted: Boolean(latestFrame && isAdmittedFrame(latestFrame, now(), maxAgeMs)),
+            sameScope: Boolean(latestFrame && sameFrameScope(latestFrame, job.frame)),
+            gateOpen, cloudConsent,
+            displayId: latestFrame?.displayId ?? null,
+            width: latestFrame?.width ?? null,
+            height: latestFrame?.height ?? null,
+            jobWidth: job.frame?.width ?? null,
+            jobHeight: job.frame?.height ?? null,
+          });
           return fresh;
         };
         try {
