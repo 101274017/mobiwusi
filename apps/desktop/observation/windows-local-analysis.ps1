@@ -98,9 +98,39 @@ try {
                 $faceBitmap = [Windows.Graphics.Imaging.SoftwareBitmap]::Convert($bitmap, [Windows.Graphics.Imaging.BitmapPixelFormat]::Gray8)
                 $faceOperation = $faceDetector.DetectFacesAsync($faceBitmap)
                 $phase = 'ocr_detect'
+                $ocrMaxDimension = 0
+                if ($null -ne $request.ocrMaxDimension) {
+                    try { $ocrCandidate = [double]$request.ocrMaxDimension } catch { $ocrCandidate = 0 }
+                    if ($ocrCandidate -ge 640 -and $ocrCandidate -le 8192) { $ocrMaxDimension = $ocrCandidate }
+                }
+                $longestSide = [double][Math]::Max($request.width, $request.height)
+                $ocrScale = 1.0
+                $words = New-Object System.Collections.ArrayList
+                $ocrPasses = @()
+                if ($ocrMaxDimension -gt 0 -and $longestSide -gt $ocrMaxDimension) {
+                    $phase = 'ocr_downscaled_detect'
+                    $ocrScale = $ocrMaxDimension / $longestSide
+                    $downWidth = [uint32][Math]::Max(1, [Math]::Floor([double]$request.width * $ocrScale))
+                    $downHeight = [uint32][Math]::Max(1, [Math]::Floor([double]$request.height * $ocrScale))
+                    $downTransform = New-Object Windows.Graphics.Imaging.BitmapTransform
+                    $downTransform.ScaledWidth = $downWidth
+                    $downTransform.ScaledHeight = $downHeight
+                    $downTransform.InterpolationMode = [Windows.Graphics.Imaging.BitmapInterpolationMode]::Cubic
+                    $downBitmap = Wait-WinRt ($decoder.GetSoftwareBitmapAsync([Windows.Graphics.Imaging.BitmapPixelFormat]::Bgra8, [Windows.Graphics.Imaging.BitmapAlphaMode]::Premultiplied, $downTransform, [Windows.Graphics.Imaging.ExifOrientationMode]::IgnoreExifOrientation, [Windows.Graphics.Imaging.ColorManagementMode]::DoNotColorManage)) ([Windows.Graphics.Imaging.SoftwareBitmap])
+                    $ocrResult = Wait-WinRt ($engine.RecognizeAsync($downBitmap)) ([Windows.Media.Ocr.OcrResult])
+                    if ($null -eq $ocrResult) { throw [System.IO.InvalidDataException]::new('ocr_result_missing') }
+                    foreach ($line in $ocrResult.Lines) {
+                        foreach ($word in $line.Words) {
+                            if ($words.Count -ge 8192 -or $word.Text.Length -gt 512) { throw [System.IO.InvalidDataException]::new('ocr_output_limit') }
+                            $bounds = $word.BoundingRect
+                            $null = $words.Add(@{ text = $word.Text; rect = @{ x = ($bounds.X / $ocrScale); y = ($bounds.Y / $ocrScale); width = ($bounds.Width / $ocrScale); height = ($bounds.Height / $ocrScale) } })
+                        }
+                    }
+                    $downBitmap.Dispose()
+                    $downBitmap = $null
+                } else {
                 $ocrResult = Wait-WinRt ($engine.RecognizeAsync($bitmap)) ([Windows.Media.Ocr.OcrResult])
                 if ($null -eq $ocrResult) { throw [System.IO.InvalidDataException]::new('ocr_result_missing') }
-                $words = New-Object System.Collections.ArrayList
                 foreach ($line in $ocrResult.Lines) {
                     foreach ($word in $line.Words) {
                         if ($words.Count -ge 8192 -or $word.Text.Length -gt 512) { throw [System.IO.InvalidDataException]::new('ocr_output_limit') }
@@ -108,7 +138,6 @@ try {
                         $null = $words.Add(@{ text = $word.Text; rect = @{ x = $bounds.X; y = $bounds.Y; width = $bounds.Width; height = $bounds.Height } })
                     }
                 }
-                $ocrPasses = @()
                 $scale = [Math]::Min(2.0, [Math]::Min([Windows.Media.Ocr.OcrEngine]::MaxImageDimension / [double][Math]::Max($request.width, $request.height), [Math]::Sqrt(16777216.0 / ([double]$request.width * $request.height))))
                 if ($scale -ge 1.25 -and $request.scaledPass -ne $false) {
                     $phase = 'ocr_scaled_detect'
@@ -130,6 +159,7 @@ try {
                     $ocrPasses = @(@{ width = $transform.ScaledWidth; height = $transform.ScaledHeight; words = @($scaledWords.ToArray()); textAngle = $scaledResult.TextAngle })
                     $scaledBitmap.Dispose()
                     $scaledBitmap = $null
+                }
                 }
                 $phase = 'face_detect'
                 $detectedFaces = Wait-WinRt $faceOperation ([System.Collections.Generic.IList[Windows.Media.FaceAnalysis.DetectedFace]])
@@ -156,6 +186,7 @@ try {
         } catch {}
     }
     if ($null -ne $scaledBitmap) { $scaledBitmap.Dispose() }
+    if ($null -ne $downBitmap) { $downBitmap.Dispose() }
     if ($null -ne $faceBitmap) { $faceBitmap.Dispose() }
     if ($null -ne $bitmap) { $bitmap.Dispose() }
     if ($null -ne $stream) { $stream.Dispose() }
