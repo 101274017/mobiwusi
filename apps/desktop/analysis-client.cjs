@@ -48,7 +48,10 @@ function createDesktopAnalysisClient(options = {}) {
       if (!endpoint || typeof accessToken !== 'string' || !accessToken || /[\r\n]/.test(accessToken)) throw failure('ANALYSIS_UNAVAILABLE', '尚未配置已认证的教学分析服务');
       if (!input || input.signal?.aborted || typeof input.canSend !== 'function' || !input.canSend()
         || !isAdmittedFrame(input.frame, now()) || isRestrictedText(input.question)) throw failure('OUTBOUND_CLOSED', '本地安全资格已失效，拒绝发送');
-      if (input.frame.sanitizedPng.length > 2_000_000) throw failure('ANALYSIS_IMAGE_TOO_LARGE', '脱敏画面超过分析服务图像上限；本地共享仍保持，请缩小共享范围后手动重试');
+      const prepared = typeof input.prepareImage === 'function' ? input.prepareImage() : null;
+      const preparedImage = prepared?.image && typeof prepared.image.bytes?.length === 'number' ? prepared.image : null;
+      const analysisPng = preparedImage?.bytes ?? input.frame.sanitizedPng;
+      if (analysisPng.length > 2_000_000) throw failure('ANALYSIS_IMAGE_TOO_LARGE', '脱敏画面超过分析服务图像上限；本地共享仍保持，请缩小共享范围后手动重试');
       const replies = input.clarificationReplies;
       if (replies !== undefined && (!Array.isArray(replies) || replies.length > 3 || Array.from(replies).some(reply => !reply
         || typeof reply !== 'object' || Array.isArray(reply) || Object.keys(reply).length !== 2
@@ -64,7 +67,7 @@ function createDesktopAnalysisClient(options = {}) {
         task_generation: input.taskGeneration, trigger_id: input.triggerId, trigger_reason: input.reason,
         frame_id: input.frame.frameId, frame_hash: input.frame.frameHash, sanitized_sha256: input.frame.sanitizedHash,
         captured_at: new Date(input.frame.capturedAt).toISOString(),
-        image: { mime: 'image/png', base64: input.frame.sanitizedPng.toString('base64') },
+        image: { mime: preparedImage?.mime ?? 'image/png', base64: analysisPng.toString('base64') },
         redaction_profile: input.frame.redactionProfile, local_safety: 'safe', question: input.question,
         elements: input.frame.elements.map(element => ({ id: element.id, label: element.label, rect: { ...element.rect } })),
       };
@@ -72,7 +75,7 @@ function createDesktopAnalysisClient(options = {}) {
       if (input.previousStep) body.previous_step = { instruction: input.previousStep.instruction, expected_labels: input.previousStep.expectedLabels };
       const payload = JSON.stringify(body);
       if (Buffer.byteLength(payload) > 3_000_000) throw failure('ANALYSIS_IMAGE_TOO_LARGE', '脱敏画面请求超过分析服务上限；本地共享仍保持，请缩小共享范围后手动重试');
-      if (!input.canSend() || !isAdmittedFrame(input.frame, now()) || signal.aborted) throw failure('OUTBOUND_CLOSED', '发送前本地门控已关闭');
+      if (!input.canSend() || !isAdmittedFrame(input.frame, now(), input.frameMaxAgeMs ?? undefined) || signal.aborted) throw failure('OUTBOUND_CLOSED', '发送前本地门控已关闭');
       let response;
       try {
         response = await fetchRequest(endpoint, { method: 'POST', redirect: 'error', signal,

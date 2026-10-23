@@ -1932,8 +1932,10 @@ describe('分析图片超过本地发送上限时的缩放副本', () => {
     });
     await beginTeaching(setup);
     const input = setup.analyze.mock.calls[0][0];
-    expect(input.image).toMatchObject({ mime: 'image/png', width: 800, height: 500 });
-    expect(input.image?.bytes.length).toBe(2048);
+    // 缩放副本改为分析器通过 prepareImage 惰性获取：先过发送门槛，再做耗时的 PNG 缩放。
+    const prepared = input.prepareImage?.();
+    expect(prepared?.image).toMatchObject({ mime: 'image/png', width: 800, height: 500 });
+    expect(prepared?.image.bytes.length).toBe(2048);
     expect(input.frame.sanitizedPng.length).not.toBe(2048);
     expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
   });

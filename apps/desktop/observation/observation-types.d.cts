@@ -100,7 +100,7 @@ export interface LocalDetectorOptions {
   canReadShellControls?: (frame: ObservationFrame) => boolean;
   /** Opt-in second up-scaled OCR pass for very small text (default false: guidance latency first). */
   scaledPass?: boolean;
-  /** Downscale OCR input so the longest side stays at or below this many pixels (default 1400; 0 disables). */
+  /** Downscale OCR input so the longest side stays at or below this many pixels (default 1080; 0 disables). */
   ocrMaxDimension?: number;
   nativeImage?: NativeImageApi;
   spawn?: typeof spawn;

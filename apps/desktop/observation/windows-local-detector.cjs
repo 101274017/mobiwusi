@@ -4,7 +4,7 @@ const { ObservationError, limitsFor, pngDimensions, hashPng, checkGeometry, chec
 
 const BLACK_PIXEL = Buffer.from([0, 0, 0, 255]);
 
-function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBytes, platform, limits: limitOverrides, canReadShellControls = () => false, scaledPass = false, ocrMaxDimension = 1400 } = {}) {
+function createWindowsLocalDetector({ nativeImage, spawn, timeoutMs, maxOutputBytes, platform, limits: limitOverrides, canReadShellControls = () => false, scaledPass = false, ocrMaxDimension = 1080 } = {}) {
   const limits = limitsFor(limitOverrides);
   const helper = createWindowsHelperProcess({ spawn, timeoutMs, maxOutputBytes, platform });
   let busy = false;

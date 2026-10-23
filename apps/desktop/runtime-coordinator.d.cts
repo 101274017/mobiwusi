@@ -19,6 +19,10 @@ export interface AnalysisInput {
   frame: AdmittedFrame; question: string; reason: 'question' | 'page_changed' | 'verification';
   observationId: string; guideId: string; observationGeneration: number; taskGeneration: number; triggerId: string;
   previousStep: { instruction: string; expectedLabels: string[] } | null; signal: AbortSignal; canSend(): boolean;
+  /** Frame age budget for the send path (admission itself stays at the five second window). */
+  frameMaxAgeMs?: number;
+  /** Lazily produce the scaled upload copy; called only after the analyzer's send gate passes. */
+  prepareImage?(): { image: { mime: 'image/png'; bytes: Buffer; width: number; height: number } } | null | undefined;
   /** Optional scaled copy of the sanitized frame for providers with a strict image byte limit. */
   image?: { mime: 'image/png'; bytes: Buffer; width: number; height: number };
   clarificationReplies?: { prompt: string; answer: string }[];

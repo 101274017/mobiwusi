@@ -94,15 +94,21 @@ function createProviderAnalysisClient({ provider, now = Date.now } = {}) {
         + '需要用户操作时格式为{"kind":"step","instruction":"只讲一步，提醒本人操作","target_id":"从elements选择实际id","presentation":"confirmed或uncertain_candidate","expected_labels":["下一画面可核验的通用标签"]}。'
         + '看不清或目标缺失时格式为{"kind":"clarify","instruction":"请说明目标"}；不支持时kind为unsupported。'
         + '只有核验或页面变化且上一动作有真实完成证据时，才可输出{"kind":"completed","instruction":"说明核验依据","evidence_labels":["当前画面实际出现的通用标签"]}，本机仍会独立核验，不得猜测完成。不得附加其他字段。当前最小上下文：' + context;
-      if (instructions.length > 12000 || !input.canSend() || input.signal?.aborted || !isAdmittedFrame(input.frame, now())) throw failure('OUTBOUND_CLOSED');
+      if (instructions.length > 12000 || !input.canSend() || input.signal?.aborted
+        || !isAdmittedFrame(input.frame, now())) throw failure('OUTBOUND_CLOSED');
       let reply;
       try {
-        const image = input.image && typeof input.image.bytes?.length === 'number'
-          ? input.image
-          : { mime: 'image/png', bytes: input.frame.sanitizedPng, width: input.frame.width, height: input.frame.height };
+        const prepared = typeof input.prepareImage === 'function' ? input.prepareImage() : null;
+        const image = prepared?.image && typeof prepared.image.bytes?.length === 'number'
+          ? prepared.image
+          : input.image && typeof input.image.bytes?.length === 'number'
+            ? input.image
+            : { mime: 'image/png', bytes: input.frame.sanitizedPng, width: input.frame.width, height: input.frame.height };
         reply = await provider.answer({ question: input.question, signal: input.signal, instructions, image });
       } catch (error) {
-        if (input.signal?.aborted || !input.canSend()) throw failure('OUTBOUND_CLOSED');
+        // Only real cancellation is OUTBOUND_CLOSED; a provider/network failure keeps its own code so
+        // the UI does not misreport it as a stale picture after the frame has aged.
+        if (input.signal?.aborted) throw failure('OUTBOUND_CLOSED');
         const codes = { AUTH_FAILED: 'ANALYSIS_AUTH_FAILED', PROVIDER_UNAVAILABLE: 'ANALYSIS_UNAVAILABLE',
           RATE_LIMITED: 'ANALYSIS_RATE_LIMITED', TIMEOUT: 'ANALYSIS_TIMEOUT', STREAM_INTERRUPTED: 'ANALYSIS_RESPONSE_INCOMPLETE' };
         const wrapped = failure(Object.hasOwn(codes, error?.code) ? codes[error.code] : 'ANALYSIS_FAILED');

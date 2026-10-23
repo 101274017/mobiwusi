@@ -78,6 +78,11 @@ function createDesktopRuntime(options) {
   const intervalMs = options.intervalMs ?? 1500;
   const maxAgeMs = options.maxAgeMs ?? 5000;
   const staleFrameRetryLimit = 3;
+  // Admission stays at five seconds. A frame that was admitted may be a little older by the time the
+  // analysis payload is prepared (PNG downscale/encode): the uploaded image is only used to pick a
+  // target from the locally detected element list, and the target is re-verified against a fresh
+  // admitted frame before any arrow appears, so the send path gets a bounded extra budget.
+  const analysisSendMaxAgeMs = Math.min(9000, maxAgeMs + 4000);
   const analysisTimeoutMs = options.analysisTimeoutMs ?? 50000;
   if (!Number.isSafeInteger(analysisTimeoutMs) || analysisTimeoutMs < 1 || analysisTimeoutMs > 60000) throw new TypeError('屏幕分析超时配置无效');
   const notify = options.onState ?? (() => undefined);
@@ -658,7 +663,8 @@ function createDesktopRuntime(options) {
         const controller = new AbortController();
         analysisController = controller;
         if (!canUseFrame(job.frame, job.observation, job.task)) { analysisFrame = null; release(job.frame); continue; }
-        traceGuidance('analysis_request', { pngBytes: job.frame?.sanitizedPng?.length ?? 0, elements: job.frame?.elements?.length ?? 0, reason: job.reason });
+        traceGuidance('analysis_request', { pngBytes: job.frame?.sanitizedPng?.length ?? 0, elements: job.frame?.elements?.length ?? 0,
+          reason: job.reason, frameAgeMs: job.frame ? now() - job.frame.capturedAt : null, sendMaxAgeMs: analysisSendMaxAgeMs });
         state.analysis = { state: 'analyzing', message: '仅为本次有效触发发送经过本地检查与脱敏的必要画面。' };
         state.task.state = job.reason === 'verification' ? 'verifying' : 'analyzing';
         publish();
@@ -670,7 +676,8 @@ function createDesktopRuntime(options) {
         controller.signal.addEventListener('abort', rejectCancellation, { once: true });
         const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, analysisTimeoutMs);
         timeout.unref?.();
-        const canSend = () => !controller.signal.aborted && sequence === analysisSequence && canUseFrame(job.frame, job.observation, job.task, true);
+        const canSend = () => !controller.signal.aborted && sequence === analysisSequence
+          && canUseFrame(job.frame, job.observation, job.task, true);
         // Real capture+detect cycles here take ~3.5s, so the threshold must stay below the five
         // second safety limit rather than assuming a fast local pipeline.
         // installableOnLatest already requires an admitted frame (<= maxAge) in the same capture
@@ -710,7 +717,11 @@ function createDesktopRuntime(options) {
         };
         try {
           const result = await Promise.race([options.analyzer.analyze({
-            frame: job.frame, ...(analysisImageFor(job.frame) ?? {}), question: job.question, clarificationReplies: job.clarificationReplies, reason: job.reason,
+            frame: job.frame, frameMaxAgeMs: analysisSendMaxAgeMs,
+            // Downscaling can take ~0.7s; run it only after the analyzer's own gate has accepted the
+            // freshly admitted frame so the gate is not raced by payload preparation.
+            prepareImage: () => analysisImageFor(job.frame),
+            question: job.question, clarificationReplies: job.clarificationReplies, reason: job.reason,
             observationId: job.observationId, guideId: job.guideId, observationGeneration: job.observation,
             taskGeneration: job.task, triggerId: job.triggerId,
             previousStep: job.previous ? { instruction: job.previous.instruction, expectedLabels: [...job.previous.expectedLabels] } : null,

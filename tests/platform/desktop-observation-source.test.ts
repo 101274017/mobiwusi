@@ -1460,7 +1460,7 @@ describe('性能：本地观察链路开销', () => {
       expect((setup.children[0]!.request as Record<string, unknown>).scaledPass).toBe(false);
       expect((setup.children[1]!.request as Record<string, unknown>).scaledPass).toBe(true);
       // 大区域按默认上限降采样 OCR，避免本机检测超过五秒准入窗口。
-      expect((setup.children[0]!.request as Record<string, unknown>).ocrMaxDimension).toBe(1400);
+      expect((setup.children[0]!.request as Record<string, unknown>).ocrMaxDimension).toBe(1080);
     } finally {
       await Promise.all([baseline.stop(), accelerated.stop()]);
     }
