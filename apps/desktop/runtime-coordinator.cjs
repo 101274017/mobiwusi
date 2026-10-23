@@ -37,6 +37,7 @@ function analysisFailureMessage(error, timedOut) {
     ANALYSIS_RATE_LIMITED: '模型服务暂时限流，未显示箭头；请稍后手动重新提问，不会自动重试。',
     ANALYSIS_IMAGE_TOO_LARGE: '脱敏画面超过分析服务大小上限，本次未发送，未显示箭头；当前本地共享仍保持。可停止共享后重新选择较小区域，再手动提问。',
     ANALYSIS_RESPONSE_INCOMPLETE: '模型结果未完整返回，未显示箭头；请手动重新提问，不会使用残缺结果。',
+    ANALYSIS_FAILED: '模型请求失败（网络、图片大小或返回异常），未显示箭头；请稍后手动重新提问，不会使用旧位置。',
     INVALID_ANALYSIS_RESPONSE: '模型返回的格式或目标未通过本机校验，未显示箭头；请重新提问。若反复出现，请检查模型是否支持图片与 JSON 指引。',
     OUTBOUND_CLOSED: '分析返回时画面已过期或观察范围发生变化，未显示箭头。请保持目标区域可见，再点击“查找并指引”；不会使用旧位置。',
   };
@@ -512,6 +513,40 @@ function createDesktopRuntime(options) {
       && isAdmittedFrame(frame, frame.capturedAt, maxAgeMs);
   }
 
+  const analysisImageLimitBytes = 1_400_000;
+
+  function analysisImageFor(frame) {
+    if (typeof options.resizeAnalysisImage === 'function') {
+      try {
+        const provided = options.resizeAnalysisImage(frame, analysisImageLimitBytes);
+        if (provided && typeof provided.image?.bytes?.length === 'number' && provided.image.bytes.length <= 2_000_000) return provided;
+      } catch {}
+    }
+    const png = frame?.sanitizedPng;
+    if (!png || png.length <= analysisImageLimitBytes) return null;
+    try {
+      // The main process has electron; tests inject options.resizeAnalysisImage instead.
+      const { nativeImage } = require('electron');
+      let image = nativeImage.createFromBuffer(png);
+      let { width, height } = image.getSize();
+      if (!width || !height) return null;
+      let scale = Math.min(1, 1600 / Math.max(width, height));
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const resized = image.resize({ width: Math.max(1, Math.round(width * scale)), quality: 'good' });
+        const bytes = resized.toPNG();
+        const size = resized.getSize();
+        if (bytes.length <= analysisImageLimitBytes) {
+          traceGuidance('analysis_image_scaled', { originalBytes: png.length, bytes: bytes.length, width: size.width, height: size.height });
+          return { image: { mime: 'image/png', bytes, width: size.width, height: size.height } };
+        }
+        scale *= 0.78;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
   function installableOnLatest(job) {
     const current = latestFrame;
     return Boolean(current && gateOpen && cloudConsent && sameGeneration(job.observation, job.task)
@@ -623,6 +658,7 @@ function createDesktopRuntime(options) {
         const controller = new AbortController();
         analysisController = controller;
         if (!canUseFrame(job.frame, job.observation, job.task)) { analysisFrame = null; release(job.frame); continue; }
+        traceGuidance('analysis_request', { pngBytes: job.frame?.sanitizedPng?.length ?? 0, elements: job.frame?.elements?.length ?? 0, reason: job.reason });
         state.analysis = { state: 'analyzing', message: '仅为本次有效触发发送经过本地检查与脱敏的必要画面。' };
         state.task.state = job.reason === 'verification' ? 'verifying' : 'analyzing';
         publish();
@@ -657,7 +693,7 @@ function createDesktopRuntime(options) {
         };
         try {
           const result = await Promise.race([options.analyzer.analyze({
-            frame: job.frame, question: job.question, clarificationReplies: job.clarificationReplies, reason: job.reason,
+            frame: job.frame, ...(analysisImageFor(job.frame) ?? {}), question: job.question, clarificationReplies: job.clarificationReplies, reason: job.reason,
             observationId: job.observationId, guideId: job.guideId, observationGeneration: job.observation,
             taskGeneration: job.task, triggerId: job.triggerId,
             previousStep: job.previous ? { instruction: job.previous.instruction, expectedLabels: [...job.previous.expectedLabels] } : null,
@@ -675,7 +711,7 @@ function createDesktopRuntime(options) {
             publish();
           }
         } catch (error) {
-          traceGuidance('analysis_error', { code: error?.code ?? error?.message ?? 'unknown', timedOut });
+          traceGuidance('analysis_error', { code: error?.code ?? error?.message ?? 'unknown', name: error?.name, providerCode: error?.providerCode, timedOut });
           if (sequence === analysisSequence && sameGeneration(job.observation, job.task) && (!controller.signal.aborted || timedOut)) {
             clearTarget();
             state.task.state = 'needs_help';

@@ -19,6 +19,8 @@ export interface AnalysisInput {
   frame: AdmittedFrame; question: string; reason: 'question' | 'page_changed' | 'verification';
   observationId: string; guideId: string; observationGeneration: number; taskGeneration: number; triggerId: string;
   previousStep: { instruction: string; expectedLabels: string[] } | null; signal: AbortSignal; canSend(): boolean;
+  /** Optional scaled copy of the sanitized frame for providers with a strict image byte limit. */
+  image?: { mime: 'image/png'; bytes: Buffer; width: number; height: number };
   clarificationReplies?: { prompt: string; answer: string }[];
   confirmCurrentFrame?(): Promise<boolean>;
 }
@@ -31,6 +33,7 @@ export interface RuntimeOptions {
   onState?(snapshot: RuntimeSnapshot): void;
   onTarget?(target: { visible: boolean; rect: PixelRect; label: string; instruction: string; presentation: string; expiresAt: number } | null): boolean | void;
   now?(): number; intervalMs?: number; maxAgeMs?: number; analysisTimeoutMs?: number;
+  resizeAnalysisImage?(frame: AdmittedFrame, limitBytes: number): { image: { mime: 'image/png'; bytes: Buffer; width: number; height: number } } | null | undefined;
 }
 export interface ObservationConsent { actor: string; confirmed: boolean; sourceId: string; sourceName?: string; cloudConsent?: boolean; region?: { x: number; y: number; width: number; height: number } }
 export interface StopResult { stopped: boolean; captureActive: boolean; mediaActive: boolean; reason: string }

@@ -97,13 +97,17 @@ function createProviderAnalysisClient({ provider, now = Date.now } = {}) {
       if (instructions.length > 12000 || !input.canSend() || input.signal?.aborted || !isAdmittedFrame(input.frame, now())) throw failure('OUTBOUND_CLOSED');
       let reply;
       try {
-        reply = await provider.answer({ question: input.question, signal: input.signal, instructions,
-          image: { mime: 'image/png', bytes: input.frame.sanitizedPng, width: input.frame.width, height: input.frame.height } });
+        const image = input.image && typeof input.image.bytes?.length === 'number'
+          ? input.image
+          : { mime: 'image/png', bytes: input.frame.sanitizedPng, width: input.frame.width, height: input.frame.height };
+        reply = await provider.answer({ question: input.question, signal: input.signal, instructions, image });
       } catch (error) {
         if (input.signal?.aborted || !input.canSend()) throw failure('OUTBOUND_CLOSED');
         const codes = { AUTH_FAILED: 'ANALYSIS_AUTH_FAILED', PROVIDER_UNAVAILABLE: 'ANALYSIS_UNAVAILABLE',
           RATE_LIMITED: 'ANALYSIS_RATE_LIMITED', TIMEOUT: 'ANALYSIS_TIMEOUT', STREAM_INTERRUPTED: 'ANALYSIS_RESPONSE_INCOMPLETE' };
-        throw failure(Object.hasOwn(codes, error?.code) ? codes[error.code] : 'ANALYSIS_FAILED');
+        const wrapped = failure(Object.hasOwn(codes, error?.code) ? codes[error.code] : 'ANALYSIS_FAILED');
+        wrapped.providerCode = error?.code ?? error?.name ?? 'unknown';
+        throw wrapped;
       }
       const installOk = () => typeof input.canInstallCurrent === 'function' ? input.canInstallCurrent() : input.canSend();
       if (!input.signal?.aborted && !installOk() && typeof input.confirmCurrentFrame === 'function') await input.confirmCurrentFrame();

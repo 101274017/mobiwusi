@@ -118,7 +118,7 @@ describe('桌宠追问回答保留本人原目标', () => {
   });
 });
 
-function fixture(callbacks: Pick<RuntimeOptions, 'recordTeaching' | 'suggestReview' | 'intervalMs' | 'questioner' | 'analysisTimeoutMs' | 'onState'> = {}) {
+function fixture(callbacks: Pick<RuntimeOptions, 'recordTeaching' | 'suggestReview' | 'intervalMs' | 'questioner' | 'analysisTimeoutMs' | 'onState' | 'resizeAnalysisImage'> = {}) {
   const controls = { time: Date.now(), labels: ['设置', '显示', '文本大小', '返回'], geometry: { x: -800, y: 0, width: 800, height: 600, scaleFactor: 1 } as ScreenGeometry | null, status: 'complete' as 'complete' | 'unavailable' };
   const source = {
     capture: vi.fn(async () => syntheticFrame(controls.geometry, ++controls.time)),
@@ -1922,5 +1922,19 @@ describe('慢采集链路下的安装与箭头窗口', () => {
     expect(target.expiresAt - setup.controls.time).toBeGreaterThanOrEqual(4000);
     expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
     expect(setup.runtime.snapshot().analysis.state).toBe('ready');
+  });
+});
+
+describe('分析图片超过本地发送上限时的缩放副本', () => {
+  it('注入缩放副本后分析请求携带副本而非原始帧 PNG，目标 ID 映射与箭头仍正常', async () => {
+    const setup = fixture({
+      resizeAnalysisImage: () => ({ image: { mime: 'image/png', bytes: Buffer.alloc(2048), width: 800, height: 500 } }),
+    });
+    await beginTeaching(setup);
+    const input = setup.analyze.mock.calls[0][0];
+    expect(input.image).toMatchObject({ mime: 'image/png', width: 800, height: 500 });
+    expect(input.image?.bytes.length).toBe(2048);
+    expect(input.frame.sanitizedPng.length).not.toBe(2048);
+    expect(setup.runtime.snapshot().task).toMatchObject({ state: 'awaiting_action', targetState: 'visible' });
   });
 });
