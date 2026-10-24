@@ -1,4 +1,5 @@
-:root{--paper:#FFF8EF;--white:#FFFDF8;--ink:#2D2521;--primary:#A64B2A;--muted:#8A7966;--line:#E7DED0;--sage:#6C8172;--caption-size:32px}
+/* --muted 是次要正文色：在纸色/白卡/浅底上均 ≥4.5:1（WCAG AA），仍保持暖棕 */
+:root{--paper:#FFF8EF;--white:#FFFDF8;--ink:#2D2521;--primary:#A64B2A;--muted:#6F6152;--line:#E7DED0;--sage:#6C8172;--caption-size:32px}
 
 /* 动效令牌：只新增，不改动既有颜色/字号变量 */
 :root{
